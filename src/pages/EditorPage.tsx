@@ -1,10 +1,9 @@
-import { Editor } from "../components";
+import { CodeEditor } from "../components";
 
 function EditorPage() {
   return (
     <div>
-      <div>Code here</div>
-      <Editor />
+      <CodeEditor />
     </div>
   );
 }

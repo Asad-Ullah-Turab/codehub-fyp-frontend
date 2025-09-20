@@ -1,3 +1,3 @@
-import Editor from "./EditorPage/Editor";
+import CodeEditor from "./EditorPage/CodeEditor";
 
-export { Editor };
+export { CodeEditor };

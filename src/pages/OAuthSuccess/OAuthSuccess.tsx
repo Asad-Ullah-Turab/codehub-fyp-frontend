@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { STORAGE_KEYS, ROUTES } from '../../constants';
 
 export default function OAuthSuccessPage() {
   const navigate = useNavigate();
@@ -10,13 +11,13 @@ export default function OAuthSuccessPage() {
     const error = searchParams.get('error');
 
     if (error) {
-      navigate('/signin?error=' + error);
+      navigate(ROUTES.SIGNIN + '?error=' + error);
       return;
     }
 
     if (token) {
       // Store token and redirect
-      localStorage.setItem('authToken', token);
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
       
       // Fetch user profile with the token
       fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
@@ -27,17 +28,17 @@ export default function OAuthSuccessPage() {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
-          localStorage.setItem('user', JSON.stringify(data.data.user));
-          navigate('/editor');
+          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.data.user));
+          navigate(ROUTES.EDITOR);
         } else {
-          navigate('/signin?error=oauth_failed');
+          navigate(ROUTES.SIGNIN + '?error=oauth_failed');
         }
       })
       .catch(() => {
-        navigate('/signin?error=oauth_failed');
+        navigate(ROUTES.SIGNIN + '?error=oauth_failed');
       });
     } else {
-      navigate('/signin');
+      navigate(ROUTES.SIGNIN);
     }
   }, [searchParams, navigate]);
 

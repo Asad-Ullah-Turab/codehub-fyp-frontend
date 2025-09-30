@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { authAPI } from '../services/api';
+import { STORAGE_KEYS } from '../constants';
 
 interface User {
   _id: string;
@@ -41,8 +42,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Initialize auth state from localStorage
   useEffect(() => {
     const initAuth = async () => {
-      const storedToken = localStorage.getItem('authToken');
-      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+      const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
 
       if (storedToken && storedUser) {
         setToken(storedToken);
@@ -54,8 +55,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(response.data.user);
         } catch {
           // Token invalid, clear stored data
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
+          localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+          localStorage.removeItem(STORAGE_KEYS.USER);
           setToken(null);
           setUser(null);
         }
@@ -78,8 +79,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(data.user);
       
       // Store in localStorage
-      localStorage.setItem('authToken', newToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
       
     } catch (error: unknown) {
       const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to sign in';
@@ -102,8 +103,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(data.user);
       
       // Store in localStorage
-      localStorage.setItem('authToken', newToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
       
     } catch (error: unknown) {
       const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to sign up';
@@ -123,8 +124,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Clear local state regardless of API call success
       setUser(null);
       setToken(null);
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
+      localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
     }
   };
 

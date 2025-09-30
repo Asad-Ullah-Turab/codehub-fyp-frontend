@@ -16,9 +16,8 @@ export default function SigninPage() {
     try {
       await signin(email, password);
       navigate("/editor"); // Redirect to editor after successful signin
-    } catch (error) {
+    } catch {
       // Error is handled by the context
-      console.error("Signin failed:", error);
     }
   };
 

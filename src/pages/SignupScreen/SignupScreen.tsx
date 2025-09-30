@@ -12,6 +12,7 @@ export default function SignupPage() {
   });
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [localError, setLocalError] = useState<string | null>(null);
   const { signup, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
 
@@ -25,18 +26,18 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
+    setLocalError(null);
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!");
+      setLocalError("Passwords don't match!");
       return;
     }
 
     try {
       await signup(formData.name, formData.email, formData.password, formData.confirmPassword);
       navigate("/editor"); // Redirect to editor after successful signup
-    } catch (error) {
+    } catch {
       // Error is handled by the context
-      console.error("Signup failed:", error);
     }
   };
 
@@ -138,9 +139,9 @@ export default function SignupPage() {
           </div>
 
           {/* Error Message */}
-          {error && (
+          {(error || localError) && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{error}</p>
+              <p className="text-sm text-red-600">{error || localError}</p>
             </div>
           )}
 

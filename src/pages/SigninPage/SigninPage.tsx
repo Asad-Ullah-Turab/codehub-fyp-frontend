@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { authAPI } from "../../services/api";
+import { ROUTES } from "../../constants";
 
 export default function SigninPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { signin, isLoading, error, clearError } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,13 +17,21 @@ export default function SigninPage() {
     
     try {
       await signin(email, password);
-      navigate("/editor"); // Redirect to editor after successful signin
+      // Redirect to the intended page or default to editor
+      const redirectTo = searchParams.get('redirect') || ROUTES.EDITOR;
+      navigate(redirectTo);
     } catch {
       // Error is handled by the context
     }
   };
 
   const handleOAuthSignin = (provider: string) => {
+    // Store redirect parameter for OAuth flow
+    const redirectTo = searchParams.get('redirect');
+    if (redirectTo) {
+      sessionStorage.setItem('oauth_redirect', redirectTo);
+    }
+    
     if (provider === 'google') {
       authAPI.googleLogin();
     } else if (provider === 'github') {

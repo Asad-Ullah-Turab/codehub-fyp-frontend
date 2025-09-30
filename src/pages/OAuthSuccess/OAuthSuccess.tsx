@@ -29,7 +29,10 @@ export default function OAuthSuccessPage() {
       .then(data => {
         if (data.status === 'success') {
           localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.data.user));
-          navigate(ROUTES.EDITOR);
+          // Check for redirect parameter in the original OAuth request
+          const redirectTo = sessionStorage.getItem('oauth_redirect') || ROUTES.EDITOR;
+          sessionStorage.removeItem('oauth_redirect');
+          navigate(redirectTo);
         } else {
           navigate(ROUTES.SIGNIN + '?error=oauth_failed');
         }

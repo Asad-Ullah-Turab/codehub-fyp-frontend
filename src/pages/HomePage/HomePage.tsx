@@ -1,25 +1,54 @@
-import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 const HomePage = () => {
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
       {/* Header */}
       <nav className="flex justify-between items-center p-6">
         <div className="text-2xl font-bold text-white">CodeHub</div>
         <div className="space-x-4">
-          <Link
-            to="/signin"
-            className="px-4 py-2 text-white border border-white rounded-md hover:bg-white hover:text-gray-900 transition duration-200"
-          >
-            Sign In
-          </Link>
-          <Link
-            to="/signup"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
-          >
-            Sign Up
-          </Link>
+          {isAuthenticated ? (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-white">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <span>{user?.name}</span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-white border border-white rounded-md hover:bg-white hover:text-gray-900 transition duration-200"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <>
+              <Link
+                to="/signin"
+                className="px-4 py-2 text-white border border-white rounded-md hover:bg-white hover:text-gray-900 transition duration-200"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/signup"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
@@ -50,15 +79,27 @@ const HomePage = () => {
         </div>
 
         {/* CTA Button */}
-        <Link
-          to="/editor"
-          className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-semibold rounded-lg transition duration-200 transform hover:scale-105 shadow-lg"
-        >
-          🚀 Open Code Editor
-        </Link>
+        {isAuthenticated ? (
+          <Link
+            to="/editor"
+            className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-semibold rounded-lg transition duration-200 transform hover:scale-105 shadow-lg"
+          >
+            🚀 Open Code Editor
+          </Link>
+        ) : (
+          <Link
+            to="/signin"
+            className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-lg transition duration-200 transform hover:scale-105 shadow-lg"
+          >
+            🚀 Get Started
+          </Link>
+        )}
         
         <p className="text-sm text-gray-400 mt-4">
-          No account required to try the editor
+          {isAuthenticated 
+            ? `Welcome back, ${user?.name}! Ready to code?`
+            : "Sign in to access the code editor"
+          }
         </p>
       </div>
     </div>

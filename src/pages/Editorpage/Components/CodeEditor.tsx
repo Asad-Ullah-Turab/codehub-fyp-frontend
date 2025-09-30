@@ -52,7 +52,7 @@ function CodeEditor() {
   };
 
   return (
-    <div className="flex h-[90vh]">
+    <div className="flex h-full">
       <div className="flex-1 flex flex-col">
         <div className="flex items-center gap-4 p-2 bg-gray-800 border-b border-gray-700">
           <label className="text-gray-200">Language:</label>

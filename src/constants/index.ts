@@ -21,4 +21,7 @@ export const ROUTES = {
   SIGNUP: '/signup', 
   EDITOR: '/editor',
   OAUTH_SUCCESS: '/auth/success',
+  EMAIL_VERIFICATION: '/verify-email',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
 } as const;

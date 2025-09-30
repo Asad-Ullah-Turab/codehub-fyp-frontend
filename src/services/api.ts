@@ -1,12 +1,12 @@
-import axios from 'axios';
-import { STORAGE_KEYS, API_ENDPOINTS } from '../constants';
+import axios from "axios";
+import { STORAGE_KEYS, API_ENDPOINTS } from "../constants";
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   withCredentials: true, // Include cookies in requests
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -45,6 +45,41 @@ export const authAPI = {
   githubLogin: () => {
     window.location.href = `${api.defaults.baseURL}${API_ENDPOINTS.GITHUB_OAUTH}`;
   },
+
+  // Email verification endpoints
+  verifyEmail: async (email: string, otp: string) => {
+    const response = await api.post("/auth/verify-email", { email, otp });
+    return response;
+  },
+
+  resendVerificationOTP: async (email: string) => {
+    const response = await api.post("/auth/resend-verification", { email });
+    return response.data;
+  },
+
+  // Password reset endpoints
+  requestPasswordReset: async (email: string) => {
+    const response = await api.post("/auth/forgot-password", { email });
+    return response.data;
+  },
+
+  verifyPasswordResetOTP: async (email: string, otp: string) => {
+    const response = await api.post("/auth/verify-reset-otp", { email, otp });
+    return response.data;
+  },
+
+  resetPassword: async (
+    resetToken: string,
+    newPassword: string,
+    confirmPassword: string
+  ) => {
+    const response = await api.post("/auth/reset-password", {
+      resetToken,
+      newPassword,
+      confirmPassword,
+    });
+    return response.data;
+  },
 };
 
 // Add request interceptor to include auth token
@@ -66,10 +101,20 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.USER);
-      window.location.href = '/signin';
+      // Only redirect if it's a token expiry, not email verification issues
+      const errorData = error.response?.data;
+      
+      // Don't redirect for email verification errors
+      if (errorData?.needsEmailVerification) {
+        return Promise.reject(error);
+      }
+      
+      // Only redirect for actual token expiry/invalid token
+      if (errorData?.message?.includes('token') || errorData?.message?.includes('expired') || errorData?.message?.includes('invalid')) {
+        localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER);
+        window.location.href = "/signin";
+      }
     }
     return Promise.reject(error);
   }

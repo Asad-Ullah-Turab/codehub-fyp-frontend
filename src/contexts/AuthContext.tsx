@@ -13,13 +13,19 @@ interface User {
   updatedAt: string;
 }
 
+interface SignupResult {
+  needsVerification: boolean;
+  email?: string;
+  isResend?: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   signin: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string, confirmPassword: string) => Promise<void>;
+  signup: (name: string, email: string, password: string, confirmPassword: string) => Promise<SignupResult>;
   logout: () => Promise<void>;
   error: string | null;
   clearError: () => void;
@@ -82,12 +88,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
       
-    } catch (error: unknown) {
-      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to sign in';
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
       setIsLoading(false);
+      
+    } catch (error: unknown) {
+      const errorResponse = (error as { response?: { data?: { message?: string; needsEmailVerification?: boolean } } })?.response?.data;
+      
+      // If it's an email verification error, let the component handle it completely
+      if (errorResponse?.needsEmailVerification) {
+        setIsLoading(false);
+        throw error; // Pass the full error object to the component
+      }
+      
+      // For other errors, set generic error message
+      const errorMessage = errorResponse?.message || 'Failed to sign in';
+      setError(errorMessage);
+      setIsLoading(false);
+      throw new Error(errorMessage);
     }
   };
 
@@ -98,6 +114,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       const response = await authAPI.signup({ name, email, password, confirmPassword });
       
+      // Check if email verification is needed
+      if (response.data && response.data.needsVerification) {
+        // Don't set auth state yet, user needs to verify email first
+        return { 
+          needsVerification: true, 
+          email: response.data.email,
+          isResend: response.data.isResend 
+        };
+      }
+      
+      // If no verification needed (email service not available), proceed normally
       const { token: newToken, data } = response;
       setToken(newToken);
       setUser(data.user);
@@ -105,6 +132,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Store in localStorage
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
       localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
+      
+      return { needsVerification: false };
       
     } catch (error: unknown) {
       const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || 'Failed to sign up';

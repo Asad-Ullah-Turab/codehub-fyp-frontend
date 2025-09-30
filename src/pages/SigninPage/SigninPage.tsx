@@ -7,25 +7,81 @@ import { ROUTES } from "../../constants";
 export default function SigninPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signin, isLoading, error, clearError } = useAuth();
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    clearError();
+
+  const handleSubmit = async () => {
+    console.log('SigninPage - handleSubmit called');
     
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      console.log('SigninPage - already submitting, returning');
+      return;
+    }
+
+    console.log('SigninPage - starting submission');
+    setIsSubmitting(true);
+    setError(''); // Clear local error state
+
     try {
+      console.log('SigninPage - calling AuthContext signin...');
+      
+      // Use AuthContext signin to properly set authentication state
       await signin(email, password);
-      // Redirect to the intended page or default to editor
+      console.log('SigninPage - signin successful!');
+      
+      // Redirect to editor (AuthContext handles token storage)
       const redirectTo = searchParams.get('redirect') || ROUTES.EDITOR;
       navigate(redirectTo);
-    } catch {
-      // Error is handled by the context
+      setIsSubmitting(false);
+      return;
+    } catch (error: unknown) {
+      console.log('SigninPage - signin error caught:', error);
+      const errorResponse = (error as { response?: { data?: { 
+        message?: string; 
+        needsEmailVerification?: boolean; 
+        email?: string; 
+        autoResent?: boolean; 
+      } } })?.response?.data;
+      
+      console.log('SigninPage - error response:', errorResponse);
+      
+      // Check if it's an email verification issue
+      if (errorResponse?.needsEmailVerification) {
+        console.log('SigninPage - needsEmailVerification detected');
+        console.log('SigninPage - will navigate to verification page');
+        
+        const emailToUse = errorResponse.email || email;
+        const navigationUrl = `${ROUTES.EMAIL_VERIFICATION}?email=${encodeURIComponent(emailToUse)}&autoResent=${errorResponse.autoResent ? 'true' : 'false'}`;
+        console.log('SigninPage - navigation URL:', navigationUrl);
+        
+        // Navigate directly without timeout
+        console.log('SigninPage - calling navigate...');
+        navigate(navigationUrl, {
+          replace: true
+        });
+        console.log('SigninPage - navigate called');
+        return;
+      }
+      
+      // For other errors, show them locally
+      console.log('SigninPage - setting error message');
+      if (errorResponse?.message) {
+        setError(errorResponse.message);
+      } else {
+        setError('An error occurred during signin. Please try again.');
+      }
+      setIsSubmitting(false);
+    } finally {
+      // Ensure isSubmitting is always reset
+      console.log('SigninPage - finally block executed');
     }
-  };
-
-  const handleOAuthSignin = (provider: string) => {
+  };  const handleOAuthSignin = (provider: string) => {
     // Store redirect parameter for OAuth flow
     const redirectTo = searchParams.get('redirect');
     if (redirectTo) {
@@ -130,8 +186,10 @@ export default function SigninPage() {
             </div>
           )}
 
-          {/* Email/Password Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+
+          {/* Email/Password Inputs - No Form */}
+          <div className="space-y-4">
             <div>
               <label
                 htmlFor="email"
@@ -174,29 +232,42 @@ export default function SigninPage() {
                 />
                 <span>Remember me</span>
               </label>
-              <button className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+              <Link
+                to={ROUTES.FORGOT_PASSWORD}
+                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              >
                 Forgot password?
-              </button>
+              </Link>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-blue-400 disabled:to-blue-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-lg"
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Signing In...
-                </div>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-          </form>
+
+          </div>
+
+          {/* Submit Button - Outside Form */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('SigninPage - button clicked');
+              handleSubmit();
+              return false;
+            }}
+            disabled={isSubmitting}
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-blue-400 disabled:to-blue-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-lg mt-4"
+          >
+            {isSubmitting ? (
+              <div className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Signing In...
+              </div>
+            ) : (
+              'Sign In'
+            )}
+          </button>
 
           {/* Sign Up Link */}
           <p className="text-center text-gray-600 text-sm mt-6">

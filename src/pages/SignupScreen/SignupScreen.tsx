@@ -34,10 +34,32 @@ export default function SignupPage() {
     }
 
     try {
-      await signup(formData.name, formData.email, formData.password, formData.confirmPassword);
-      navigate("/editor"); // Redirect to editor after successful signup
-    } catch {
-      // Error is handled by the context
+      const result = await signup(formData.name, formData.email, formData.password, formData.confirmPassword);
+      
+      if (result.needsVerification) {
+        // Show success message and redirect to email verification page
+        const message = result.isResend 
+          ? 'New verification code sent! Please check your email.'
+          : 'Account created! Please check your email for verification.';
+        
+        // You can show a toast/alert here if you have one
+        alert(message);
+        
+        // Redirect to email verification page
+        navigate(`/verify-email?email=${encodeURIComponent(result.email || formData.email)}`);
+      } else {
+        // No verification needed, go to editor
+        navigate("/editor");
+      }
+    } catch (error: any) {
+      // Check if it's a resend case
+      if (error.message && error.message.includes('already exists but not verified')) {
+        // This case is handled by the signup function now
+        // It should return success with needsVerification: true
+        alert('Account exists but not verified. New verification code sent to your email!');
+        navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+      }
+      // Other errors are handled by the context
     }
   };
 

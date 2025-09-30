@@ -1,3 +1,3 @@
-import CodeEditor from "./EditorPage/CodeEditor";
+import CodeEditor from "../pages/Editorpage/Components/CodeEditor";
 
 export { CodeEditor };

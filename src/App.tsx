@@ -1,4 +1,4 @@
-import EditorPage from "./pages/EditorPage";
+import EditorPage from "./pages/Editorpage/EditorPage";
 
 function App() {
   return <EditorPage />;

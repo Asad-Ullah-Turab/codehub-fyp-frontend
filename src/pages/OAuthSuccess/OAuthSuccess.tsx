@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { STORAGE_KEYS, ROUTES } from '../../constants';
+import { authAPI } from '../../services/api';
 
 export default function OAuthSuccessPage() {
   const navigate = useNavigate();
@@ -20,12 +21,7 @@ export default function OAuthSuccessPage() {
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
       
       // Fetch user profile with the token
-      fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      .then(res => res.json())
+      authAPI.getProfile()
       .then(data => {
         if (data.status === 'success') {
           localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.data.user));

@@ -1,9 +1,10 @@
 import axios from "axios";
 import { STORAGE_KEYS, API_ENDPOINTS } from "../constants";
+import { getApiUrl } from "../utils/config";
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: getApiUrl(),
   withCredentials: true, // Include cookies in requests
   headers: {
     "Content-Type": "application/json",
@@ -77,6 +78,18 @@ export const authAPI = {
       resetToken,
       newPassword,
       confirmPassword,
+    });
+    return response.data;
+  },
+};
+
+// Code execution API
+export const codeAPI = {
+  executeCode: async (code: string, language: string, input?: string) => {
+    const response = await api.post(API_ENDPOINTS.CODE_EXECUTE, {
+      code,
+      language,
+      input,
     });
     return response.data;
   },

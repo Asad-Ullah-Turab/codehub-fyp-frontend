@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
   PROFILE: '/auth/me',
   GOOGLE_OAUTH: '/auth/google',
   GITHUB_OAUTH: '/auth/github',
+  CODE_EXECUTE: '/code/execute',
 } as const;
 
 // Routes

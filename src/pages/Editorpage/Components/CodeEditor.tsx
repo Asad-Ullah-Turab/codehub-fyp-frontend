@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Editor from "@monaco-editor/react";
+import { codeAPI } from "../../../services/api";
 
 function CodeEditor() {
   const [code, setCode] = useState("// write your code here...");
@@ -9,9 +10,18 @@ function CodeEditor() {
   const [input, setInput] = useState("");
 
   const languageOptions = [
-    { id: "javascript", name: "JavaScript", defaultCode: "console.log('Hello, World!');" },
+    {
+      id: "javascript",
+      name: "JavaScript",
+      defaultCode: "console.log('Hello, World!');",
+    },
     { id: "python", name: "Python", defaultCode: "print('Hello, World!')" },
-    { id: "cpp", name: "C++", defaultCode: "#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << \"Hello, World!\" << endl;\n    return 0;\n}" }
+    {
+      id: "cpp",
+      name: "C++",
+      defaultCode:
+        '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}',
+    },
   ];
 
   const runCode = async () => {
@@ -19,13 +29,7 @@ function CodeEditor() {
     setOutput("Running...");
 
     try {
-      const response = await fetch("http://localhost:4000/api/code/execute", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, language, input }),
-      });
-
-      const data = await response.json();
+      const data = await codeAPI.executeCode(code, language, input);
       if (data.success) {
         setOutput(data.data.output || "No output");
       } else {
@@ -44,7 +48,7 @@ function CodeEditor() {
 
   const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage);
-    const langOption = languageOptions.find(lang => lang.id === newLanguage);
+    const langOption = languageOptions.find((lang) => lang.id === newLanguage);
     if (langOption) {
       setCode(langOption.defaultCode);
     }
@@ -56,13 +60,15 @@ function CodeEditor() {
       <div className="flex-1 flex flex-col">
         <div className="flex items-center gap-4 p-2 bg-gray-800 border-b border-gray-700">
           <label className="text-gray-200">Language:</label>
-          <select 
-            value={language} 
+          <select
+            value={language}
             onChange={(e) => handleLanguageChange(e.target.value)}
             className="px-3 py-1 rounded bg-gray-700 text-gray-200 border border-gray-600"
           >
-            {languageOptions.map(lang => (
-              <option key={lang.id} value={lang.id}>{lang.name}</option>
+            {languageOptions.map((lang) => (
+              <option key={lang.id} value={lang.id}>
+                {lang.name}
+              </option>
             ))}
           </select>
         </div>
@@ -85,9 +91,11 @@ function CodeEditor() {
             {loading ? "⏳ Running..." : "▶ Run Code"}
           </button>
         </div>
-        
+
         <div className="mx-2 mb-2">
-          <label className="block text-sm text-gray-400 mb-1">Input (optional):</label>
+          <label className="block text-sm text-gray-400 mb-1">
+            Input (optional):
+          </label>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -95,7 +103,7 @@ function CodeEditor() {
             placeholder="Enter input for your program..."
           />
         </div>
-        
+
         <div className="flex-1 mx-2 mb-2">
           <label className="block text-sm text-gray-400 mb-1">Output:</label>
           <pre className="h-full p-3 rounded bg-gray-800 overflow-auto text-sm">

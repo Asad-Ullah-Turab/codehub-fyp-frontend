@@ -2,10 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../constants";
-import { 
-  handleSignin, 
-  handleOAuthLogin
-} from "../../functions";
+import { handleSignin, handleOAuthLogin } from "../../functions";
 
 export default function SigninPage() {
   const [email, setEmail] = useState("");
@@ -15,8 +12,6 @@ export default function SigninPage() {
   const { signin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  
-
 
   const handleSubmit = async () => {
     // Prevent multiple submissions
@@ -25,7 +20,7 @@ export default function SigninPage() {
     }
 
     setIsSubmitting(true);
-    setError(''); // Clear local error state
+    setError(""); // Clear local error state
 
     try {
       await handleSignin(
@@ -38,11 +33,12 @@ export default function SigninPage() {
       );
     } catch (error) {
       // Errors are handled by the function
-      console.error('Signin error:', error);
+      console.error("Signin error:", error);
     } finally {
       setIsSubmitting(false);
     }
-  };  const handleOAuthSignin = (provider: 'google' | 'github') => {
+  };
+  const handleOAuthSignin = (provider: "google" | "github") => {
     handleOAuthLogin(provider, searchParams);
   };
 
@@ -137,8 +133,6 @@ export default function SigninPage() {
             </div>
           )}
 
-
-
           {/* Email/Password Inputs - No Form */}
           <div className="space-y-4">
             <div>
@@ -190,8 +184,6 @@ export default function SigninPage() {
                 Forgot password?
               </Link>
             </div>
-
-
           </div>
 
           {/* Submit Button - Outside Form */}
@@ -200,7 +192,7 @@ export default function SigninPage() {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log('SigninPage - button clicked');
+              console.log("SigninPage - button clicked");
               handleSubmit();
               return false;
             }}
@@ -209,14 +201,29 @@ export default function SigninPage() {
           >
             {isSubmitting ? (
               <div className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Signing In...
               </div>
             ) : (
-              'Sign In'
+              "Sign In"
             )}
           </button>
 

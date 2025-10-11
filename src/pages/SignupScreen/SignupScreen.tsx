@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { authAPI } from "../../services/api";
+import { 
+  handleSignup, 
+  handleOAuthLogin 
+} from "../../functions";
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -28,47 +31,21 @@ export default function SignupPage() {
     clearError();
     setLocalError(null);
 
-    if (formData.password !== formData.confirmPassword) {
-      setLocalError("Passwords don't match!");
-      return;
-    }
-
     try {
-      const result = await signup(formData.name, formData.email, formData.password, formData.confirmPassword);
-      
-      if (result.needsVerification) {
-        // Show success message and redirect to email verification page
-        const message = result.isResend 
-          ? 'New verification code sent! Please check your email.'
-          : 'Account created! Please check your email for verification.';
-        
-        // You can show a toast/alert here if you have one
-        alert(message);
-        
-        // Redirect to email verification page
-        navigate(`/verify-email?email=${encodeURIComponent(result.email || formData.email)}`);
-      } else {
-        // No verification needed, go to editor
-        navigate("/editor");
-      }
-    } catch (error: any) {
-      // Check if it's a resend case
-      if (error.message && error.message.includes('already exists but not verified')) {
-        // This case is handled by the signup function now
-        // It should return success with needsVerification: true
-        alert('Account exists but not verified. New verification code sent to your email!');
-        navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`);
-      }
-      // Other errors are handled by the context
+      await handleSignup(
+        formData,
+        signup,
+        navigate,
+        setLocalError
+      );
+    } catch (error) {
+      // Errors are handled by the function
+      console.error('Signup error:', error);
     }
   };
 
-  const handleOAuthSignup = (provider: string) => {
-    if (provider === 'google') {
-      authAPI.googleLogin();
-    } else if (provider === 'github') {
-      authAPI.githubLogin();
-    }
+  const handleOAuthSignup = (provider: 'google' | 'github') => {
+    handleOAuthLogin(provider);
   };
 
   const openTermsModal = () => setShowTermsModal(true);

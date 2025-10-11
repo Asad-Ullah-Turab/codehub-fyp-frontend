@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { authAPI } from "../../services/api";
 import { ROUTES } from "../../constants";
+import { 
+  handleSignin, 
+  handleOAuthLogin
+} from "../../functions";
 
 export default function SigninPage() {
   const [email, setEmail] = useState("");
@@ -16,83 +19,31 @@ export default function SigninPage() {
 
 
   const handleSubmit = async () => {
-    console.log('SigninPage - handleSubmit called');
-    
     // Prevent multiple submissions
     if (isSubmitting) {
-      console.log('SigninPage - already submitting, returning');
       return;
     }
 
-    console.log('SigninPage - starting submission');
     setIsSubmitting(true);
     setError(''); // Clear local error state
 
     try {
-      console.log('SigninPage - calling AuthContext signin...');
-      
-      // Use AuthContext signin to properly set authentication state
-      await signin(email, password);
-      console.log('SigninPage - signin successful!');
-      
-      // Redirect to editor (AuthContext handles token storage)
-      const redirectTo = searchParams.get('redirect') || ROUTES.EDITOR;
-      navigate(redirectTo);
-      setIsSubmitting(false);
-      return;
-    } catch (error: unknown) {
-      console.log('SigninPage - signin error caught:', error);
-      const errorResponse = (error as { response?: { data?: { 
-        message?: string; 
-        needsEmailVerification?: boolean; 
-        email?: string; 
-        autoResent?: boolean; 
-      } } })?.response?.data;
-      
-      console.log('SigninPage - error response:', errorResponse);
-      
-      // Check if it's an email verification issue
-      if (errorResponse?.needsEmailVerification) {
-        console.log('SigninPage - needsEmailVerification detected');
-        console.log('SigninPage - will navigate to verification page');
-        
-        const emailToUse = errorResponse.email || email;
-        const navigationUrl = `${ROUTES.EMAIL_VERIFICATION}?email=${encodeURIComponent(emailToUse)}&autoResent=${errorResponse.autoResent ? 'true' : 'false'}`;
-        console.log('SigninPage - navigation URL:', navigationUrl);
-        
-        // Navigate directly without timeout
-        console.log('SigninPage - calling navigate...');
-        navigate(navigationUrl, {
-          replace: true
-        });
-        console.log('SigninPage - navigate called');
-        return;
-      }
-      
-      // For other errors, show them locally
-      console.log('SigninPage - setting error message');
-      if (errorResponse?.message) {
-        setError(errorResponse.message);
-      } else {
-        setError('An error occurred during signin. Please try again.');
-      }
-      setIsSubmitting(false);
+      await handleSignin(
+        email,
+        password,
+        signin,
+        navigate,
+        searchParams,
+        setError
+      );
+    } catch (error) {
+      // Errors are handled by the function
+      console.error('Signin error:', error);
     } finally {
-      // Ensure isSubmitting is always reset
-      console.log('SigninPage - finally block executed');
+      setIsSubmitting(false);
     }
-  };  const handleOAuthSignin = (provider: string) => {
-    // Store redirect parameter for OAuth flow
-    const redirectTo = searchParams.get('redirect');
-    if (redirectTo) {
-      sessionStorage.setItem('oauth_redirect', redirectTo);
-    }
-    
-    if (provider === 'google') {
-      authAPI.googleLogin();
-    } else if (provider === 'github') {
-      authAPI.githubLogin();
-    }
+  };  const handleOAuthSignin = (provider: 'google' | 'github') => {
+    handleOAuthLogin(provider, searchParams);
   };
 
   return (

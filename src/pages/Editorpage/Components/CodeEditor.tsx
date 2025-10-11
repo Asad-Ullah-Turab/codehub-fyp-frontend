@@ -1,57 +1,25 @@
 import { useState } from "react";
 import Editor from "@monaco-editor/react";
-import { codeAPI } from "../../../services/api";
+import { 
+  handleCodeExecution,
+  handleLanguageChange,
+  languageOptions,
+  getDefaultCodeForLanguage 
+} from "../../../functions";
 
 function CodeEditor() {
-  const [code, setCode] = useState("// write your code here...");
+  const [code, setCode] = useState(getDefaultCodeForLanguage("javascript"));
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState("javascript");
   const [input, setInput] = useState("");
 
-  const languageOptions = [
-    {
-      id: "javascript",
-      name: "JavaScript",
-      defaultCode: "console.log('Hello, World!');",
-    },
-    { id: "python", name: "Python", defaultCode: "print('Hello, World!')" },
-    {
-      id: "cpp",
-      name: "C++",
-      defaultCode:
-        '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}',
-    },
-  ];
-
   const runCode = async () => {
-    setLoading(true);
-    setOutput("Running...");
-
-    try {
-      const data = await codeAPI.executeCode(code, language, input);
-      if (data.success) {
-        setOutput(data.data.output || "No output");
-      } else {
-        setOutput("Error: " + data.message);
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setOutput("Error: " + err.message);
-      } else {
-        setOutput("Unknown error");
-      }
-    } finally {
-      setLoading(false);
-    }
+    await handleCodeExecution(code, language, input, setOutput, setLoading);
   };
 
-  const handleLanguageChange = (newLanguage: string) => {
-    setLanguage(newLanguage);
-    const langOption = languageOptions.find((lang) => lang.id === newLanguage);
-    if (langOption) {
-      setCode(langOption.defaultCode);
-    }
+  const changeLanguage = (newLanguage: string) => {
+    handleLanguageChange(newLanguage, setLanguage, setCode);
     setOutput("");
   };
 
@@ -62,7 +30,7 @@ function CodeEditor() {
           <label className="text-gray-200">Language:</label>
           <select
             value={language}
-            onChange={(e) => handleLanguageChange(e.target.value)}
+            onChange={(e) => changeLanguage(e.target.value)}
             className="px-3 py-1 rounded bg-gray-700 text-gray-200 border border-gray-600"
           >
             {languageOptions.map((lang) => (

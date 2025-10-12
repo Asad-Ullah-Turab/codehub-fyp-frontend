@@ -90,8 +90,11 @@ export const handleSignin = async (
       }
     }
 
-    // Redirect to intended page or editor
-    const redirectTo = searchParams.get("redirect") || ROUTES.HOME;
+    // Redirect to intended page or editor, but never to /signin
+    let redirectTo = searchParams.get("redirect") || ROUTES.HOME;
+    if (redirectTo === ROUTES.SIGNIN || redirectTo === "/signin") {
+      redirectTo = ROUTES.HOME;
+    }
     navigate(redirectTo);
   } catch (error: unknown) {
     const authError = error as AuthError;

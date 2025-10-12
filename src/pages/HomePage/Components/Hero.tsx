@@ -1,6 +1,14 @@
+import { BiCodeAlt } from "react-icons/bi"; 
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
+
+import Java from "../../../../public/assets/homePage/Java.png";
+import Cpp from "../../../../public/assets/homePage/Cplusplus.png";
+import Python from "../../../../public/assets/homePage/Python.png";
+import Html from "../../../../public/assets/homePage/Html.png";
+import Javascript from "../../../../public/assets/homePage/Javascript.png";
+
 const Hero = () => {
   const { user, isAuthenticated, logout } = useAuth();
 
@@ -13,21 +21,14 @@ const Hero = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white-50">
       {/* Navigation */}
-      <nav className="flex items-center justify-between px-8 py-4 bg-gray-50">
+      <nav className="flex items-center justify-between px-8 py-4 bg-white-50">
         {/* Logo */}
         <div className="flex items-center">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 bg-blue-600 rounded flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z" />
-                <path d="M8 15h8v2H8zm0-3h8v2H8zm0-3h5v2H8z" />
-              </svg>
+              <BiCodeAlt />
             </div>
           </div>
         </div>
@@ -103,51 +104,31 @@ const Hero = () => {
           {/* Programming Language Icons */}
           {/* Java - Top Left */}
           <div className="absolute -left-32 top-0 flex flex-col items-center">
-            <img
-              src="/images/java-icon.png"
-              alt="Java"
-              className="w-16 h-16 mb-2"
-            />
+            <img src={Java} alt="Java" className="w-16 h-16 mb-2" />
             <span className="text-sm font-medium text-gray-700">Java</span>
           </div>
 
           {/* C++ - Top Right */}
           <div className="absolute -right-32 -top-8 flex flex-col items-center">
-            <img
-              src="/images/cpp-icon.png"
-              alt="C++"
-              className="w-16 h-16 mb-2"
-            />
+            <img src={Cpp} alt="C++" className="w-16 h-16 mb-2" />
             <span className="text-sm font-medium text-gray-700">C++</span>
           </div>
 
           {/* Python - Middle Right */}
           <div className="absolute -right-32 top-32 flex flex-col items-center">
-            <img
-              src="/images/python-icon.png"
-              alt="Python"
-              className="w-16 h-16 mb-2"
-            />
+            <img src={Python} alt="Python" className="w-16 h-16 mb-2" />
             <span className="text-sm font-medium text-gray-700">Python</span>
           </div>
 
           {/* HTML - Bottom Left */}
           <div className="absolute -left-32 bottom-8 flex flex-col items-center">
-            <img
-              src="/images/html-icon.png"
-              alt="HTML"
-              className="w-16 h-16 mb-2"
-            />
+            <img src={Html} alt="HTML" className="w-16 h-16 mb-2" />
             <span className="text-sm font-medium text-gray-700">Html</span>
           </div>
 
           {/* JavaScript - Bottom Right */}
           <div className="absolute -right-32 bottom-0 flex flex-col items-center">
-            <img
-              src="/images/javascript-icon.png"
-              alt="JavaScript"
-              className="w-16 h-16 mb-2"
-            />
+            <img src={Javascript} alt="JavaScript" className="w-16 h-16 mb-2" />
             <span className="text-sm font-medium text-gray-700">
               Javascript
             </span>

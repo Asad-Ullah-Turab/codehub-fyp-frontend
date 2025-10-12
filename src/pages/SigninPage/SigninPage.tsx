@@ -4,6 +4,9 @@ import { useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../constants";
 import { handleSignin, handleOAuthLogin } from "../../functions";
 
+
+import { useEffect } from "react";
+
 export default function SigninPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,7 +14,16 @@ export default function SigninPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signin, setUserAndToken } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Sanitize redirect param on mount
+  useEffect(() => {
+    const redirect = searchParams.get("redirect");
+    if (redirect === "/signin" || redirect === "signin") {
+      searchParams.delete("redirect");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleSubmit = async () => {
     // Prevent multiple submissions

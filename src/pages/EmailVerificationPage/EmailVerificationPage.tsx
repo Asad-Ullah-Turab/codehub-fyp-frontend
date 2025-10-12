@@ -16,17 +16,17 @@ export default function EmailVerificationPage() {
   // Handle redirect when no email is provided
   useEffect(() => {
     if (!email) {
-      console.log("EmailVerificationPage - No email found, will redirect to signin");
+      console.log(
+        "EmailVerificationPage - No email found, will redirect to signin"
+      );
       const timer = setTimeout(() => {
         console.log("EmailVerificationPage - Redirecting to signin");
         navigate(ROUTES.SIGNIN);
       }, 2000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [email, navigate]);
-
-
 
   const handleVerifyEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +47,7 @@ export default function EmailVerificationPage() {
         localStorage.setItem("user", JSON.stringify(response.data.data.user));
 
         // Redirect to editor or intended page
-        const redirectTo = searchParams.get("redirect") || ROUTES.EDITOR;
+        const redirectTo = searchParams.get("redirect") || ROUTES.HOME;
         navigate(redirectTo);
       }
     } catch (err: unknown) {

@@ -1,5 +1,5 @@
 // Code execution functions
-import { codeAPI } from '../services/api';
+import { codeAPI } from '../../services/api';
 
 // Types
 interface CodeExecutionResult {

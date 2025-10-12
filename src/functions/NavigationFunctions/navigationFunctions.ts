@@ -1,5 +1,5 @@
 // Navigation and routing functions
-import { ROUTES } from '../constants';
+import { ROUTES } from '../../constants';
 
 // Navigation handlers
 export const handleNavigation = (

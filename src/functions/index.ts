@@ -1,19 +1,19 @@
 // Export all function modules for easy importing
 
 // Authentication functions
-export * from './authFunctions';
+export * from './AuthFunctions/authFunctions';
 
 // Code execution functions
-export * from './codeExecutionFunctions';
+export * from './CodeExecution/codeExecutionFunctions';
 
 // Form handling functions
-export * from './formFunctions';
+export * from './FormFunctions/formFunctions';
 
 // Navigation functions
-export * from './navigationFunctions';
+export * from './NavigationFunctions/navigationFunctions';
 
 // Utility functions
-export * from './utilityFunctions';
+export * from './UtilityFunctions/utilityFunctions';
 
 // Re-export commonly used functions with aliases for convenience
 export {
@@ -21,23 +21,23 @@ export {
   handleSignup as signup,
   handleLogout as logout,
   handleOAuthLogin as oauthLogin,
-} from './authFunctions';
+} from './AuthFunctions/authFunctions';
 
 export {
   handleCodeExecution as executeCode,
   handleLanguageChange as changeLanguage,
-} from './codeExecutionFunctions';
+} from './CodeExecution/codeExecutionFunctions';
 
 export {
   handleNavigation as navigate,
   redirectWithParams as redirect,
-} from './navigationFunctions';
+} from './NavigationFunctions/navigationFunctions';
 
 export {
   validateEmail,
   validatePassword,
   validateName,
-} from './authFunctions';
+} from './AuthFunctions/authFunctions';
 
 export {
   debounce,
@@ -45,4 +45,4 @@ export {
   formatDate,
   copyToClipboard,
   getErrorMessage,
-} from './utilityFunctions';
+} from './UtilityFunctions/utilityFunctions';

@@ -1,6 +1,6 @@
 // Authentication functions
-import { authAPI } from '../services/api';
-import { ROUTES } from '../constants';
+import { authAPI } from '../../services/api';
+import { ROUTES } from '../../constants';
 
 // Types
 interface AuthError {

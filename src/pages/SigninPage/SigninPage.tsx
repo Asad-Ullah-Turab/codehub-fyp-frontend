@@ -9,7 +9,7 @@ export default function SigninPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signin } = useAuth();
+  const { signin, setUserAndToken } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -29,7 +29,8 @@ export default function SigninPage() {
         signin,
         navigate,
         searchParams,
-        setError
+        setError,
+        setUserAndToken
       );
     } catch (error) {
       // Errors are handled by the function

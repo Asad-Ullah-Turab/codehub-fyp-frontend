@@ -54,7 +54,8 @@ export const handleSignin = async (
   signin: (email: string, password: string) => Promise<void>,
   navigate: (path: string) => void,
   searchParams: URLSearchParams,
-  setError: (error: string) => void
+  setError: (error: string) => void,
+  setUserAndToken?: (user: any, token: string) => void
 ) => {
   try {
     // Validate inputs
@@ -73,7 +74,16 @@ export const handleSignin = async (
 
     // Use AuthContext signin
     await signin(email, password);
-    
+
+    // Get user and token from localStorage (since context doesn't return them)
+    if (setUserAndToken) {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('AUTH_TOKEN');
+      const userStr = localStorage.getItem('user') || localStorage.getItem('USER');
+      if (token && userStr) {
+        setUserAndToken(JSON.parse(userStr), token);
+      }
+    }
+
     // Redirect to intended page or editor
     const redirectTo = searchParams.get('redirect') || ROUTES.EDITOR;
     navigate(redirectTo);

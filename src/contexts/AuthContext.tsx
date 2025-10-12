@@ -29,6 +29,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   error: string | null;
   clearError: () => void;
+  setUserAndToken: (newUser: User, newToken: string) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -162,7 +163,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setError(null);
   };
 
-  const value: AuthContextType = {
+  // Expose a method to set user and token from outside (e.g., OAuthSuccessPage)
+  const setUserAndToken = (newUser: User, newToken: string) => {
+    setUser(newUser);
+    setToken(newToken);
+    localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(newUser));
+  };
+
+  const value: AuthContextType & { setUserAndToken: typeof setUserAndToken } = {
     user,
     token,
     isLoading,
@@ -172,6 +181,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     error,
     clearError,
+    setUserAndToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

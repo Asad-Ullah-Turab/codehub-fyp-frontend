@@ -21,23 +21,48 @@ export const languageOptions: LanguageOption[] = [
   {
     id: "javascript",
     name: "JavaScript",
-    defaultCode: "console.log('Hello, World!');",
+    defaultCode: `// JavaScript with Input Example
+process.stdin.on('data', (data) => {
+    const name = data.toString().trim();
+    console.log('Hello, ' + name + '!');
+    process.exit(0);
+});
+
+// Leave input empty to be prompted, or provide input above`,
   },
   {
     id: "python",
     name: "Python",
-    defaultCode: "print('Hello, World!')",
+    defaultCode: `# Python with Input Example
+name = input("What's your name? ")
+age = input("What's your age? ")
+print(f"Hello {name}, you are {age} years old!")
+
+# Leave input empty to be prompted interactively!`,
   },
   {
     id: "cpp",
     name: "C++",
     defaultCode: `#include <iostream>
+#include <string>
 using namespace std;
 
 int main() {
-    cout << "Hello, World!" << endl;
+    string name;
+    int age;
+    
+    cout << "What's your name? ";
+    cin >> name;
+    
+    cout << "What's your age? ";
+    cin >> age;
+    
+    cout << "Hello " << name << ", you are " << age << " years old!" << endl;
+    
     return 0;
-}`,
+}
+
+// Leave input empty to be prompted interactively!`,
   },
 ];
 

@@ -1,21 +1,56 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Editor from "@monaco-editor/react";
 import { 
-  handleCodeExecution,
   handleLanguageChange,
   languageOptions,
   getDefaultCodeForLanguage 
 } from "../../../functions";
+import { codeAPI } from "../../../services/api";
 
 function CodeEditor() {
-  const [code, setCode] = useState(getDefaultCodeForLanguage("javascript"));
+  const [code, setCode] = useState(getDefaultCodeForLanguage("python"));
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [language, setLanguage] = useState("javascript");
+  const [language, setLanguage] = useState("python");
   const [input, setInput] = useState("");
+  const outputEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Auto-scroll to bottom when output changes
+    outputEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [output]);
 
   const runCode = async () => {
-    await handleCodeExecution(code, language, input, setOutput, setLoading);
+    setLoading(true);
+    setOutput("");
+
+    try {
+      // Check if code likely needs input but none provided
+      const codeNeedsInput = code.includes('input(') || code.includes('cin >>') || code.includes('process.stdin');
+      
+      if (!input.trim() && codeNeedsInput) {
+        setOutput("⚠️ Your code requires input!\n\nPlease provide input in the 'Pre-provided Input' box above.\nEach input should be on a separate line.\n\nExample:\nAlice\n25");
+        setLoading(false);
+        return;
+      }
+
+      // Regular execution with pre-provided input
+      const result = await codeAPI.executeCode(code, language, input);
+
+      if (result.success) {
+        setOutput(result.data?.output || "No output");
+      } else {
+        setOutput(result.error || "Execution failed");
+      }
+    } catch (error: unknown) {
+      const executionError = error as { response?: { data?: { message?: string } } };
+      setOutput(
+        executionError?.response?.data?.message ||
+        "Error: Failed to execute code. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const changeLanguage = (newLanguage: string) => {
@@ -62,21 +97,24 @@ function CodeEditor() {
 
         <div className="mx-2 mb-2">
           <label className="block text-sm text-gray-400 mb-1">
-            Input (optional):
+            Pre-provided Input (optional):
           </label>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="w-full h-20 p-2 rounded bg-gray-800 text-gray-200 border border-gray-600 resize-none"
-            placeholder="Enter input for your program..."
+            className="w-full h-16 p-2 rounded bg-gray-800 text-gray-200 border border-gray-600 resize-none text-xs"
+            placeholder="Provide all inputs here (one per line)..."
           />
         </div>
 
-        <div className="flex-1 mx-2 mb-2">
+        <div className="flex-1 mx-2 mb-2 flex flex-col">
           <label className="block text-sm text-gray-400 mb-1">Output:</label>
-          <pre className="h-full p-3 rounded bg-gray-800 overflow-auto text-sm">
-            {output || "Run your code to see output here..."}
-          </pre>
+          <div className="flex-1 relative">
+            <pre className="h-full p-3 rounded bg-gray-800 overflow-auto text-sm whitespace-pre-wrap font-mono">
+              {output || "Run your code to see output here..."}
+              <div ref={outputEndRef} />
+            </pre>
+          </div>
         </div>
       </div>
     </div>

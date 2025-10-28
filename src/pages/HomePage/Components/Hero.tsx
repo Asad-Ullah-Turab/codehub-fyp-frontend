@@ -14,30 +14,24 @@ const Hero = () => {
           {/* Technology Icons */}
           <div className="absolute right-1/2 -top-30  flex flex-col items-center">
             <img src={Cpp} alt="C++" className="w-16 h-16 mb-2" />
-            {/* <span className="text-sm font-medium text-gray-700">C++</span> */}
           </div>
           <div className="absolute -left-42 top-0 flex flex-col items-center">
             <img src={Java} alt="Java" className="w-16 h-16 mb-2" />
-            {/* <span className="text-sm font-medium text-gray-700">Java</span> */}
           </div>
           <div className="absolute -right-42 top-0 flex flex-col items-center">
             <img src={Python} alt="Python" className="w-16 h-16 mb-2" />
-            {/* <span className="text-sm font-medium text-gray-700">Python</span> */}
           </div>
           <div className="absolute -left-25 bottom-8 flex flex-col items-center">
             <img src={Html} alt="HTML" className="w-16 h-16 mb-2" />
-            {/* <span className="text-sm font-medium text-gray-700">Html</span> */}
           </div>
           <div className="absolute -right-25 bottom-8 flex flex-col items-center">
             <img src={Javascript} alt="JavaScript" className="w-16 h-16 mb-2" />
-            {/* <span className="text-sm font-medium text-gray-700"> */}
-            {/*   Javascript */}
-            {/* </span> */}
           </div>
 
           {/* Main Heading */}
           <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            Learn to <span className="bg-yellow-400 px-2">code</span> your
+            Learn to <span className="bg-yellow-500 text-white px-2">code</span>{" "}
+            your
             <br />
             dreams and{" "}
             <span className="bg-blue-500 text-white px-2">design</span> your

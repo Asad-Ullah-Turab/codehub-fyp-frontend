@@ -1,3 +1,4 @@
+import CollaborationSection from "./Components/CollaborationSection";
 import Hero from "./Components/Hero";
 import HowItWorks from "./Components/HowItWorks";
 import StartJourney from "./Components/StartJourney";
@@ -9,6 +10,7 @@ const HomePage = () => {
     <div>
       <Hero />
       <WhyCodeHub />
+      <CollaborationSection />
       <HowItWorks />
       <Testimonial />
       <StartJourney />

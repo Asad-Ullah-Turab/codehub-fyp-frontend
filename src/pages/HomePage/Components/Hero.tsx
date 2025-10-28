@@ -30,11 +30,19 @@ const Hero = () => {
 
           {/* Main Heading */}
           <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            Learn to <span className="bg-yellow-500 text-white px-2">code</span>{" "}
+            Learn to{" "}
+            <span className="relative inline-block px-2">
+              <span className="absolute inset-0 bg-yellow-500 rotate-[5deg] rounded mb-1 -z-10"></span>
+              <span className="text-white relative">code</span>
+            </span>{" "}
             your
             <br />
             dreams and{" "}
-            <span className="bg-blue-500 text-white px-2">design</span> your
+            <span className="relative inline-block px-2">
+              <span className="absolute inset-0 bg-blue-500 rotate-[5deg] rounded mt-2 -z-10"></span>
+              <span className="text-white relative">design</span>
+            </span>{" "}
+            your
             <br />
             future
           </h1>

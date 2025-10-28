@@ -1,13 +1,13 @@
-import { BiCodeAlt } from "react-icons/bi"; 
+import { BiCodeAlt } from "react-icons/bi";
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 
-import Java from "../../../../public/assets/homePage/Java.png";
-import Cpp from "../../../../public/assets/homePage/Cplusplus.png";
-import Python from "../../../../public/assets/homePage/Python.png";
-import Html from "../../../../public/assets/homePage/Html.png";
-import Javascript from "../../../../public/assets/homePage/Javascript.png";
+import Java from "/assets/homePage/Java.png";
+import Cpp from "/assets/homePage/Cplusplus.png";
+import Python from "/assets/homePage/Python.png";
+import Html from "/assets/homePage/Html.png";
+import Javascript from "/assets/homePage/Javascript.png";
 
 const Hero = () => {
   const { user, isAuthenticated, logout } = useAuth();

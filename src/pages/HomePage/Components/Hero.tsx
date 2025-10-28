@@ -8,7 +8,7 @@ import Javascript from "/assets/homePage/Javascript.png";
 
 const Hero = () => {
   return (
-    <div className="bg-white-50 mt-38 mb-20">
+    <div className="bg-white-50 mt-38">
       <div className="flex items-center justify-center px-8 py-20 ">
         <div className="max-w-4xl text-center relative">
           {/* Technology Icons */}

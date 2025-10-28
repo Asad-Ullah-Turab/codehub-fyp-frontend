@@ -25,7 +25,7 @@ export default function WhyCodeHub() {
   ];
 
   return (
-    <div className="bg-white text-gray-900 my-20">
+    <div className="bg-white text-gray-900">
       <hr className="border-gray-700" />
       <section className="container mx-auto px-4 py-20">
         <h2 className="text-4xl font-bold text-center mb-16">Why CodeHub?</h2>

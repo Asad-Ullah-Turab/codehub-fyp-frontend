@@ -9,21 +9,24 @@ import OAuthSuccessPage from "./pages/OAuthSuccess/OAuthSuccess";
 import EmailVerificationPage from "./pages/EmailVerificationPage/EmailVerificationPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage/ResetPasswordPage";
+import Layout from "./pages/Layout";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route 
-            path="/editor" 
-            element={
-              <ProtectedRoute>
-                <EditorPage />
-              </ProtectedRoute>
-            } 
-          />
+          <Route path="/" element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route
+              path="/editor"
+              element={
+                <ProtectedRoute>
+                  <EditorPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
           <Route path="/signin" element={<SigninPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/verify-email" element={<EmailVerificationPage />} />

@@ -1,9 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import CodeEditor from "./Components/CodeEditor";
 
 function EditorPage() {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  
+  const state = location.state as {
+    code?: string;
+    language?: string;
+    tutorialTitle?: string;
+    exampleTitle?: string;
+  } | null;
 
   const handleLogout = async () => {
     try {
@@ -43,7 +51,12 @@ function EditorPage() {
       
       {/* Code Editor */}
       <div className="flex-1">
-        <CodeEditor />
+        <CodeEditor 
+          initialCode={state?.code}
+          initialLanguage={state?.language}
+          tutorialTitle={state?.tutorialTitle}
+          exampleTitle={state?.exampleTitle}
+        />
       </div>
     </div>
   );

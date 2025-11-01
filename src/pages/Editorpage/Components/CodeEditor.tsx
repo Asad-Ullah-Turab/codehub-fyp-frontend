@@ -7,11 +7,28 @@ import {
 } from "../../../functions";
 import { codeAPI } from "../../../services/api";
 
-function CodeEditor() {
-  const [code, setCode] = useState(getDefaultCodeForLanguage("python"));
+interface CodeEditorProps {
+  initialCode?: string;
+  initialLanguage?: string;
+  tutorialTitle?: string;
+  exampleTitle?: string;
+}
+
+function CodeEditor({ 
+  initialCode, 
+  initialLanguage, 
+  tutorialTitle, 
+  exampleTitle 
+}: CodeEditorProps) {
+  const [code, setCode] = useState(() => {
+    if (initialCode && initialLanguage) {
+      return initialCode;
+    }
+    return getDefaultCodeForLanguage("python");
+  });
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [language, setLanguage] = useState("python");
+  const [language, setLanguage] = useState(initialLanguage || "python");
   const [input, setInput] = useState("");
   const outputEndRef = useRef<HTMLDivElement>(null);
 
@@ -59,9 +76,18 @@ function CodeEditor() {
   };
 
   return (
-    <div className="flex h-full">
-      <div className="flex-1 flex flex-col">
-        <div className="flex items-center gap-4 p-2 bg-gray-800 border-b border-gray-700">
+    <div className="flex flex-col h-full">
+      {/* Tutorial Info Banner */}
+      {tutorialTitle && (
+        <div className="bg-purple-900 border-b border-purple-700 px-4 py-2 text-sm text-purple-100">
+          <span className="font-semibold">📚 Tutorial:</span> {tutorialTitle}
+          {exampleTitle && <span className="ml-4"><span className="font-semibold">Example:</span> {exampleTitle}</span>}
+        </div>
+      )}
+      
+      <div className="flex h-full">
+        <div className="flex-1 flex flex-col">
+          <div className="flex items-center gap-4 p-2 bg-gray-800 border-b border-gray-700">
           <label className="text-gray-200">Language:</label>
           <select
             value={language}
@@ -116,6 +142,7 @@ function CodeEditor() {
             </pre>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -1,0 +1,80 @@
+.concept-selector {
+  margin-bottom: 25px;
+  padding-bottom: 25px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.concept-selector h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.concept-subtitle {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-bottom: 12px;
+}
+
+.concepts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.concept-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  color: #6b7280;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.concept-btn:hover {
+  border-color: #764ba2;
+  background: #f9f5ff;
+  transform: translateX(4px);
+}
+
+.concept-btn.active {
+  border-color: #764ba2;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(118, 75, 162, 0.3);
+}
+
+.concept-info {
+  margin-top: 15px;
+  padding: 12px;
+  background: #f0f9ff;
+  border-left: 4px solid #667eea;
+  border-radius: 4px;
+}
+
+.info-text {
+  font-size: 0.85rem;
+  color: #0c4a6e;
+  margin: 0;
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .concepts-list {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .concept-btn {
+    font-size: 0.9rem;
+    padding: 8px 10px;
+  }
+}

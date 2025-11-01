@@ -1,13 +1,14 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import Editor from "@monaco-editor/react";
-import { 
+import {
   handleLanguageChange,
   languageOptions,
-  getDefaultCodeForLanguage 
+  getDefaultCodeForLanguage,
 } from "../../../functions";
 import { codeAPI } from "../../../services/api";
 
-function CodeEditor() {
+export default function CodeEditor() {
+  // --- Your Existing State and Refs ---
   const [code, setCode] = useState(getDefaultCodeForLanguage("python"));
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,26 +16,29 @@ function CodeEditor() {
   const [input, setInput] = useState("");
   const outputEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Auto-scroll to bottom when output changes
-    outputEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [output]);
+  // --- New State for Tabs ---
+  const [activeTab, setActiveTab] = useState<"output" | "input">("output");
 
+  // --- Your Existing Functions (Unchanged) ---
   const runCode = async () => {
     setLoading(true);
     setOutput("");
+    setActiveTab("output");
 
     try {
-      // Check if code likely needs input but none provided
-      const codeNeedsInput = code.includes('input(') || code.includes('cin >>') || code.includes('process.stdin');
-      
+      const codeNeedsInput =
+        code.includes("input(") ||
+        code.includes("cin >>") ||
+        code.includes("process.stdin");
+
       if (!input.trim() && codeNeedsInput) {
-        setOutput("⚠️ Your code requires input!\n\nPlease provide input in the 'Pre-provided Input' box above.\nEach input should be on a separate line.\n\nExample:\nAlice\n25");
+        setOutput(
+          "⚠️ Your code requires input!\n\nPlease provide input in the 'Input' tab.\nEach input should be on a separate line.\n\nExample:\nAlice\n25",
+        );
         setLoading(false);
         return;
       }
 
-      // Regular execution with pre-provided input
       const result = await codeAPI.executeCode(code, language, input);
 
       if (result.success) {
@@ -43,10 +47,12 @@ function CodeEditor() {
         setOutput(result.error || "Execution failed");
       }
     } catch (error: unknown) {
-      const executionError = error as { response?: { data?: { message?: string } } };
+      const executionError = error as {
+        response?: { data?: { message?: string } };
+      };
       setOutput(
         executionError?.response?.data?.message ||
-        "Error: Failed to execute code. Please try again."
+          "Error: Failed to execute code. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -59,14 +65,14 @@ function CodeEditor() {
   };
 
   return (
-    <div className="flex h-full">
-      <div className="flex-1 flex flex-col">
-        <div className="flex items-center gap-4 p-2 bg-gray-800 border-b border-gray-700">
-          <label className="text-gray-200">Language:</label>
+    <div className="flex flex-3 flex-col h-screen">
+      <div className="flex flex-col flex-2 bg-gray-50 overflow-hidden">
+        {/* Editor Header */}
+        <div className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300">
           <select
             value={language}
             onChange={(e) => changeLanguage(e.target.value)}
-            className="px-3 py-1 rounded bg-gray-700 text-gray-200 border border-gray-600"
+            className="px-3 py-1 rounded bg-white text-gray-900 border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {languageOptions.map((lang) => (
               <option key={lang.id} value={lang.id}>
@@ -74,51 +80,93 @@ function CodeEditor() {
               </option>
             ))}
           </select>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={runCode}
+              disabled={loading}
+              className="px-3 py-1 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "⏳ Running..." : "▶ Run"}
+            </button>
+            <button
+              onClick={() => setCode(getDefaultCodeForLanguage(language))}
+              className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm font-medium hover:bg-gray-300"
+            >
+              Reset
+            </button>
+          </div>
         </div>
         <Editor
           height="100%"
           language={language === "cpp" ? "cpp" : language}
           value={code}
           onChange={(value) => setCode(value || "")}
-          theme="vs-dark"
-          className="border-r border-gray-700"
+          options={{ minimap: { enabled: false } }}
         />
       </div>
-      <div className="flex flex-col flex-1 bg-gray-900 text-gray-200">
-        <div className="flex gap-2 m-2">
-          <button
-            onClick={runCode}
-            disabled={loading}
-            className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "⏳ Running..." : "▶ Run Code"}
-          </button>
-        </div>
 
-        <div className="mx-2 mb-2">
-          <label className="block text-sm text-gray-400 mb-1">
-            Pre-provided Input (optional):
-          </label>
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            className="w-full h-16 p-2 rounded bg-gray-800 text-gray-200 border border-gray-600 resize-none text-xs"
-            placeholder="Provide all inputs here (one per line)..."
-          />
+      {/* Bottom: Output/Input Panel */}
+      <div className="flex flex-col flex-1 bg-gray-50 border-t border-gray-300">
+        {/* Tab Headers */}
+        <div className="flex items-center justify-between px-4 border-b border-gray-300">
+          <div className="flex gap-1">
+            <button
+              onClick={() => setActiveTab("output")}
+              className={`px-4 py-2 text-sm ${
+                activeTab === "output"
+                  ? "text-gray-900 border-b-2 border-blue-500"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Output
+            </button>
+            <button
+              onClick={() => setActiveTab("input")}
+              className={`px-4 py-2 text-sm ${
+                activeTab === "input"
+                  ? "text-gray-900 border-b-2 border-blue-500"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Input
+            </button>
+          </div>
+          {activeTab === "output" && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => navigator.clipboard.writeText(output)}
+                title="Copy"
+                className="text-gray-500 hover:text-gray-800"
+              >
+                📋
+              </button>
+              <button
+                onClick={() => setOutput("")}
+                title="Clear"
+                className="text-gray-500 hover:text-gray-800"
+              >
+                🗑️
+              </button>
+            </div>
+          )}
         </div>
-
-        <div className="flex-1 mx-2 mb-2 flex flex-col">
-          <label className="block text-sm text-gray-400 mb-1">Output:</label>
-          <div className="flex-1 relative">
-            <pre className="h-full p-3 rounded bg-gray-800 overflow-auto text-sm whitespace-pre-wrap font-mono">
-              {output || "Run your code to see output here..."}
+        {/* Tab Content */}
+        <div className="flex-1 p-3 overflow-auto bg-white">
+          {activeTab === "output" ? (
+            <pre className="text-sm whitespace-pre-wrap font-mono text-gray-800">
+              {output || "Your code's output will be displayed here."}
               <div ref={outputEndRef} />
             </pre>
-          </div>
+          ) : (
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              className="w-full h-full p-2 rounded bg-white text-gray-900 border border-gray-300 resize-none text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="Provide all inputs here (one per line)..."
+            />
+          )}
         </div>
       </div>
     </div>
   );
 }
-
-export default CodeEditor;

@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
-// import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
 import HomePage from "./pages/HomePage/HomePage";
 import EditorPage from "./pages/Editorpage/EditorPage";
 import SigninPage from "./pages/SigninPage/SigninPage";
@@ -22,9 +22,9 @@ function App() {
             <Route
               path="/editor"
               element={
-                // <ProtectedRoute>
-                <EditorPage />
-                // </ProtectedRoute>
+                <ProtectedRoute>
+                  <EditorPage />
+                </ProtectedRoute>
               }
             />
             <Route

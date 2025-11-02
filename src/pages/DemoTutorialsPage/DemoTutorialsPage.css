@@ -1,0 +1,137 @@
+.tutorials-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.tutorials-header {
+  text-align: center;
+  color: white;
+  margin-bottom: 30px;
+  animation: slideDown 0.6s ease-out;
+}
+
+.tutorials-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.tutorials-header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.tutorials-container {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.tutorials-sidebar {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideLeft 0.6s ease-out;
+}
+
+.tutorials-content {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideRight 0.6s ease-out;
+}
+
+.tutorials-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #9ca3af;
+  font-size: 1.2rem;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Scrollbar styling */
+.tutorials-sidebar::-webkit-scrollbar,
+.tutorials-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tutorials-sidebar::-webkit-scrollbar-track,
+.tutorials-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.tutorials-sidebar::-webkit-scrollbar-thumb,
+.tutorials-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.tutorials-sidebar::-webkit-scrollbar-thumb:hover,
+.tutorials-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@media (max-width: 1024px) {
+  .tutorials-container {
+    grid-template-columns: 1fr;
+  }
+
+  .tutorials-sidebar {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tutorials-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .tutorials-content {
+    padding: 15px;
+  }
+}

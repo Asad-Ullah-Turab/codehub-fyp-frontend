@@ -10,6 +10,7 @@ import EmailVerificationPage from "./pages/EmailVerificationPage/EmailVerificati
 import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage/ResetPasswordPage";
 import Layout from "./pages/Layout";
+import TutorialsPage from "./pages/DemoTutorialsPage";
 
 function App() {
   return (
@@ -24,6 +25,14 @@ function App() {
                 // <ProtectedRoute>
                 <EditorPage />
                 // </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tutorials/*"
+              element={
+                <ProtectedRoute>
+                  <TutorialsPage />
+                </ProtectedRoute>
               }
             />
           </Route>

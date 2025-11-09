@@ -8,6 +8,7 @@ interface User {
   name: string;
   email: string;
   role: string;
+  accountStatus: "active" | "suspended" | "pending";
   isEmailVerified: boolean;
   createdAt: string;
   updatedAt: string;
@@ -92,19 +93,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
       
     } catch (error: unknown) {
-      const errorResponse = (error as { response?: { data?: { message?: string; needsEmailVerification?: boolean } } })?.response?.data;
-      
-      // If it's an email verification error, let the component handle it completely
-      if (errorResponse?.needsEmailVerification) {
-        setIsLoading(false);
-        throw error; // Pass the full error object to the component
-      }
-      
-      // For other errors, set generic error message
-      const errorMessage = errorResponse?.message || 'Failed to sign in';
-      setError(errorMessage);
       setIsLoading(false);
-      throw new Error(errorMessage);
+      // Pass the full error object to the component so it can handle different error types
+      throw error;
     }
   };
 

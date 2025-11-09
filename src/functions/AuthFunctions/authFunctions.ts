@@ -112,9 +112,12 @@ export const handleSignin = async (
       return;
     }
 
-    // For other errors, show them locally
+    // For all other errors, show the message from backend
     if (errorResponse?.message) {
       setError(errorResponse.message);
+    } else if (authError?.message) {
+      // Fallback to error message if available
+      setError(authError.message);
     } else {
       setError("An error occurred during signin. Please try again.");
     }

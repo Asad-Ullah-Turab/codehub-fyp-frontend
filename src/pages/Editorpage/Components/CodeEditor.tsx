@@ -7,12 +7,22 @@ import {
 } from "../../../functions";
 import { codeAPI } from "../../../services/api";
 
-export default function CodeEditor() {
+export interface CodeEditorProps {
+  initialCode?: string;
+  initialLanguage?: string;
+}
+
+export default function CodeEditor({
+  initialCode,
+  initialLanguage,
+}: CodeEditorProps) {
   // --- Your Existing State and Refs ---
-  const [code, setCode] = useState(getDefaultCodeForLanguage("python"));
+  const [code, setCode] = useState(
+    initialCode || getDefaultCodeForLanguage(initialLanguage || "python")
+  );
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [language, setLanguage] = useState("python");
+  const [language, setLanguage] = useState(initialLanguage || "python");
   const [input, setInput] = useState("");
   const outputEndRef = useRef<HTMLDivElement>(null);
 

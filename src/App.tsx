@@ -11,6 +11,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage/ResetPasswordPage";
 import Layout from "./pages/Layout";
 import TutorialsPage from "./pages/DemoTutorialsPage";
+import DemoAdminPortal from "./pages/DemoAdminPortal/DemoAdminPortal";
 
 function App() {
   return (
@@ -32,6 +33,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <TutorialsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/*"
+              element={
+                <ProtectedRoute>
+                  <DemoAdminPortal />
                 </ProtectedRoute>
               }
             />

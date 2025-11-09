@@ -40,6 +40,11 @@ export default function Header() {
         <Link to="/contact" className="text-gray-700 hover:text-gray-900">
           Contact Us
         </Link>
+        {isAuthenticated && user?.role === "admin" && (
+          <Link to="/admin" className="text-gray-700 hover:text-gray-900">
+            Admin Dashboard
+          </Link>
+        )}
       </div>
 
       {/* Auth Buttons */}

@@ -122,7 +122,14 @@ api.interceptors.response.use(
         return Promise.reject(error);
       }
       
-      // Only redirect for actual token expiry/invalid token
+      // Check if this is an admin endpoint (they should always redirect on 401)
+      const requestUrl = error.config?.url || '';
+      if (requestUrl.includes('/admin/')) {
+        // Don't redirect for admin endpoints, let them handle their own auth
+        return Promise.reject(error);
+      }
+      
+      // Only redirect for actual token expiry/invalid token on non-admin endpoints
       if (errorData?.message?.includes('token') || errorData?.message?.includes('expired') || errorData?.message?.includes('invalid')) {
         localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER);

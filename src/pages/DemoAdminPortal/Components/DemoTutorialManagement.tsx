@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { adminAPI } from "../../../services/adminAPI";
+import { fetchTutorials, removeTutorial } from "../../../functions";
+import { PAGINATION } from "../../../constants";
 import "./DemoTutorialManagement.css";
 
 interface Tutorial {
@@ -28,31 +29,40 @@ function DemoTutorialManagement({ onError }: { onError: (msg: string) => void })
     currentPage: 1,
   });
 
-  const fetchTutorials = async (page = 1) => {
+  const loadTutorials = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await adminAPI.getAllTutorials(page, 10, languageFilter, search);
-      if (response.success) {
-        setTutorials(response.data);
-        setPagination(response.pagination);
-      }
+      const data = await fetchTutorials(page, PAGINATION.DEFAULT_LIMIT, languageFilter, search);
+      setTutorials(data.tutorials);
+      setPagination({
+        total: data.total,
+        pages: data.pages,
+        currentPage: page,
+      });
     } catch {
       onError("Failed to load tutorials");
+      // Ensure we have valid state even on error
+      setTutorials([]);
+      setPagination({
+        total: 0,
+        pages: 0,
+        currentPage: page,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTutorials();
+    loadTutorials();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, languageFilter]);
 
   const handleDeleteTutorial = async (tutorial: Tutorial) => {
     if (window.confirm(`Are you sure you want to delete "${tutorial.title}"?`)) {
       try {
-        await adminAPI.deleteTutorial(tutorial._id);
-        fetchTutorials(pagination.currentPage);
+        await removeTutorial(tutorial._id);
+        loadTutorials(pagination.currentPage);
         onError("");
       } catch {
         onError("Failed to delete tutorial");
@@ -107,7 +117,7 @@ function DemoTutorialManagement({ onError }: { onError: (msg: string) => void })
       {/* Tutorials Grid */}
       {loading ? (
         <div className="demo-loading">Loading tutorials...</div>
-      ) : tutorials.length === 0 ? (
+      ) : !tutorials || tutorials.length === 0 ? (
         <div className="no-data">No tutorials found</div>
       ) : (
         <div className="tutorials-grid">

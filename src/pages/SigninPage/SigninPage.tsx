@@ -52,9 +52,8 @@ export default function SigninPage() {
         setError,
         setUserAndToken
       );
-    } catch (error) {
+    } catch {
       // Errors are handled by the function
-      console.error("Signin error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -213,7 +212,6 @@ export default function SigninPage() {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log("SigninPage - button clicked");
               handleSubmit();
               return false;
             }}

@@ -18,8 +18,8 @@ function DemoAdminPortal() {
     try {
       await logout();
       navigate("/");
-    } catch (err) {
-      console.error("Logout error:", err);
+    } catch {
+      // Logout handled by context
     }
   };
 

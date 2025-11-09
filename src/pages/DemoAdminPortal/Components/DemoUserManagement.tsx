@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { adminAPI } from "../../../services/adminAPI";
+import { fetchUsers, updateUserAccountStatus, changeUserAdminRole, removeUser } from "../../../functions";
+import { PAGINATION } from "../../../constants";
 import "./DemoUserManagement.css";
 
 interface User {
@@ -29,30 +30,39 @@ function DemoUserManagement({ onError }: { onError: (msg: string) => void }) {
     currentPage: 1,
   });
 
-  const fetchUsers = async (page = 1) => {
+  const loadUsers = async (page = 1) => {
     try {
       setLoading(true);
-      const response = await adminAPI.getAllUsers(page, 10, search, roleFilter, statusFilter);
-      if (response.success) {
-        setUsers(response.data);
-        setPagination(response.pagination);
-      }
+      const data = await fetchUsers(page, PAGINATION.DEFAULT_LIMIT, search, roleFilter, statusFilter);
+      setUsers(data.users);
+      setPagination({
+        total: data.total,
+        pages: data.pages,
+        currentPage: page,
+      });
     } catch {
       onError("Failed to load users");
+      // Ensure we have valid state even on error
+      setUsers([]);
+      setPagination({
+        total: 0,
+        pages: 0,
+        currentPage: page,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    loadUsers(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, roleFilter, statusFilter]);
 
   const handleStatusChange = async (user: User, newStatus: string) => {
     try {
-      await adminAPI.updateUserStatus(user._id, newStatus);
-      fetchUsers(pagination.currentPage);
+      await updateUserAccountStatus(user._id, newStatus as "active" | "suspended" | "pending");
+      loadUsers(pagination.currentPage);
       onError(""); // Clear errors
     } catch {
       onError("Failed to update user status");
@@ -61,8 +71,8 @@ function DemoUserManagement({ onError }: { onError: (msg: string) => void }) {
 
   const handleRoleChange = async (user: User, newRole: string) => {
     try {
-      await adminAPI.changeUserRole(user._id, newRole);
-      fetchUsers(pagination.currentPage);
+      await changeUserAdminRole(user._id, newRole as "user" | "admin");
+      loadUsers(pagination.currentPage);
       onError("");
     } catch {
       onError("Failed to change user role");
@@ -72,8 +82,8 @@ function DemoUserManagement({ onError }: { onError: (msg: string) => void }) {
   const handleDeleteUser = async (user: User) => {
     if (window.confirm(`Are you sure you want to delete ${user.name}?`)) {
       try {
-        await adminAPI.deleteUser(user._id);
-        fetchUsers(pagination.currentPage);
+        await removeUser(user._id);
+        loadUsers(pagination.currentPage);
         onError("");
       } catch {
         onError("Failed to delete user");
@@ -127,7 +137,7 @@ function DemoUserManagement({ onError }: { onError: (msg: string) => void }) {
       {/* Users Table */}
       {loading ? (
         <div className="demo-loading">Loading users...</div>
-      ) : users.length === 0 ? (
+      ) : !users || users.length === 0 ? (
         <div className="no-data">No users found</div>
       ) : (
         <div className="table-container">

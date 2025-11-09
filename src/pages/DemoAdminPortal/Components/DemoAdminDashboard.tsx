@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { adminAPI } from "../../../services/adminAPI";
+import { fetchDashboardStats } from "../../../functions";
 import "./DemoAdminDashboard.css";
 
 interface DashboardStats {
@@ -20,10 +20,8 @@ function DemoAdminDashboard({ onError }: { onError: (msg: string) => void }) {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const response = await adminAPI.getDashboardStats();
-      if (response.success) {
-        setStats(response.data);
-      }
+      const stats = await fetchDashboardStats();
+      setStats(stats);
     } catch (error) {
       onError("Failed to load dashboard statistics");
       console.error(error);

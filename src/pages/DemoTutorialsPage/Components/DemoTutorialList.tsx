@@ -1,21 +1,14 @@
 import React from 'react';
+import { type TutorialItem } from '../../../functions';
 import './DemoTutorialList.css';
 
-interface Tutorial {
-  _id: string;
-  title: string;
-  description: string;
-  concept: string;
-  difficulty: string;
-}
-
 interface TutorialListProps {
-  tutorials: Tutorial[];
-  selectedTutorial: Tutorial | null;
+  tutorials: TutorialItem[];
+  selectedTutorial: TutorialItem | null;
   savedTutorials: string[];
   loading: boolean;
-  onSelectTutorial: (tutorial: Tutorial) => void;
-  onSaveTutorial: (tutorial: Tutorial) => void;
+  onSelectTutorial: (tutorial: TutorialItem) => void;
+  onSaveTutorial: (tutorial: TutorialItem) => void;
   onUnsaveTutorial: (tutorialId: string) => void;
 }
 

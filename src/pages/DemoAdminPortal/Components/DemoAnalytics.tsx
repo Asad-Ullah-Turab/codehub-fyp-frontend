@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { adminAPI } from "../../../services/adminAPI";
+import { fetchAnalyticsData } from "../../../functions";
 import "./DemoAnalytics.css";
 
 interface LanguageStat {
@@ -18,13 +18,11 @@ function DemoAnalytics({ onError }: { onError: (msg: string) => void }) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchAnalytics = async () => {
+  const loadAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await adminAPI.getAnalytics();
-      if (response.success) {
-        setAnalytics(response.data);
-      }
+      const data = await fetchAnalyticsData();
+      setAnalytics(data as unknown as AnalyticsData);
     } catch {
       onError("Failed to load analytics");
     } finally {
@@ -33,7 +31,7 @@ function DemoAnalytics({ onError }: { onError: (msg: string) => void }) {
   };
 
   useEffect(() => {
-    fetchAnalytics();
+    loadAnalytics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -58,7 +56,7 @@ function DemoAnalytics({ onError }: { onError: (msg: string) => void }) {
     <div className="demo-analytics">
       <div className="analytics-header">
         <h2>Analytics & Statistics</h2>
-        <button className="refresh-btn" onClick={fetchAnalytics}>
+        <button className="refresh-btn" onClick={loadAnalytics}>
           🔄 Refresh
         </button>
       </div>

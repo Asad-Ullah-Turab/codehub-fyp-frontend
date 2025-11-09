@@ -35,8 +35,8 @@ export default function SignupPage() {
 
     try {
       await handleSignup(formData, signup, navigate, setLocalError);
-    } catch (error) {
-      console.error("Signup error:", error);
+    } catch {
+      // Error handled by handleSignup
     }
   };
 

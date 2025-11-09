@@ -1,53 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { 
+  fetchMainConcepts, 
+  fetchTutorialsByLanguageAndConcept,
+  type TutorialItem,
+  type MainConcepts,
+} from "../../functions";
+import { LANGUAGES } from "../../constants";
+import api from "../../services/api";
 import "./DemoTutorialsPage.css";
 import LanguageSelector from "./Components/DemoLanguageSelector";
 import ConceptSelector from "./Components/DemoConceptSelector";
 import TutorialList from "./Components/DemoTutorialList";
 import TutorialViewer from "./Components/DemoTutorialViewer";
 
-// API Base URL
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
-interface Tutorial {
-  _id: string;
-  title: string;
-  description: string;
-  language: string;
-  concept: string;
-  mainConcept: boolean;
-  difficulty: string;
-  content: string;
-  tags: string[];
-  codeExamples: Array<{
-    title: string;
-    description: string;
-    code: string;
-    input: string;
-    expectedOutput: string;
-  }>;
-}
-
-interface MainConcepts {
-  python: string[];
-  javascript: string[];
-  cpp: string[];
-}
-
 const TutorialsPage: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("python");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(LANGUAGES.PYTHON);
   const [selectedConcept, setSelectedConcept] = useState<string>("");
   const [mainConcepts, setMainConcepts] = useState<MainConcepts>({
     python: [],
     javascript: [],
     cpp: [],
   });
-  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
-  const [selectedTutorial, setSelectedTutorial] = useState<Tutorial | null>(
+  const [tutorials, setTutorials] = useState<TutorialItem[]>([]);
+  const [selectedTutorial, setSelectedTutorial] = useState<TutorialItem | null>(
     null
   );
   const [loading, setLoading] = useState(false);
@@ -63,56 +42,28 @@ const TutorialsPage: React.FC = () => {
 
   // Fetch main concepts when component mounts
   useEffect(() => {
-    const fetchMainConcepts = async () => {
+    const loadConcepts = async () => {
       try {
-        // This would be fetched from backend - for now using hardcoded data
-        setMainConcepts({
-          python: [
-            "Variables",
-            "Data Types",
-            "Control Flow",
-            "Loops",
-            "Functions",
-          ],
-          javascript: [
-            "Variables",
-            "Conditionals",
-            "Loops",
-            "Functions",
-            "DOM Manipulation",
-          ],
-          cpp: [
-            "Variables",
-            "Input/Output",
-            "Control Structures",
-            "Loops",
-            "Functions",
-          ],
-        });
+        const concepts = await fetchMainConcepts();
+        setMainConcepts(concepts);
       } catch (error) {
         console.error("Error fetching concepts:", error);
       }
     };
-    fetchMainConcepts();
+    loadConcepts();
   }, []);
 
   // Fetch tutorials when language or concept changes
   useEffect(() => {
-    const fetchTutorials = async () => {
+    const loadTutorials = async () => {
       setLoading(true);
       try {
-        let url = `${API_BASE_URL}/tutorials?language=${selectedLanguage}`;
-        if (selectedConcept) {
-          url += `&concept=${selectedConcept}`;
-        }
-
-        const response = await fetch(url);
-        const data = await response.json();
-        setTutorials(data.data || []);
+        const data = await fetchTutorialsByLanguageAndConcept(selectedLanguage, selectedConcept);
+        setTutorials(data);
 
         // Set first tutorial as selected if available
-        if (data.data && data.data.length > 0) {
-          setSelectedTutorial(data.data[0]);
+        if (data && data.length > 0) {
+          setSelectedTutorial(data[0]);
         }
       } catch (error) {
         console.error("Error fetching tutorials:", error);
@@ -122,7 +73,7 @@ const TutorialsPage: React.FC = () => {
     };
 
     if (selectedLanguage) {
-      fetchTutorials();
+      loadTutorials();
     }
   }, [selectedLanguage, selectedConcept]);
 
@@ -130,11 +81,8 @@ const TutorialsPage: React.FC = () => {
   useEffect(() => {
     const fetchSavedTutorials = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/tutorials/user/saved`, {
-          credentials: "include",
-        });
-        const data = await response.json();
-        setSavedTutorials(data.data?.map((t: Tutorial) => t._id) || []);
+        const response = await api.get("/tutorials/user/saved");
+        setSavedTutorials(response.data?.data?.map((t: TutorialItem) => t._id) || []);
       } catch (error) {
         console.error("Error fetching saved tutorials:", error);
       }
@@ -143,18 +91,13 @@ const TutorialsPage: React.FC = () => {
     fetchSavedTutorials();
   }, []);
 
-  const handleSaveTutorial = async (tutorial: Tutorial) => {
+  const handleSaveTutorial = async (tutorial: TutorialItem) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/tutorials/save`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ tutorialId: tutorial._id }),
+      const response = await api.post("/tutorials/save", {
+        tutorialId: tutorial._id,
       });
 
-      if (response.ok) {
+      if (response.status === 200 || response.status === 201) {
         setSavedTutorials([...savedTutorials, tutorial._id]);
       }
     } catch (error) {
@@ -164,15 +107,9 @@ const TutorialsPage: React.FC = () => {
 
   const handleUnsaveTutorial = async (tutorialId: string) => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/tutorials/saved/${tutorialId}`,
-        {
-          method: "DELETE",
-          credentials: "include",
-        }
-      );
+      const response = await api.delete(`/tutorials/saved/${tutorialId}`);
 
-      if (response.ok) {
+      if (response.status === 200) {
         setSavedTutorials(savedTutorials.filter((id) => id !== tutorialId));
       }
     } catch (error) {

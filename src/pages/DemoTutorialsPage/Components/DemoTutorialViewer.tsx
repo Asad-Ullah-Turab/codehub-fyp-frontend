@@ -1,32 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { type TutorialItem } from "../../../functions";
 import "./DemoTutorialViewer.css";
 
-interface CodeExample {
-  title: string;
-  description: string;
-  code: string;
-  input: string;
-  expectedOutput: string;
-}
-
-interface Tutorial {
-  _id: string;
-  title: string;
-  description: string;
-  language: string;
-  concept: string;
-  mainConcept: boolean;
-  difficulty: string;
-  content: string;
-  notes: string[];
-  tips: string[];
-  codeExamples: CodeExample[];
-  tags: string[];
-}
-
 interface TutorialViewerProps {
-  tutorial: Tutorial;
+  tutorial: TutorialItem;
   isSaved: boolean;
   onSave: () => void;
   onUnsave: () => void;

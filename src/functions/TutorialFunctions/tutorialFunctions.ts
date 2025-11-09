@@ -33,7 +33,7 @@ export interface MainConcepts {
   cpp: string[];
 }
 
-// Main concepts - hardcoded but can be fetched from backend
+// Main concepts - will be fetched from backend
 const MAIN_CONCEPTS_DATA: MainConcepts = {
   python: [
     'Variables',
@@ -63,10 +63,30 @@ const MAIN_CONCEPTS_DATA: MainConcepts = {
  * @returns MainConcepts object with concepts grouped by language
  */
 export const fetchMainConcepts = async (): Promise<MainConcepts> => {
-  // In future, fetch from backend
-  // const response = await fetch(`${API_BASE_URL}/tutorials/concepts`);
-  // return await response.json();
-  return MAIN_CONCEPTS_DATA;
+  try {
+    const languages = ['python', 'javascript', 'cpp'];
+    const result: MainConcepts = {
+      python: [],
+      javascript: [],
+      cpp: [],
+    };
+
+    // Fetch concepts for each language from backend
+    for (const language of languages) {
+      const response = await fetch(`${API_BASE_URL}/tutorials/concepts/${language}`);
+      if (response.ok) {
+        const data = await response.json();
+        result[language as keyof MainConcepts] = data.concepts || [];
+      }
+    }
+
+    // Return fetched concepts, fallback to hardcoded if backend fails
+    const hasAnyData = Object.values(result).some(arr => arr.length > 0);
+    return hasAnyData ? result : MAIN_CONCEPTS_DATA;
+  } catch (error) {
+    console.error('Error fetching concepts from backend, using defaults:', error);
+    return MAIN_CONCEPTS_DATA;
+  }
 };
 
 /**

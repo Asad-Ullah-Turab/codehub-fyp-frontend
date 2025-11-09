@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 import "./DemoTutorialsPage.css";
 import LanguageSelector from "./Components/DemoLanguageSelector";
 import ConceptSelector from "./Components/DemoConceptSelector";
@@ -35,6 +37,8 @@ interface MainConcepts {
 }
 
 const TutorialsPage: React.FC = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [selectedLanguage, setSelectedLanguage] = useState<string>("python");
   const [selectedConcept, setSelectedConcept] = useState<string>("");
   const [mainConcepts, setMainConcepts] = useState<MainConcepts>({
@@ -48,6 +52,14 @@ const TutorialsPage: React.FC = () => {
   );
   const [loading, setLoading] = useState(false);
   const [savedTutorials, setSavedTutorials] = useState<string[]>([]);
+
+  // Check suspension status
+  useEffect(() => {
+    if (user?.accountStatus === 'suspended') {
+      logout();
+      navigate('/signin?error=account_suspended');
+    }
+  }, [user, logout, navigate]);
 
   // Fetch main concepts when component mounts
   useEffect(() => {

@@ -23,6 +23,14 @@ export default function SigninPage() {
       searchParams.delete("redirect");
       setSearchParams(searchParams, { replace: true });
     }
+
+    // Handle error params from URL
+    const errorParam = searchParams.get("error");
+    if (errorParam === "account_suspended") {
+      setError("Your account has been suspended. Please contact support.");
+      searchParams.delete("error");
+      setSearchParams(searchParams, { replace: true });
+    }
   }, [searchParams, setSearchParams]);
 
   const handleSubmit = async () => {

@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { adminAPI } from "../../services/adminAPI";
 import DemoAdminDashboard from "./Components/DemoAdminDashboard";
 import DemoUserManagement from "./Components/DemoUserManagement";
 import DemoTutorialManagement from "./Components/DemoTutorialManagement";
@@ -12,15 +11,8 @@ function DemoAdminPortal() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
   const [error, setError] = useState("");
-
-  // Verify admin access
-  useEffect(() => {
-    if (!user || user.role !== "admin") {
-      navigate("/");
-    }
-  }, [user, navigate]);
 
   const handleLogout = async () => {
     try {

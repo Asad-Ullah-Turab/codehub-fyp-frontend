@@ -6,7 +6,6 @@ import {
   type Course,
   type CourseEnrollment 
 } from '../../functions/CourseFunctions/courseFunctions';
-import './CourseDetailPage.css';
 
 const CourseDetailPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -75,16 +74,6 @@ const CourseDetailPage: React.FC = () => {
     }
   };
 
-  const formatDuration = (minutes: number) => {
-    if (minutes < 60) {
-      return `${minutes} minutes`;
-    } else {
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours} hours`;
-    }
-  };
-
   if (loading) {
     return (
       <div className="course-detail-page">
@@ -136,7 +125,7 @@ const CourseDetailPage: React.FC = () => {
             <div className="course-meta">
               <div className="meta-item">
                 <span className="meta-icon">⏱️</span>
-                <span>{formatDuration(course.duration)}</span>
+                <span>{course.estimatedHours}h</span>
               </div>
               <div className="meta-item">
                 <span className="meta-icon">📚</span>
@@ -171,7 +160,7 @@ const CourseDetailPage: React.FC = () => {
           <div className="course-sidebar">
             <div className="pricing-card">
               <div className="price">
-                {course.price > 0 ? `$${course.price}` : 'Free'}
+                {course.price && course.price > 0 ? `$${course.price}` : 'Free'}
               </div>
               
               {enrollment ? (

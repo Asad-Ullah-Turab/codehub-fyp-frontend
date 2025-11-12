@@ -15,6 +15,7 @@ import LanguageTutorialsPage from "./pages/TutorialsPage/LanguageTutorialsPage";
 import TutorialDetailPage from "./pages/TutorialsPage/TutorialDetailPage";
 import CourseDetailPage from "./pages/TutorialsPage/CourseDetailPage";
 import CoursePage from "./pages/CoursePage";
+import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import DemoAdminPortal from "./pages/DemoAdminPortal/DemoAdminPortal";
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
             <Route path="/courses" element={<ProtectedRoute><TutorialsPage /></ProtectedRoute>} />
             <Route path="/courses/:courseId" element={<ProtectedRoute><CourseDetailPage /></ProtectedRoute>} />
             <Route path="/course/:courseId" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route
               path="/admin/*"
               element={

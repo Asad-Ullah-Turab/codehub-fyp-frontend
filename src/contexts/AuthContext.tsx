@@ -10,6 +10,7 @@ interface User {
   role: string;
   accountStatus: "active" | "suspended" | "pending";
   isEmailVerified: boolean;
+  profilePicture?: string;
   createdAt: string;
   updatedAt: string;
 }

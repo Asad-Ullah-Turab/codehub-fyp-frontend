@@ -20,13 +20,16 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
     }
   };
 
-  const formatDuration = (minutes: number) => {
-    if (minutes < 60) {
+  const formatDuration = (hours: number) => {
+    if (!hours || isNaN(hours)) return '0h';
+    
+    if (hours < 1) {
+      const minutes = Math.round(hours * 60);
       return `${minutes}m`;
     } else {
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+      const wholeHours = Math.floor(hours);
+      const remainingMinutes = Math.round((hours - wholeHours) * 60);
+      return remainingMinutes > 0 ? `${wholeHours}h ${remainingMinutes}m` : `${wholeHours}h`;
     }
   };
 
@@ -59,7 +62,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
         <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
           <div className="flex items-center space-x-1">
             <span>⏱️</span>
-            <span>{formatDuration(course.duration)}</span>
+            <span>{formatDuration(course.estimatedHours)}</span>
           </div>
           <div className="flex items-center space-x-1">
             <span>📚</span>
@@ -78,7 +81,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
           </div>
           
           <div className="flex items-center space-x-2">
-            {course.price > 0 ? (
+            {course.price && course.price > 0 ? (
               <span className="text-green-600 font-bold">${course.price}</span>
             ) : (
               <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-sm font-semibold">

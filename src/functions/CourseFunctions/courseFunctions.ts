@@ -10,11 +10,12 @@ export interface Course {
   _id: string;
   title: string;
   description: string;
+  shortDescription?: string;
   language: string;
   category: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
-  duration: number;
-  price: number;
+  estimatedHours: number;
+  price?: number;
   instructor: {
     _id: string;
     name: string;
@@ -23,8 +24,17 @@ export interface Course {
   };
   sections: CourseSection[];
   finalQuiz?: Quiz;
+  thumbnail?: string;
+  totalLessons: number;
+  totalSections: number;
+  enrollmentCount: number;
+  completedCount: number;
+  averageRating: number;
+  ratingCount: number;
   isPublished: boolean;
   isArchived: boolean;
+  tags: string[];
+  prerequisites: string[];
   createdAt: string;
   updatedAt: string;
 }

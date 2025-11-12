@@ -4,7 +4,6 @@ import {
   fetchTutorialById,
   type Tutorial 
 } from '../../functions/TutorialFunctions/tutorialFunctions';
-import './TutorialDetailPage.css';
 
 const TutorialDetailPage: React.FC = () => {
   const { language, tutorialId } = useParams<{ language: string; tutorialId: string }>();

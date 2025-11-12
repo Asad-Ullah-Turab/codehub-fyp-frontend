@@ -10,7 +10,11 @@ import EmailVerificationPage from "./pages/EmailVerificationPage/EmailVerificati
 import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage/ResetPasswordPage";
 import Layout from "./pages/Layout";
-import TutorialsPage from "./pages/DemoTutorialsPage";
+import TutorialsPage from "./pages/TutorialsPage/TutorialsPage";
+import LanguageTutorialsPage from "./pages/TutorialsPage/LanguageTutorialsPage";
+import TutorialDetailPage from "./pages/TutorialsPage/TutorialDetailPage";
+import CourseDetailPage from "./pages/TutorialsPage/CourseDetailPage";
+import CoursePage from "./pages/CoursePage";
 import DemoAdminPortal from "./pages/DemoAdminPortal/DemoAdminPortal";
 
 function App() {
@@ -28,14 +32,12 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/tutorials/*"
-              element={
-                <ProtectedRoute>
-                  <TutorialsPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/tutorials" element={<ProtectedRoute><TutorialsPage /></ProtectedRoute>} />
+            <Route path="/tutorials/:language" element={<ProtectedRoute><LanguageTutorialsPage /></ProtectedRoute>} />
+            <Route path="/tutorials/:language/:tutorialId" element={<ProtectedRoute><TutorialDetailPage /></ProtectedRoute>} />
+            <Route path="/courses" element={<ProtectedRoute><TutorialsPage /></ProtectedRoute>} />
+            <Route path="/courses/:courseId" element={<ProtectedRoute><CourseDetailPage /></ProtectedRoute>} />
+            <Route path="/course/:courseId" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} />
             <Route
               path="/admin/*"
               element={

@@ -92,7 +92,7 @@ export const fetchMainConcepts = async (): Promise<MainConcepts> => {
 /**
  * Fetch tutorials based on filters
  * @param language - Programming language filter
- * @param concept - Tutorial concept filter
+ * @param concept - Tutorial concept filter ('all' or specific concept)
  * @returns Array of tutorials
  */
 export const fetchTutorialsByLanguageAndConcept = async (
@@ -100,16 +100,38 @@ export const fetchTutorialsByLanguageAndConcept = async (
   concept: string = ''
 ): Promise<Tutorial[]> => {
   try {
-    let url = `${API_BASE_URL}/tutorials?language=${language}`;
-    if (concept) {
-      url += `&concept=${concept}`;
+    let url: string;
+    
+    // If concept is 'all' or empty, use the language-specific endpoint
+    if (!concept || concept === 'all') {
+      url = `${API_BASE_URL}/tutorials/language/${language}`;
+    } else {
+      // Use the general endpoint with concept filter
+      url = `${API_BASE_URL}/tutorials?language=${language}&concept=${concept}`;
     }
 
     const response = await fetch(url);
-    if (!response.ok) throw new Error('Failed to fetch tutorials');
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Response error:', errorText);
+      throw new Error(`Failed to fetch tutorials: ${response.status} - ${errorText}`);
+    }
     
     const data = await response.json();
-    return data.data || [];
+    
+    // Handle different response formats
+    if (data.tutorials) {
+      // Response from /language/:language endpoint (grouped by concept)
+      const allTutorials: Tutorial[] = [];
+      Object.values(data.tutorials as Record<string, Tutorial[]>).forEach((conceptTutorials) => {
+        allTutorials.push(...conceptTutorials);
+      });
+      return allTutorials;
+    } else {
+      // Response from general endpoint
+      return data.data || [];
+    }
   } catch (error) {
     console.error('Error fetching tutorials:', error);
     throw error;

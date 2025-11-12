@@ -18,7 +18,12 @@ export {
   getTutorialStatusText,
   type MainConcepts,
 } from './TutorialFunctions/tutorialFunctions';
+
+// Course functions
+export * from './CourseFunctions/courseFunctions';
 export type { Tutorial as TutorialItem } from './TutorialFunctions/tutorialFunctions';
+
+
 
 // Code execution functions
 export * from './CodeExecution/codeExecutionFunctions';

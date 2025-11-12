@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Course } from '../../../functions/CourseFunctions/courseFunctions';
-import './CourseCard.css';
 
 interface CourseCardProps {
   course: Course;
@@ -11,13 +10,13 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
       case 'beginner':
-        return '#28a745';
+        return 'bg-green-500 text-white';
       case 'intermediate':
-        return '#ffc107';
+        return 'bg-yellow-500 text-white';
       case 'advanced':
-        return '#dc3545';
+        return 'bg-red-500 text-white';
       default:
-        return '#6c757d';
+        return 'bg-gray-500 text-white';
     }
   };
 
@@ -32,57 +31,65 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
   };
 
   return (
-    <div className="course-card" onClick={onClick}>
-      <div className="course-header">
-        <div className="course-language">{course.language.toUpperCase()}</div>
-        <div 
-          className="course-difficulty"
-          style={{ backgroundColor: getDifficultyColor(course.difficulty) }}
-        >
-          {course.difficulty}
+    <div 
+      className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-indigo-200 hover:-translate-y-1 overflow-hidden"
+      onClick={onClick}
+    >
+      {/* Header */}
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex justify-between items-center mb-4">
+          <span className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+            {course.language.toUpperCase()}
+          </span>
+          <span className={`px-3 py-1 rounded-full text-sm font-semibold capitalize ${getDifficultyColor(course.difficulty)}`}>
+            {course.difficulty}
+          </span>
         </div>
+        
+        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
+          {course.title}
+        </h3>
+        <p className="text-gray-600 text-sm line-clamp-2">
+          {course.description}
+        </p>
       </div>
       
-      <div className="course-content">
-        <h3 className="course-title">{course.title}</h3>
-        <p className="course-description">{course.description}</p>
+      {/* Content */}
+      <div className="p-6">
+        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+          <div className="flex items-center space-x-1">
+            <span>⏱️</span>
+            <span>{formatDuration(course.duration)}</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <span>📚</span>
+            <span>{course.sections?.length || 0} sections</span>
+          </div>
+        </div>
         
-        <div className="course-meta">
-          <div className="course-duration">
-            <span className="meta-icon">⏱️</span>
-            {formatDuration(course.duration)}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+              {course.instructor.name.charAt(0).toUpperCase()}
+            </div>
+            <span className="text-sm text-gray-700 font-medium">
+              {course.instructor.name}
+            </span>
           </div>
           
-          <div className="course-sections">
-            <span className="meta-icon">📚</span>
-            {course.sections?.length || 0} sections
-          </div>
-        </div>
-        
-        <div className="course-instructor">
-          <div className="instructor-avatar">
-            {course.instructor.profilePicture ? (
-              <img 
-                src={course.instructor.profilePicture} 
-                alt={course.instructor.name}
-              />
+          <div className="flex items-center space-x-2">
+            {course.price > 0 ? (
+              <span className="text-green-600 font-bold">${course.price}</span>
             ) : (
-              <div className="default-avatar">
-                {course.instructor.name.charAt(0).toUpperCase()}
-              </div>
+              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-sm font-semibold">
+                Free
+              </span>
             )}
+            <div className="text-indigo-500 group-hover:translate-x-1 transition-transform duration-300">
+              →
+            </div>
           </div>
-          <span className="instructor-name">{course.instructor.name}</span>
         </div>
-      </div>
-      
-      <div className="course-footer">
-        {course.price > 0 ? (
-          <div className="course-price">${course.price}</div>
-        ) : (
-          <div className="course-free">Free</div>
-        )}
-        <div className="course-arrow">→</div>
       </div>
     </div>
   );

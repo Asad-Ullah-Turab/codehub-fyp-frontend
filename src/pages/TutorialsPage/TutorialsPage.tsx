@@ -11,7 +11,6 @@ import {
 } from '../../functions/CourseFunctions/courseFunctions';
 import LanguageCard from './Components/LanguageCard';
 import CourseCard from './Components/CourseCard';
-import './TutorialsPage.css';
 
 const TutorialsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -67,10 +66,12 @@ const TutorialsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="tutorials-page">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading tutorials and courses...</p>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 text-lg">Loading tutorials and courses...</p>
+          </div>
         </div>
       </div>
     );
@@ -78,35 +79,39 @@ const TutorialsPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="tutorials-page">
-        <div className="error-container">
-          <div className="error-icon">⚠️</div>
-          <h2>Something went wrong</h2>
-          <p>{error}</p>
-          <button 
-            className="retry-button" 
-            onClick={loadPageData}
-          >
-            Try Again
-          </button>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md mx-4">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button 
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              onClick={loadPageData}
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="tutorials-page">
-      <div className="tutorials-container">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Tutorials Section */}
-        <section className="tutorials-section">
-          <div className="section-header">
-            <h1 className="section-title">Tutorials</h1>
-            <p className="section-description">
+        <section className="mb-16">
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
+              Tutorials
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Learn programming concepts with interactive tutorials
             </p>
           </div>
           
-          <div className="language-grid">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {getLanguages().map((language) => (
               <LanguageCard
                 key={language}
@@ -120,16 +125,18 @@ const TutorialsPage: React.FC = () => {
         </section>
 
         {/* Courses Section */}
-        <section className="courses-section">
-          <div className="section-header">
-            <h2 className="section-title">Courses</h2>
-            <p className="section-description">
+        <section>
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+              Courses
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Structured learning paths to master programming skills
             </p>
           </div>
           
           {courses.length > 0 ? (
-            <div className="courses-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
               {courses.map((course) => (
                 <CourseCard
                   key={course._id}
@@ -139,16 +146,16 @@ const TutorialsPage: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="no-courses">
-              <div className="no-courses-icon">📚</div>
-              <h3>No courses available yet</h3>
-              <p>Check back later for new courses!</p>
+            <div className="text-center bg-white rounded-2xl shadow-lg p-12">
+              <div className="text-6xl mb-4">📚</div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">No courses available yet</h3>
+              <p className="text-gray-600">Check back later for new courses!</p>
             </div>
           )}
           
-          <div className="view-all-container">
+          <div className="text-center">
             <button 
-              className="view-all-button"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
               onClick={() => navigate('/courses')}
             >
               View All Courses

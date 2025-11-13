@@ -1,5 +1,5 @@
-import React from 'react';
-import type { Course } from '../../../functions/CourseFunctions/courseFunctions';
+import React from "react";
+import type { Course } from "../../../functions/CourseFunctions/courseFunctions";
 
 interface CourseCardProps {
   course: Course;
@@ -7,92 +7,147 @@ interface CourseCardProps {
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty.toLowerCase()) {
-      case 'beginner':
-        return 'bg-green-500 text-white';
-      case 'intermediate':
-        return 'bg-yellow-500 text-white';
-      case 'advanced':
-        return 'bg-red-500 text-white';
-      default:
-        return 'bg-gray-500 text-white';
-    }
+  // Generate random gradient background based on course ID for consistency
+  const getRandomGradient = (id: string) => {
+    const gradients = [
+      {
+        bg: "bg-gradient-to-br from-blue-50 to-blue-100",
+        button: "bg-blue-500 hover:bg-blue-600",
+        border: "border-blue-200",
+      },
+      {
+        bg: "bg-gradient-to-br from-purple-50 to-purple-100",
+        button: "bg-purple-500 hover:bg-purple-600",
+        border: "border-purple-200",
+      },
+      {
+        bg: "bg-gradient-to-br from-green-50 to-green-100",
+        button: "bg-green-500 hover:bg-green-600",
+        border: "border-green-200",
+      },
+      {
+        bg: "bg-gradient-to-br from-pink-50 to-pink-100",
+        button: "bg-pink-500 hover:bg-pink-600",
+        border: "border-pink-200",
+      },
+      {
+        bg: "bg-gradient-to-br from-indigo-50 to-indigo-100",
+        button: "bg-indigo-500 hover:bg-indigo-600",
+        border: "border-indigo-200",
+      },
+      {
+        bg: "bg-gradient-to-br from-teal-50 to-teal-100",
+        button: "bg-teal-500 hover:bg-teal-600",
+        border: "border-teal-200",
+      },
+      {
+        bg: "bg-gradient-to-br from-orange-50 to-orange-100",
+        button: "bg-orange-500 hover:bg-orange-600",
+        border: "border-orange-200",
+      },
+      {
+        bg: "bg-gradient-to-br from-red-50 to-red-100",
+        button: "bg-red-500 hover:bg-red-600",
+        border: "border-red-200",
+      },
+      {
+        bg: "bg-gradient-to-br from-emerald-50 to-emerald-100",
+        button: "bg-emerald-500 hover:bg-emerald-600",
+        border: "border-emerald-200",
+      },
+      {
+        bg: "bg-gradient-to-br from-cyan-50 to-cyan-100",
+        button: "bg-cyan-500 hover:bg-cyan-600",
+        border: "border-cyan-200",
+      },
+      {
+        bg: "bg-gradient-to-br from-yellow-50 to-yellow-100",
+        button: "bg-yellow-500 hover:bg-yellow-600",
+        border: "border-yellow-200",
+      },
+      {
+        bg: "bg-gradient-to-br from-rose-50 to-rose-100",
+        button: "bg-rose-500 hover:bg-rose-600",
+        border: "border-rose-200",
+      },
+    ];
+
+    // Use course ID to generate consistent index
+    const hash = id
+      .split("")
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const index = hash % gradients.length;
+    return gradients[index];
   };
 
-  const formatDuration = (hours: number) => {
-    if (!hours || isNaN(hours)) return '0h';
-    
-    if (hours < 1) {
-      const minutes = Math.round(hours * 60);
-      return `${minutes}m`;
-    } else {
-      const wholeHours = Math.floor(hours);
-      const remainingMinutes = Math.round((hours - wholeHours) * 60);
-      return remainingMinutes > 0 ? `${wholeHours}h ${remainingMinutes}m` : `${wholeHours}h`;
-    }
+  const getDifficultyText = (difficulty: string) => {
+    const lower = difficulty.toLowerCase();
+    if (lower === "beginner") return "Beginner to Expert";
+    if (lower === "intermediate") return "Intermediate to Expert";
+    if (lower === "advanced") return "Advanced";
+    return "Beginner to Advanced";
   };
+
+  const getEmoji = (title: string) => {
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes("array") || lowerTitle.includes("string"))
+      return "📊";
+    if (lowerTitle.includes("linked") || lowerTitle.includes("list"))
+      return "🔗";
+    if (lowerTitle.includes("tree") || lowerTitle.includes("graph"))
+      return "🌳";
+    if (lowerTitle.includes("sort") || lowerTitle.includes("search"))
+      return "🔍";
+    if (lowerTitle.includes("dynamic") || lowerTitle.includes("dp"))
+      return "💡";
+    return "📚";
+  };
+
+  const colors = getRandomGradient(course._id);
 
   return (
-    <div 
-      className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-indigo-200 hover:-translate-y-1 overflow-hidden"
+    <div
+      className={`${colors.bg} rounded-xl border-2 ${colors.border} shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer group`}
       onClick={onClick}
     >
-      {/* Header */}
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex justify-between items-center mb-4">
-          <span className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-            {course.language.toUpperCase()}
-          </span>
-          <span className={`px-3 py-1 rounded-full text-sm font-semibold capitalize ${getDifficultyColor(course.difficulty)}`}>
-            {course.difficulty}
-          </span>
-        </div>
-        
-        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
-          {course.title}
-        </h3>
-        <p className="text-gray-600 text-sm line-clamp-2">
+      <div className="p-6 flex flex-col items-center text-center">
+        {/* Emoji Icon */}
+        <div className="text-5xl mb-4">{getEmoji(course.title)}</div>
+
+        {/* Title */}
+        <h3 className="text-xl font-bold text-gray-900 mb-3">{course.title}</h3>
+
+        {/* Difficulty Badge */}
+        <span className="inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1 rounded-full mb-3">
+          {getDifficultyText(course.difficulty)}
+        </span>
+
+        {/* Description */}
+        <p className="text-gray-700 text-sm mb-4 min-h-[40px] line-clamp-2">
           {course.description}
         </p>
-      </div>
-      
-      {/* Content */}
-      <div className="p-6">
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-          <div className="flex items-center space-x-1">
-            <span>⏱️</span>
-            <span>{formatDuration(course.estimatedHours)}</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <span>📚</span>
-            <span>{course.sections?.length || 0} sections</span>
-          </div>
+
+        {/* Topic Count */}
+        <div className="flex items-center space-x-2 text-gray-700 text-sm mb-4">
+          <span>📚</span>
+          <span className="font-medium">
+            {course.sections?.length || 0} Topics
+          </span>
         </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
-              {course.instructor.name.charAt(0).toUpperCase()}
-            </div>
-            <span className="text-sm text-gray-700 font-medium">
-              {course.instructor.name}
-            </span>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            {course.price && course.price > 0 ? (
-              <span className="text-green-600 font-bold">${course.price}</span>
-            ) : (
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-lg text-sm font-semibold">
-                Free
-              </span>
-            )}
-            <div className="text-indigo-500 group-hover:translate-x-1 transition-transform duration-300">
-              →
-            </div>
-          </div>
-        </div>
+
+        {/* Start Learning Button */}
+        <button
+          className={`${colors.button} text-white font-semibold py-2.5 px-6 rounded-lg w-full transition-colors duration-200 flex items-center justify-center space-x-2 group-hover:shadow-lg`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick();
+          }}
+        >
+          <span>Start Learning</span>
+          <span className="group-hover:translate-x-1 transition-transform duration-200">
+            →
+          </span>
+        </button>
       </div>
     </div>
   );

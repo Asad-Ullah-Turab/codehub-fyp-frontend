@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  fetchMainConcepts, 
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  fetchMainConcepts,
   getLanguageEmoji,
-  type MainConcepts 
-} from '../../functions/TutorialFunctions/tutorialFunctions';
-import { 
-  getAllCourses, 
-  type Course 
-} from '../../functions/CourseFunctions/courseFunctions';
-import LanguageCard from './Components/LanguageCard';
-import CourseCard from './Components/CourseCard';
+  type MainConcepts,
+} from "../../functions/TutorialFunctions/tutorialFunctions";
+import {
+  getAllCourses,
+  type Course,
+} from "../../functions/CourseFunctions/courseFunctions";
+import LanguageCard from "./Components/LanguageCard";
+import CourseCard from "./Components/CourseCard";
 
 const TutorialsPage: React.FC = () => {
   const navigate = useNavigate();
   const [mainConcepts, setMainConcepts] = useState<MainConcepts>({
     python: [],
     javascript: [],
-    cpp: []
+    cpp: [],
   });
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,12 +37,11 @@ const TutorialsPage: React.FC = () => {
       setMainConcepts(conceptsData);
 
       // Load courses data
-      const coursesResponse = await getAllCourses({ limit: 8 }); // Get first 8 courses
+      const coursesResponse = await getAllCourses({ limit: 8 });
       setCourses(coursesResponse.data);
-
     } catch (err) {
-      console.error('Error loading page data:', err);
-      setError('Failed to load data. Please try again later.');
+      console.error("Error loading page data:", err);
+      setError("Failed to load data. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -66,11 +65,13 @@ const TutorialsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      <div className="min-h-screen bg-white">
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 text-lg">Loading tutorials and courses...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600 text-lg">
+              Loading tutorials and courses...
+            </p>
           </div>
         </div>
       </div>
@@ -79,14 +80,16 @@ const TutorialsPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      <div className="min-h-screen bg-white">
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md mx-4">
+          <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md mx-4 border-2 border-gray-200">
             <div className="text-6xl mb-4">⚠️</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Something went wrong
+            </h2>
             <p className="text-gray-600 mb-6">{error}</p>
-            <button 
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+            <button
+              className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
               onClick={loadPageData}
             >
               Try Again
@@ -98,20 +101,27 @@ const TutorialsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Tutorials Section */}
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+            Start Your Learning Journey
+          </h1>
+          <p className="text-gray-600 text-base">
+            Explore comprehensive tutorials in programming languages
+            <br />
+            and data structures to advance your coding skills.
+          </p>
+        </div>
+
+        {/* Programming Languages Section */}
         <section className="mb-16">
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-              Tutorials
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Learn programming concepts with interactive tutorials
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
+            Programming Languages
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {getLanguages().map((language) => (
               <LanguageCard
                 key={language}
@@ -124,19 +134,14 @@ const TutorialsPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Courses Section */}
-        <section>
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-              Courses
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Structured learning paths to master programming skills
-            </p>
-          </div>
-          
+        {/* Data Structures & Algorithms Section */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
+            Data Structures & Algorithms
+          </h2>
+
           {courses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {courses.map((course) => (
                 <CourseCard
                   key={course._id}
@@ -146,22 +151,21 @@ const TutorialsPage: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center bg-white rounded-2xl shadow-lg p-12">
+            <div className="text-center bg-gray-50 rounded-2xl shadow-md p-12 border-2 border-gray-200 max-w-2xl mx-auto">
               <div className="text-6xl mb-4">📚</div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">No courses available yet</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                No courses available yet
+              </h3>
               <p className="text-gray-600">Check back later for new courses!</p>
             </div>
           )}
-          
-          <div className="text-center">
-            <button 
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
-              onClick={() => navigate('/courses')}
-            >
-              View All Courses
-            </button>
-          </div>
         </section>
+
+        {/* Footer Note */}
+        <div className="text-center text-gray-600 text-sm max-w-3xl mx-auto pt-8 border-t border-gray-200">
+          Each Course contains detailed theory, practical examples, code
+          snippets, and quizzes
+        </div>
       </div>
     </div>
   );

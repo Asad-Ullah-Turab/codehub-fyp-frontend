@@ -3,18 +3,25 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   fetchTutorialsByLanguageAndConcept,
   fetchTutorialById,
+  saveTutorial,
+  unsaveTutorial,
+  getSavedTutorials,
   type Tutorial 
-} from '../../functions/TutorialFunctions/tutorialFunctions';
+} from '../../../functions/TutorialFunctions/tutorialFunctions';
+import { useAuth } from '../../../hooks/useAuth';
 
 const LanguageTutorialsPage: React.FC = () => {
   const { language } = useParams<{ language: string }>();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [selectedTutorial, setSelectedTutorial] = useState<Tutorial | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [tutorialLoading, setTutorialLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savingTutorial, setSavingTutorial] = useState(false);
 
   const loadTutorials = React.useCallback(async () => {
     if (!language) return;
@@ -49,6 +56,22 @@ const LanguageTutorialsPage: React.FC = () => {
       setTutorialLoading(true);
       const fullTutorial = await fetchTutorialById(tutorial._id);
       setSelectedTutorial(fullTutorial);
+      
+      // Check if tutorial is saved
+      if (isAuthenticated) {
+        try {
+          const savedTutorials = await getSavedTutorials();
+          const isCurrentTutorialSaved = savedTutorials.data.some(
+            (saved) => saved.tutorial._id === tutorial._id
+          );
+          setIsSaved(isCurrentTutorialSaved);
+        } catch (saveCheckError) {
+          console.log('Could not check save status:', saveCheckError);
+          setIsSaved(false);
+        }
+      } else {
+        setIsSaved(false);
+      }
     } catch (err) {
       console.error('Error loading tutorial details:', err);
     } finally {
@@ -58,6 +81,31 @@ const LanguageTutorialsPage: React.FC = () => {
 
   const handleBackClick = () => {
     navigate('/tutorials');
+  };
+
+  const handleSaveTutorial = async () => {
+    if (!isAuthenticated) {
+      navigate('/signin');
+      return;
+    }
+
+    if (!selectedTutorial?._id) return;
+
+    try {
+      setSavingTutorial(true);
+
+      if (isSaved) {
+        await unsaveTutorial(selectedTutorial._id);
+        setIsSaved(false);
+      } else {
+        await saveTutorial(selectedTutorial._id);
+        setIsSaved(true);
+      }
+    } catch (err) {
+      console.error('Error saving/unsaving tutorial:', err);
+    } finally {
+      setSavingTutorial(false);
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -230,16 +278,46 @@ const LanguageTutorialsPage: React.FC = () => {
                 <div className="max-w-4xl mx-auto p-8">
                   {/* Tutorial Header */}
                   <div className="mb-8">
-                    <div className="flex flex-wrap gap-3 mb-4">
-                      <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">
-                        {selectedTutorial.language.toUpperCase()}
-                      </span>
-                      <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
-                        {selectedTutorial.concept}
-                      </span>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(selectedTutorial.difficulty)}`}>
-                        {selectedTutorial.difficulty}
-                      </span>
+                    <div className="flex flex-wrap gap-3 mb-4 items-center justify-between">
+                      <div className="flex flex-wrap gap-3">
+                        <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium">
+                          {selectedTutorial.language.toUpperCase()}
+                        </span>
+                        <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                          {selectedTutorial.concept}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(selectedTutorial.difficulty)}`}>
+                          {selectedTutorial.difficulty}
+                        </span>
+                      </div>
+                      
+                      {/* Save Button */}
+                      <button
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 border-2 ${
+                          isSaved
+                            ? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                            : "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
+                        } ${
+                          savingTutorial
+                            ? "opacity-60 cursor-not-allowed"
+                            : "hover:shadow-md"
+                        }`}
+                        onClick={handleSaveTutorial}
+                        disabled={savingTutorial}
+                      >
+                        {savingTutorial ? (
+                          <span className="animate-pulse">⏳</span>
+                        ) : (
+                          <span className="text-lg">{isSaved ? "❤️" : "🤍"}</span>
+                        )}
+                        <span className="font-medium">
+                          {savingTutorial
+                            ? "Saving..."
+                            : isSaved
+                            ? "Saved"
+                            : "Save Tutorial"}
+                        </span>
+                      </button>
                     </div>
                     
                     <h1 className="text-3xl font-bold text-gray-900 mb-4">

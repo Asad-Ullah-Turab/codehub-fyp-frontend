@@ -11,7 +11,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage/ResetPasswordPage";
 import Layout from "./pages/Layout";
 import TutorialsPage from "./pages/TutorialsPage/TutorialsPage";
-import LanguageTutorialsPage from "./pages/TutorialsPage/Components/LanguageTutorialsPage";
+import TutorialsDetailPage from "./pages/TutorialsPage/Components/TutorialsDetailPage";
 import CourseDetailPage from "./pages/TutorialsPage/Components/CourseDetailPage";
 import CoursePage from "./pages/CoursePage";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
@@ -48,7 +48,7 @@ function App() {
               path="/tutorials/:language"
               element={
                 <ProtectedRoute>
-                  <LanguageTutorialsPage />
+                  <TutorialsDetailPage />
                 </ProtectedRoute>
               }
             />

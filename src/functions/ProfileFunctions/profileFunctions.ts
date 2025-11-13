@@ -125,32 +125,13 @@ export interface CourseProgress {
   certificateEarned: boolean;
 }
 
-export interface TutorialProgress {
-  _id: string;
-  user: string;
-  tutorial: {
-    _id: string;
-    title: string;
-    description: string;
-    language: string;
-    difficulty: string;
-    concept: string;
-  };
-  completionPercent: number;
-  lastAccessed: string;
-  timeSpentMinutes: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface DashboardStats {
   enrolledCourses: number;
   completedCourses: number;
-  completedTutorials: number;
   certificates: number;
   averageCourseProgress: number;
   totalTimeSpentMinutes: number;
-  recentActivity: TutorialProgress[];
+  savedTutorials: number;
 }
 
 export interface EnrollmentDetails {
@@ -279,38 +260,6 @@ export const getCourseProgress = async (): Promise<{
     return await response.json();
   } catch (error) {
     console.error('Error fetching course progress:', error);
-    throw error;
-  }
-};
-
-// Get tutorial progress
-export const getTutorialProgress = async (): Promise<{
-  success: boolean;
-  message?: string;
-  data: TutorialProgress[];
-}> => {
-  try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/profile/progress/tutorials`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching tutorial progress:', error);
     throw error;
   }
 };
@@ -495,5 +444,54 @@ export const getLanguageEmoji = (language: string): string => {
       return 'λ';
     default:
       return '💻';
+  }
+};
+
+// ========== SAVED TUTORIALS ==========
+
+export interface SavedTutorial {
+  _id: string;
+  savedAt: string;
+  tutorial: {
+    _id: string;
+    title: string;
+    description: string;
+    language: string;
+    concept: string;
+    difficulty: string;
+  };
+}
+
+/**
+ * Get user's saved tutorials for profile page
+ */
+export const getSavedTutorials = async (): Promise<{
+  success: boolean;
+  message?: string;
+  data: SavedTutorial[];
+}> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/tutorials/user/saved`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching saved tutorials:', error);
+    throw error;
   }
 };

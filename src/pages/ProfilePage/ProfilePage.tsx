@@ -5,7 +5,7 @@ import {
   updateProfile, 
   getDashboardStats, 
   getCourseProgress, 
-  getTutorialProgress,
+  getSavedTutorials,
   updateEnrollmentStatus,
   formatDuration,
   formatProgress,
@@ -15,7 +15,7 @@ import {
   type User,
   type DashboardStats,
   type CourseProgress,
-  type TutorialProgress
+  type SavedTutorial
 } from '../../functions/ProfileFunctions/profileFunctions';
 
 const ProfilePage: React.FC = () => {
@@ -23,7 +23,7 @@ const ProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [courseProgress, setCourseProgress] = useState<CourseProgress[]>([]);
-  const [tutorialProgress, setTutorialProgress] = useState<TutorialProgress[]>([]);
+  const [savedTutorials, setSavedTutorials] = useState<SavedTutorial[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'tutorials' | 'settings'>('overview');
@@ -49,17 +49,17 @@ const ProfilePage: React.FC = () => {
         return;
       }
 
-      const [profileRes, statsRes, courseProgressRes, tutorialProgressRes] = await Promise.all([
+      const [profileRes, statsRes, courseProgressRes, savedTutorialsRes] = await Promise.all([
         getProfile(),
         getDashboardStats(),
         getCourseProgress(),
-        getTutorialProgress()
+        getSavedTutorials()
       ]);
 
       setUser(profileRes.data);
       setDashboardStats(statsRes.data);
       setCourseProgress(courseProgressRes.data);
-      setTutorialProgress(tutorialProgressRes.data);
+      setSavedTutorials(savedTutorialsRes.data);
 
       // Initialize form with user data
       setProfileForm({
@@ -250,11 +250,11 @@ const ProfilePage: React.FC = () => {
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
                 <div className="flex items-center">
                   <div className="p-3 bg-purple-100 rounded-xl">
-                    <span className="text-2xl">📝</span>
+                    <span className="text-2xl">❤️</span>
                   </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Completed Tutorials</p>
-                    <p className="text-2xl font-bold text-gray-900">{dashboardStats.completedTutorials}</p>
+                    <p className="text-sm font-medium text-gray-600">Saved Tutorials</p>
+                    <p className="text-2xl font-bold text-gray-900">{dashboardStats.savedTutorials}</p>
                   </div>
                 </div>
               </div>
@@ -427,71 +427,72 @@ const ProfilePage: React.FC = () => {
         )}
 
         {activeTab === 'tutorials' && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <h2 className="text-2xl font-bold text-gray-900">My Tutorials</h2>
             
-            {tutorialProgress.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {tutorialProgress.map((tutorial) => (
-                  <div key={tutorial._id} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-2xl">{getLanguageEmoji(tutorial.tutorial.language)}</span>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{tutorial.tutorial.title}</h3>
-                          <p className="text-sm text-gray-600">{tutorial.tutorial.concept}</p>
+            {/* Saved Tutorials Section */}
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-6 border border-purple-100">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl">❤️</span>
+                  <h3 className="text-xl font-bold text-gray-900">Saved Tutorials</h3>
+                </div>
+                <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                  {savedTutorials.length} saved
+                </span>
+              </div>
+              
+              {savedTutorials.length > 0 ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {savedTutorials.map((saved) => (
+                    <div key={saved._id} className="bg-white rounded-xl shadow-sm p-4 border border-gray-200 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg">{getLanguageEmoji(saved.tutorial.language)}</span>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-semibold text-gray-900 text-sm truncate">{saved.tutorial.title}</h4>
+                            <p className="text-xs text-gray-600">{saved.tutorial.concept}</p>
+                          </div>
                         </div>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(tutorial.tutorial.difficulty)}`}>
-                        {tutorial.tutorial.difficulty}
-                      </span>
-                    </div>
-
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {tutorial.tutorial.description}
-                    </p>
-
-                    {/* Progress Bar */}
-                    <div className="mb-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-gray-700">Progress</span>
-                        <span className="text-sm font-bold text-indigo-600">
-                          {formatProgress(tutorial.completionPercent)}
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(saved.tutorial.difficulty)}`}>
+                          {saved.tutorial.difficulty}
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${tutorial.completionPercent}%` }}
-                        ></div>
+
+                      <p className="text-gray-600 text-xs mb-3 line-clamp-2">
+                        {saved.tutorial.description}
+                      </p>
+
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-500">
+                          Saved {new Date(saved.savedAt).toLocaleDateString()}
+                        </span>
+                        <a
+                          href={`/tutorials/${saved.tutorial.language}/${saved.tutorial._id}`}
+                          className="text-indigo-600 hover:text-indigo-800 font-medium"
+                        >
+                          Start Learning →
+                        </a>
                       </div>
                     </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-3">🤍</div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">No saved tutorials yet</h4>
+                  <p className="text-gray-600 mb-4">Save tutorials while browsing to access them quickly later</p>
+                  <a
+                    href="/tutorials"
+                    className="text-indigo-600 hover:text-indigo-800 font-medium text-sm"
+                  >
+                    Browse Tutorials →
+                  </a>
+                </div>
+              )}
+            </div>
 
-                    {/* Time Spent */}
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">
-                        Time spent: {formatDuration(tutorial.timeSpentMinutes)}
-                      </span>
-                      <span className="text-gray-500">
-                        {new Date(tutorial.lastAccessed).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">📝</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No tutorials yet</h3>
-                <p className="text-gray-600 mb-6">Start learning with our interactive tutorials</p>
-                <a
-                  href="/tutorials"
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-                >
-                  Browse Tutorials
-                </a>
-              </div>
-            )}
+
           </div>
         )}
 

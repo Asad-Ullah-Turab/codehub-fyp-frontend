@@ -234,3 +234,125 @@ export const formatTutorialDate = (dateString: string): string => {
 export const getTutorialStatusText = (isSaved: boolean): string => {
   return isSaved ? 'Saved' : 'Save for Later';
 };
+
+// ========== SAVE TUTORIAL FUNCTIONS ==========
+
+/**
+ * Save a tutorial for later viewing
+ * @param tutorialId - Tutorial ID to save
+ * @returns Promise with save result
+ */
+export const saveTutorial = async (tutorialId: string): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/tutorials/save`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ tutorialId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error saving tutorial:', error);
+    throw error;
+  }
+};
+
+/**
+ * Remove a tutorial from saved list
+ * @param tutorialId - Tutorial ID to unsave
+ * @returns Promise with unsave result
+ */
+export const unsaveTutorial = async (tutorialId: string): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/tutorials/saved/${tutorialId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error unsaving tutorial:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get user's saved tutorials
+ * @param filters - Optional filters for language and difficulty
+ * @returns Promise with saved tutorials list
+ */
+export const getSavedTutorials = async (filters?: {
+  language?: string;
+  difficulty?: string;
+}): Promise<{
+  success: boolean;
+  count: number;
+  data: Array<{
+    _id: string;
+    savedAt: string;
+    tutorial: Tutorial;
+  }>;
+}> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const queryParams = new URLSearchParams();
+    if (filters?.language) queryParams.append('language', filters.language);
+    if (filters?.difficulty) queryParams.append('difficulty', filters.difficulty);
+
+    const url = `${API_BASE_URL}/tutorials/user/saved${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching saved tutorials:', error);
+    throw error;
+  }
+};

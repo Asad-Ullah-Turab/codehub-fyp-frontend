@@ -6,7 +6,7 @@ import {
   type Course,
   type CourseEnrollment,
 } from "../../../functions/CourseFunctions/courseFunctions";
-import AIChatAssistant from "../../../components/AIChatAssistant";
+import AIChatAssistant from "../../../components/AIChatAssistant/AIChatAssistant";
 
 const CourseDetailPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();

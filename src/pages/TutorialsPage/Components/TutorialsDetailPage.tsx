@@ -8,7 +8,7 @@ import {
   type Tutorial,
 } from "../../../functions/TutorialFunctions/tutorialFunctions";
 import { useAuth } from "../../../hooks/useAuth";
-import AIChatAssistant from "../../../components/AIChatAssistant";
+import AIChatAssistant from "../../../components/AIChatAssistant/AIChatAssistant";
 
 const TutorialsDetailPage: React.FC = () => {
   const { language } = useParams<{ language: string }>();

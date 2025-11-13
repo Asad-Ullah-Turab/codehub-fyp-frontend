@@ -127,6 +127,19 @@ const TutorialsDetailPage: React.FC = () => {
     navigate("/tutorials");
   };
 
+  // Map tutorial language to editor language ID
+  const mapLanguageToEditorId = (language: string): string => {
+    const languageMap: { [key: string]: string } = {
+      'javascript': 'javascript',
+      'js': 'javascript',
+      'python': 'python',
+      'py': 'python',
+      'cpp': 'cpp',
+      'c++': 'cpp',
+    };
+    return languageMap[language.toLowerCase()] || 'python';
+  };
+
   const handleNextTutorial = () => {
     if (!selectedTutorial || tutorials.length === 0) return;
 
@@ -321,6 +334,16 @@ const TutorialsDetailPage: React.FC = () => {
               ))}
             </div>
           </div>
+
+          {/* Generate with AI Button */}
+          <div className="p-4 border-t border-gray-200">
+            <button className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              Generate with AI
+            </button>
+          </div>
         </div>
 
         {/* Main Content Area */}
@@ -401,10 +424,13 @@ const TutorialsDetailPage: React.FC = () => {
                       {selectedTutorial.content &&
                         selectedTutorial.content.length > 0 && (
                           <div className="mb-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                              </svg>
                               Content
                             </h2>
-                            <div className="prose prose-lg max-w-none bg-white rounded-lg p-6 border border-gray-200">
+                            <div className="prose prose-lg max-w-none bg-gradient-to-br from-white to-purple-50 rounded-xl p-6 border-2 border-purple-200 shadow-md">
                               {selectedTutorial.content
                                 .split("\n")
                                 .map((line, index) => {
@@ -413,7 +439,7 @@ const TutorialsDetailPage: React.FC = () => {
                                     return (
                                       <h2
                                         key={index}
-                                        className="text-2xl font-bold text-gray-900 mt-6 mb-3"
+                                        className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mt-6 mb-3 pb-2 border-b-2 border-purple-300"
                                       >
                                         {line.replace("## ", "")}
                                       </h2>
@@ -422,8 +448,9 @@ const TutorialsDetailPage: React.FC = () => {
                                     return (
                                       <h3
                                         key={index}
-                                        className="text-xl font-semibold text-gray-800 mt-4 mb-2"
+                                        className="text-xl font-semibold text-indigo-700 mt-4 mb-2 flex items-center gap-2"
                                       >
+                                        <span className="text-indigo-500">▸</span>
                                         {line.replace("### ", "")}
                                       </h3>
                                     );
@@ -437,16 +464,16 @@ const TutorialsDetailPage: React.FC = () => {
                                       return (
                                         <li
                                           key={index}
-                                          className="ml-4 text-gray-700"
+                                          className="ml-4 text-gray-700 bg-blue-50 py-2 px-3 rounded-md mb-2"
                                         >
-                                          <strong>{match[1]}</strong>:{match[2]}
+                                          <strong className="text-blue-700">{match[1]}</strong>:<span className="text-gray-800">{match[2]}</span>
                                         </li>
                                       );
                                     }
                                     return (
                                       <li
                                         key={index}
-                                        className="ml-4 text-gray-700"
+                                        className="ml-4 text-gray-700 py-1"
                                       >
                                         {line.replace("- ", "")}
                                       </li>
@@ -455,8 +482,9 @@ const TutorialsDetailPage: React.FC = () => {
                                     return (
                                       <li
                                         key={index}
-                                        className="ml-4 text-gray-700"
+                                        className="ml-4 text-gray-700 py-1 hover:text-gray-900"
                                       >
+                                        <span className="text-purple-500 mr-2">●</span>
                                         {line.replace("- ", "")}
                                       </li>
                                     );
@@ -468,11 +496,11 @@ const TutorialsDetailPage: React.FC = () => {
                                     return (
                                       <p
                                         key={index}
-                                        className="text-gray-700 mb-2"
+                                        className="text-gray-700 mb-2 leading-relaxed"
                                       >
                                         {parts.map((part, i) =>
                                           i % 2 === 1 ? (
-                                            <strong key={i}>{part}</strong>
+                                            <strong key={i} className="text-gray-900 font-semibold">{part}</strong>
                                           ) : (
                                             part
                                           )
@@ -483,7 +511,7 @@ const TutorialsDetailPage: React.FC = () => {
                                     return (
                                       <p
                                         key={index}
-                                        className="text-gray-700 mb-2"
+                                        className="text-gray-700 mb-2 leading-relaxed"
                                       >
                                         {line}
                                       </p>
@@ -497,33 +525,57 @@ const TutorialsDetailPage: React.FC = () => {
                       {selectedTutorial.codeExamples &&
                         selectedTutorial.codeExamples.length > 0 && (
                           <div className="mb-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                              </svg>
                               Code Examples
                             </h2>
                             {selectedTutorial.codeExamples.map(
                               (example, index) => (
                                 <div key={index} className="mb-6">
                                   {example.description && (
-                                    <p className="text-gray-700 mb-3">
+                                    <p className="text-gray-700 mb-3 font-medium">
                                       {example.description}
                                     </p>
                                   )}
-                                  <div className="bg-gray-900 rounded-lg overflow-hidden">
+                                  <div className="bg-gray-900 rounded-lg overflow-hidden border-2 border-green-500 shadow-lg">
                                     <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
                                       <span className="text-white text-sm font-medium">
                                         {example.title}
                                       </span>
-                                      <button
-                                        className="flex items-center space-x-1 text-white text-sm hover:text-gray-300"
-                                        onClick={() =>
-                                          navigator.clipboard.writeText(
-                                            example.code
-                                          )
-                                        }
-                                      >
-                                        <span>📋</span>
-                                        <span>Copy</span>
-                                      </button>
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          className="flex items-center space-x-1 px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors"
+                                          onClick={() => {
+                                            navigate('/editor', {
+                                              state: {
+                                                code: example.code,
+                                                language: mapLanguageToEditorId(selectedTutorial.language)
+                                              }
+                                            });
+                                          }}
+                                        >
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                          </svg>
+                                          <span>Run Code</span>
+                                        </button>
+                                        <button
+                                          className="flex items-center space-x-1 text-white text-sm hover:text-gray-300"
+                                          onClick={() =>
+                                            navigator.clipboard.writeText(
+                                              example.code
+                                            )
+                                          }
+                                        >
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                          </svg>
+                                          <span>Copy</span>
+                                        </button>
+                                      </div>
                                     </div>
                                     <pre className="p-4 text-sm text-gray-100 overflow-x-auto hide-scrollbar max-w-full">
                                       <code className="break-words">
@@ -566,15 +618,18 @@ const TutorialsDetailPage: React.FC = () => {
                       {/* Key Takeaways Box */}
                       {selectedTutorial.notes &&
                         selectedTutorial.notes.length > 0 && (
-                          <div className="bg-gray-100 rounded-lg p-6 mb-8">
-                            <h2 className="text-lg font-bold text-gray-900 mb-4">
+                          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 mb-8 border-2 border-blue-300 shadow-md">
+                            <h2 className="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                              <svg className="w-6 h-6 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
                               Key Takeaways
                             </h2>
-                            <ul className="space-y-2">
+                            <ul className="space-y-3">
                               {selectedTutorial.notes.map((note, index) => (
-                                <li key={index} className="flex items-start">
-                                  <span className="text-gray-700 mr-2">•</span>
-                                  <span className="text-gray-700">{note}</span>
+                                <li key={index} className="flex items-start bg-white rounded-lg p-3 shadow-sm">
+                                  <span className="text-indigo-600 mr-3 text-lg font-bold">✓</span>
+                                  <span className="text-gray-800 font-medium">{note}</span>
                                 </li>
                               ))}
                             </ul>
@@ -584,19 +639,24 @@ const TutorialsDetailPage: React.FC = () => {
                       {selectedTutorial.tips &&
                         selectedTutorial.tips.length > 0 && (
                           <div className="mb-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                              Tips
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                              <svg className="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
+                              </svg>
+                              Pro Tips
                             </h2>
                             <div className="space-y-3">
                               {selectedTutorial.tips.map((tip, index) => (
                                 <div
                                   key={index}
-                                  className="flex space-x-3 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400"
+                                  className="flex space-x-3 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg border-l-4 border-yellow-500 shadow-md hover:shadow-lg transition-shadow"
                                 >
-                                  <div className="text-yellow-600 text-xl">
-                                    💡
+                                  <div className="text-yellow-600 flex-shrink-0">
+                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                      <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
+                                    </svg>
                                   </div>
-                                  <p className="text-gray-700">{tip}</p>
+                                  <p className="text-gray-800 font-medium">{tip}</p>
                                 </div>
                               ))}
                             </div>
@@ -606,14 +666,17 @@ const TutorialsDetailPage: React.FC = () => {
                       {selectedTutorial.tags &&
                         selectedTutorial.tags.length > 0 && (
                           <div className="mb-8">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-3">
+                            <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                              <svg className="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                              </svg>
                               Tags
                             </h2>
                             <div className="flex flex-wrap gap-2">
                               {selectedTutorial.tags.map((tag, index) => (
                                 <span
                                   key={index}
-                                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
+                                  className="px-4 py-2 bg-gradient-to-r from-pink-100 to-purple-100 text-purple-700 rounded-full text-sm font-medium border border-purple-300 hover:shadow-md transition-shadow cursor-pointer"
                                 >
                                   #{tag}
                                 </span>

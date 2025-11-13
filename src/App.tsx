@@ -18,6 +18,7 @@ import CoursePage from "./pages/CoursePage";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import DemoAdminPortal from "./pages/DemoAdminPortal/DemoAdminPortal";
 import AboutPage from "./pages/AboutPage/AboutPage";
+import ContactPage from "./pages/ContactPage/ContactPage";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route
               path="/editor"
               element={

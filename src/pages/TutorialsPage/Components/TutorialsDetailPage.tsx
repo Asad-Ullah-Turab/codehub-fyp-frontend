@@ -83,11 +83,35 @@ const TutorialsDetailPage: React.FC = () => {
           "all"
         );
         console.log("Tutorials loaded:", tutorialsData.length, tutorialsData);
-        console.log("First tutorial full data:", JSON.stringify(tutorialsData[0], null, 2));
+        console.log(
+          "First tutorial full data:",
+          JSON.stringify(tutorialsData[0], null, 2)
+        );
         setTutorials(tutorialsData);
 
-        // Don't auto-select, let user choose
-        setSelectedTutorial(null);
+        // Auto-select first tutorial
+        if (tutorialsData.length > 0) {
+          const firstTutorial = tutorialsData[0];
+          setTutorialLoading(true);
+          setSelectedTutorial(firstTutorial);
+          
+          // Check if first tutorial is saved
+          if (isAuthenticated) {
+            try {
+              const savedTutorials = await getSavedTutorials();
+              const isCurrentTutorialSaved = savedTutorials.data?.some(
+                (saved) => saved.tutorial?._id === firstTutorial._id
+              );
+              setIsSaved(!!isCurrentTutorialSaved);
+            } catch (saveCheckError) {
+              console.log("Could not check save status:", saveCheckError);
+              setIsSaved(false);
+            }
+          } else {
+            setIsSaved(false);
+          }
+          setTutorialLoading(false);
+        }
       } catch (err) {
         console.error("Error loading tutorials:", err);
         setError("Failed to load tutorials. Please try again later.");
@@ -97,10 +121,34 @@ const TutorialsDetailPage: React.FC = () => {
     };
 
     loadTutorials();
-  }, [language]);
+  }, [language, isAuthenticated]);
 
   const handleBackClick = () => {
     navigate("/tutorials");
+  };
+
+  const handleNextTutorial = () => {
+    if (!selectedTutorial || tutorials.length === 0) return;
+
+    const currentIndex = tutorials.findIndex(
+      (t) => t._id === selectedTutorial._id
+    );
+    if (currentIndex < tutorials.length - 1) {
+      handleTutorialSelect(tutorials[currentIndex + 1]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handlePreviousTutorial = () => {
+    if (!selectedTutorial || tutorials.length === 0) return;
+
+    const currentIndex = tutorials.findIndex(
+      (t) => t._id === selectedTutorial._id
+    );
+    if (currentIndex > 0) {
+      handleTutorialSelect(tutorials[currentIndex - 1]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleSaveTutorial = async () => {
@@ -121,8 +169,19 @@ const TutorialsDetailPage: React.FC = () => {
         await saveTutorial(selectedTutorial._id);
         setIsSaved(true);
       }
-    } catch (err) {
-      console.error("Error saving/unsaving tutorial:", err);
+    } catch (error: unknown) {
+      console.error("Error saving/unsaving tutorial:", error);
+      // If the error is "already saved", just update the UI state
+      if (error instanceof Error && error.message?.includes("already saved")) {
+        setIsSaved(true);
+      } else {
+        // Show error to user for other errors
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Failed to save tutorial. Please try again.";
+        alert(message);
+      }
     } finally {
       setSavingTutorial(false);
     }
@@ -189,15 +248,15 @@ const TutorialsDetailPage: React.FC = () => {
         }
       `}</style>
 
-      <div className="flex h-screen bg-gray-50 overflow-hidden">
+      <div className="flex h-screen bg-gray-50 overflow-hidden overflow-x-hidden">
         {/* Sidebar Toggle Button */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="fixed left-0 top-1/2 z-50 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-r-lg shadow-lg transition-all"
+          className="absolute z-10 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-r-lg shadow-lg transition-all duration-300"
           style={{
-            transform: `translateY(-50%) ${
-              sidebarOpen ? "translateX(256px)" : "translateX(0)"
-            }`,
+            left: sidebarOpen ? "256px" : "0px",
+            top: "50vh",
+            transform: "translateY(-50%)",
           }}
         >
           {sidebarOpen ? (
@@ -267,7 +326,7 @@ const TutorialsDetailPage: React.FC = () => {
         {/* Main Content Area */}
         <div className="flex-1 flex overflow-hidden">
           {/* Tutorial Content */}
-          <div className="flex-1 overflow-y-auto hide-scrollbar">
+          <div className="flex-1 overflow-y-auto hide-scrollbar overflow-x-hidden">
             {selectedTutorial ? (
               <>
                 {/* Breadcrumb */}
@@ -290,7 +349,7 @@ const TutorialsDetailPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="max-w-4xl mx-auto p-8">
+                <div className="max-w-4xl mx-auto p-8 overflow-x-hidden">
                   {tutorialLoading ? (
                     <div className="flex items-center justify-center h-64">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -346,34 +405,91 @@ const TutorialsDetailPage: React.FC = () => {
                               Content
                             </h2>
                             <div className="prose prose-lg max-w-none bg-white rounded-lg p-6 border border-gray-200">
-                              {selectedTutorial.content.split('\n').map((line, index) => {
-                                // Render Markdown-style content as HTML
-                                if (line.startsWith('## ')) {
-                                  return <h2 key={index} className="text-2xl font-bold text-gray-900 mt-6 mb-3">{line.replace('## ', '')}</h2>;
-                                } else if (line.startsWith('### ')) {
-                                  return <h3 key={index} className="text-xl font-semibold text-gray-800 mt-4 mb-2">{line.replace('### ', '')}</h3>;
-                                } else if (line.startsWith('- **') && line.includes('**:')) {
-                                  const match = line.match(/- \*\*(.*?)\*\*:(.*)/);
-                                  if (match) {
-                                    return <li key={index} className="ml-4 text-gray-700"><strong>{match[1]}</strong>:{match[2]}</li>;
+                              {selectedTutorial.content
+                                .split("\n")
+                                .map((line, index) => {
+                                  // Render Markdown-style content as HTML
+                                  if (line.startsWith("## ")) {
+                                    return (
+                                      <h2
+                                        key={index}
+                                        className="text-2xl font-bold text-gray-900 mt-6 mb-3"
+                                      >
+                                        {line.replace("## ", "")}
+                                      </h2>
+                                    );
+                                  } else if (line.startsWith("### ")) {
+                                    return (
+                                      <h3
+                                        key={index}
+                                        className="text-xl font-semibold text-gray-800 mt-4 mb-2"
+                                      >
+                                        {line.replace("### ", "")}
+                                      </h3>
+                                    );
+                                  } else if (
+                                    line.startsWith("- **") &&
+                                    line.includes("**:")
+                                  ) {
+                                    const match =
+                                      line.match(/- \*\*(.*?)\*\*:(.*)/);
+                                    if (match) {
+                                      return (
+                                        <li
+                                          key={index}
+                                          className="ml-4 text-gray-700"
+                                        >
+                                          <strong>{match[1]}</strong>:{match[2]}
+                                        </li>
+                                      );
+                                    }
+                                    return (
+                                      <li
+                                        key={index}
+                                        className="ml-4 text-gray-700"
+                                      >
+                                        {line.replace("- ", "")}
+                                      </li>
+                                    );
+                                  } else if (line.startsWith("- ")) {
+                                    return (
+                                      <li
+                                        key={index}
+                                        className="ml-4 text-gray-700"
+                                      >
+                                        {line.replace("- ", "")}
+                                      </li>
+                                    );
+                                  } else if (line.trim() === "") {
+                                    return <br key={index} />;
+                                  } else if (line.includes("**")) {
+                                    // Handle bold text
+                                    const parts = line.split("**");
+                                    return (
+                                      <p
+                                        key={index}
+                                        className="text-gray-700 mb-2"
+                                      >
+                                        {parts.map((part, i) =>
+                                          i % 2 === 1 ? (
+                                            <strong key={i}>{part}</strong>
+                                          ) : (
+                                            part
+                                          )
+                                        )}
+                                      </p>
+                                    );
+                                  } else {
+                                    return (
+                                      <p
+                                        key={index}
+                                        className="text-gray-700 mb-2"
+                                      >
+                                        {line}
+                                      </p>
+                                    );
                                   }
-                                  return <li key={index} className="ml-4 text-gray-700">{line.replace('- ', '')}</li>;
-                                } else if (line.startsWith('- ')) {
-                                  return <li key={index} className="ml-4 text-gray-700">{line.replace('- ', '')}</li>;
-                                } else if (line.trim() === '') {
-                                  return <br key={index} />;
-                                } else if (line.includes('**')) {
-                                  // Handle bold text
-                                  const parts = line.split('**');
-                                  return (
-                                    <p key={index} className="text-gray-700 mb-2">
-                                      {parts.map((part, i) => i % 2 === 1 ? <strong key={i}>{part}</strong> : part)}
-                                    </p>
-                                  );
-                                } else {
-                                  return <p key={index} className="text-gray-700 mb-2">{line}</p>;
-                                }
-                              })}
+                                })}
                             </div>
                           </div>
                         )}
@@ -409,8 +525,10 @@ const TutorialsDetailPage: React.FC = () => {
                                         <span>Copy</span>
                                       </button>
                                     </div>
-                                    <pre className="p-4 text-sm text-gray-100 overflow-x-auto hide-scrollbar">
-                                      <code>{example.code}</code>
+                                    <pre className="p-4 text-sm text-gray-100 overflow-x-auto hide-scrollbar max-w-full">
+                                      <code className="break-words">
+                                        {example.code}
+                                      </code>
                                     </pre>
                                   </div>
 
@@ -505,11 +623,30 @@ const TutorialsDetailPage: React.FC = () => {
                         )}
                       {/* Navigation Buttons */}
                       <div className="flex items-center justify-between border-t border-gray-200 pt-6">
-                        <button className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900">
+                        <button
+                          onClick={handlePreviousTutorial}
+                          disabled={
+                            !selectedTutorial ||
+                            tutorials.findIndex(
+                              (t) => t._id === selectedTutorial._id
+                            ) === 0
+                          }
+                          className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
                           <span>←</span>
                           <span>Previous</span>
                         </button>
-                        <button className="flex items-center space-x-2 px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg">
+                        <button
+                          onClick={handleNextTutorial}
+                          disabled={
+                            !selectedTutorial ||
+                            tutorials.findIndex(
+                              (t) => t._id === selectedTutorial._id
+                            ) ===
+                              tutorials.length - 1
+                          }
+                          className="flex items-center space-x-2 px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
                           <span>Next</span>
                           <span>→</span>
                         </button>
@@ -535,7 +672,7 @@ const TutorialsDetailPage: React.FC = () => {
 
           {/* AI Assistant Panel */}
           {showAIChat && (
-            <div className="w-96 flex-shrink-0">
+            <div className="w-96 flex-shrink-0 overflow-hidden">
               <AIChatAssistant
                 context="tutorial"
                 contextTitle={selectedTutorial?.title}
@@ -547,11 +684,11 @@ const TutorialsDetailPage: React.FC = () => {
         {/* AI Chat Toggle Button */}
         <button
           onClick={() => setShowAIChat(!showAIChat)}
-          className="fixed right-0 top-1/2 z-50 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-l-lg shadow-lg transition-all"
+          className="absolute z-10 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-l-lg shadow-lg transition-all duration-300"
           style={{
-            transform: `translateY(-50%) ${
-              showAIChat ? "translateX(-384px)" : "translateX(0)"
-            }`,
+            right: showAIChat ? "384px" : "0px",
+            top: "50vh",
+            transform: "translateY(-50%)",
           }}
         >
           {showAIChat ? (

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 
 interface Message {
   id: string;
@@ -91,7 +91,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white border-l border-gray-200">
+    <div className="flex flex-col h-full bg-white border-l border-gray-200 overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
         <h2 className="font-semibold text-gray-800 text-sm">AI Assistant</h2>
@@ -113,9 +113,9 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 bg-gray-50">
         {messages.map((message) => (
-          <div key={message.id}>
+          <div key={message.id} className="overflow-x-hidden">
             {!message.isUser && (
               <div className="flex items-start space-x-3">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -133,14 +133,14 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
                     />
                   </svg>
                 </div>
-                <div className="flex-1 bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-800">
+                <div className="flex-1 bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-800 break-words overflow-hidden">
                   {message.text}
                 </div>
               </div>
             )}
             {message.isUser && (
-              <div className="flex justify-end">
-                <div className="bg-blue-500 text-white rounded-lg px-4 py-3 text-sm max-w-[80%]">
+              <div className="flex justify-end overflow-hidden">
+                <div className="bg-blue-500 text-white rounded-lg px-4 py-3 text-sm max-w-[80%] break-words overflow-hidden">
                   {message.text}
                 </div>
               </div>

@@ -1,22 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../constants";
 import { handleSignin, handleOAuthLogin } from "../../functions";
-
-
-import { useEffect } from "react";
+import SuspendedAccountModal from "../../components/SuspendedAccountModal/SuspendedAccountModal";
 
 export default function SigninPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuspendedModal, setShowSuspendedModal] = useState(false);
+  const [suspendedMessage, setSuspendedMessage] = useState("");
   const { signin, setUserAndToken } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Sanitize redirect param on mount
+  // Sanitize redirect param on mount and check for suspension message
   useEffect(() => {
     const redirect = searchParams.get("redirect");
     if (redirect === "/signin" || redirect === "signin") {
@@ -24,10 +24,19 @@ export default function SigninPage() {
       setSearchParams(searchParams, { replace: true });
     }
 
+    // Check for suspension message from sessionStorage (set by API interceptor)
+    const suspensionMsg = sessionStorage.getItem('accountSuspendedMessage');
+    if (suspensionMsg) {
+      setSuspendedMessage(suspensionMsg);
+      setShowSuspendedModal(true);
+      sessionStorage.removeItem('accountSuspendedMessage');
+    }
+
     // Handle error params from URL
     const errorParam = searchParams.get("error");
     if (errorParam === "account_suspended") {
-      setError("Your account has been suspended. Please contact support.");
+      setSuspendedMessage("Your account has been suspended. Please contact support for more information.");
+      setShowSuspendedModal(true);
       searchParams.delete("error");
       setSearchParams(searchParams, { replace: true });
     }
@@ -50,7 +59,11 @@ export default function SigninPage() {
         navigate,
         searchParams,
         setError,
-        setUserAndToken
+        setUserAndToken,
+        (message: string) => {
+          setSuspendedMessage(message);
+          setShowSuspendedModal(true);
+        }
       );
     } catch {
       // Errors are handled by the function
@@ -270,6 +283,13 @@ export default function SigninPage() {
           </button>
         </p>
       </div>
+
+      {/* Suspended Account Modal */}
+      <SuspendedAccountModal
+        isOpen={showSuspendedModal}
+        onClose={() => setShowSuspendedModal(false)}
+        message={suspendedMessage}
+      />
     </div>
   );
 }

@@ -10,6 +10,8 @@ interface AuthError {
       needsEmailVerification?: boolean;
       email?: string;
       autoResent?: boolean;
+      isSuspended?: boolean;
+      accountStatus?: string;
     };
   };
   message?: string;
@@ -58,7 +60,8 @@ export const handleSignin = async (
   navigate: (path: string) => void,
   searchParams: URLSearchParams,
   setError: (error: string) => void,
-  setUserAndToken?: (user: any, token: string) => void
+  setUserAndToken?: (user: any, token: string) => void,
+  onSuspended?: (message: string) => void
 ) => {
   try {
     // Validate inputs
@@ -99,6 +102,17 @@ export const handleSignin = async (
   } catch (error: unknown) {
     const authError = error as AuthError;
     const errorResponse = authError?.response?.data;
+
+    // Check if account is suspended
+    if (errorResponse?.isSuspended || errorResponse?.accountStatus === 'suspended') {
+      const message = errorResponse.message || 'Your account has been suspended. Please contact support.';
+      if (onSuspended) {
+        onSuspended(message);
+      } else {
+        setError(message);
+      }
+      return;
+    }
 
     // Check if it's an email verification issue
     if (errorResponse?.needsEmailVerification) {

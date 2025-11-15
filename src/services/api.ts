@@ -113,9 +113,24 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const errorData = error.response?.data;
+    
+    // Handle suspended accounts (403 status)
+    if (error.response?.status === 403 && (errorData?.isSuspended || errorData?.accountStatus === 'suspended')) {
+      // Clear auth data
+      localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
+      
+      // Store suspension message for display on signin page
+      sessionStorage.setItem('accountSuspendedMessage', errorData?.message || 'Your account has been suspended.');
+      
+      // Redirect to signin page
+      window.location.href = "/signin";
+      return Promise.reject(error);
+    }
+    
     if (error.response?.status === 401) {
       // Only redirect if it's a token expiry, not email verification issues
-      const errorData = error.response?.data;
       
       // Don't redirect for email verification errors
       if (errorData?.needsEmailVerification) {

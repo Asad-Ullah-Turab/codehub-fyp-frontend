@@ -105,11 +105,11 @@ export interface CourseProgress {
     description: string;
     language: string;
     difficulty: string;
-    instructor: {
+    instructor?: {
       _id: string;
       name: string;
       profilePicture?: string;
-    };
+    } | null;
     sections: Array<{
       _id: string;
       title: string;
@@ -142,11 +142,11 @@ export interface EnrollmentDetails {
     description: string;
     language: string;
     difficulty: string;
-    instructor: {
+    instructor?: {
       _id: string;
       name: string;
       profilePicture?: string;
-    };
+    } | null;
     duration: number;
     price?: number;
     thumbnail?: string;

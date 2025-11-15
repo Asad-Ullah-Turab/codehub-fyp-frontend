@@ -188,7 +188,7 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
             <div>
               <p className="text-sm text-gray-600">Instructor</p>
               <p className="text-lg font-semibold text-gray-900">
-                {course.instructor.name}
+                {course.instructor?.name || 'Unknown Instructor'}
               </p>
             </div>
             <div>
@@ -269,7 +269,7 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
                 <div className="text-right">
                   <p className="text-sm text-gray-600">Instructor</p>
                   <p className="font-semibold text-gray-900">
-                    {course.instructor.name}
+                    {course.instructor?.name || 'Unknown Instructor'}
                   </p>
                 </div>
               </div>

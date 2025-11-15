@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import {
   getProfile,
@@ -20,6 +21,7 @@ import {
 
 const ProfilePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(
     null
@@ -111,6 +113,20 @@ const ProfilePage: React.FC = () => {
       console.error("Error withdrawing from course:", err);
       setError(
         err instanceof Error ? err.message : "Failed to withdraw from course"
+      );
+    }
+  };
+
+  const handleContinueAgain = async (enrollmentId: string) => {
+    try {
+      await updateEnrollmentStatus(enrollmentId, "active");
+      // Refresh course progress
+      const courseProgressRes = await getCourseProgress();
+      setCourseProgress(courseProgressRes.data);
+    } catch (err) {
+      console.error("Error reactivating course:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to reactivate course"
       );
     }
   };
@@ -389,7 +405,7 @@ const ProfilePage: React.FC = () => {
                             {course.course.title}
                           </h3>
                           <p className="text-sm text-gray-600">
-                            {course.course.instructor.name}
+                            {course.course.instructor?.name || 'Unknown Instructor'}
                           </p>
                         </div>
                       </div>
@@ -437,6 +453,8 @@ const ProfilePage: React.FC = () => {
                               ? "bg-green-100 text-green-800"
                               : course.status === "completed"
                               ? "bg-blue-100 text-blue-800"
+                              : course.status === "withdrawn"
+                              ? "bg-orange-100 text-orange-800"
                               : "bg-gray-100 text-gray-800"
                           }`}
                         >
@@ -445,9 +463,14 @@ const ProfilePage: React.FC = () => {
                       </div>
 
                       <div className="flex items-center space-x-2">
-                        <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                          Continue
-                        </button>
+                        {course.status !== "withdrawn" && (
+                          <button 
+                            onClick={() => navigate(`/courses/${course.course._id}`)}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Continue
+                          </button>
+                        )}
                         {course.status === "active" && (
                           <button
                             onClick={() =>
@@ -456,6 +479,16 @@ const ProfilePage: React.FC = () => {
                             className="bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                           >
                             Withdraw
+                          </button>
+                        )}
+                        {course.status === "withdrawn" && (
+                          <button
+                            onClick={() =>
+                              handleContinueAgain(course.enrollmentId)
+                            }
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Continue Again
                           </button>
                         )}
                       </div>
@@ -507,7 +540,8 @@ const ProfilePage: React.FC = () => {
                     saved.tutorial ? (
                       <div
                         key={saved._id}
-                        className="bg-white rounded-xl shadow-sm p-4 border border-gray-200 hover:shadow-md transition-shadow"
+                        onClick={() => navigate(`/tutorials/${saved.tutorial.language}?tutorialId=${saved.tutorial._id}`)}
+                        className="bg-white rounded-xl shadow-sm p-4 border border-gray-200 hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer"
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center space-x-2">
@@ -540,12 +574,9 @@ const ProfilePage: React.FC = () => {
                           <span className="text-gray-500">
                             Saved {new Date(saved.savedAt).toLocaleDateString()}
                           </span>
-                          <a
-                            href={`/tutorials/${saved.tutorial.language}`}
-                            className="text-indigo-600 hover:text-indigo-800 font-medium"
-                          >
+                          <span className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
                             Start Learning →
-                          </a>
+                          </span>
                         </div>
                       </div>
                     ) : null

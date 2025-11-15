@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   fetchTutorialsByLanguageAndConcept,
   saveTutorial,
@@ -13,6 +13,7 @@ import AIChatAssistant from "../../../components/AIChatAssistant/AIChatAssistant
 const TutorialsDetailPage: React.FC = () => {
   const { language } = useParams<{ language: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated } = useAuth();
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [selectedTutorial, setSelectedTutorial] = useState<Tutorial | null>(
@@ -90,18 +91,29 @@ const TutorialsDetailPage: React.FC = () => {
         );
         setTutorials(tutorialsData);
 
-        // Auto-select first tutorial
-        if (tutorialsData.length > 0) {
-          const firstTutorial = tutorialsData[0];
-          setTutorialLoading(true);
-          setSelectedTutorial(firstTutorial);
+        // Check if there's a specific tutorial to select from URL params
+        const tutorialIdFromUrl = searchParams.get('tutorialId');
+        let tutorialToSelect = tutorialsData[0]; // Default to first
+        
+        if (tutorialIdFromUrl) {
+          const foundTutorial = tutorialsData.find(t => t._id === tutorialIdFromUrl);
+          if (foundTutorial) {
+            tutorialToSelect = foundTutorial;
+            console.log("Auto-selecting tutorial from URL:", foundTutorial.title);
+          }
+        }
 
-          // Check if first tutorial is saved
+        // Auto-select tutorial (either from URL or first one)
+        if (tutorialsData.length > 0 && tutorialToSelect) {
+          setTutorialLoading(true);
+          setSelectedTutorial(tutorialToSelect);
+
+          // Check if tutorial is saved
           if (isAuthenticated) {
             try {
               const savedTutorials = await getSavedTutorials();
               const isCurrentTutorialSaved = savedTutorials.data?.some(
-                (saved) => saved.tutorial?._id === firstTutorial._id
+                (saved) => saved.tutorial?._id === tutorialToSelect._id
               );
               setIsSaved(!!isCurrentTutorialSaved);
             } catch (saveCheckError) {
@@ -122,7 +134,7 @@ const TutorialsDetailPage: React.FC = () => {
     };
 
     loadTutorials();
-  }, [language, isAuthenticated]);
+  }, [language, isAuthenticated, searchParams]);
 
   const handleBackClick = () => {
     navigate("/tutorials");

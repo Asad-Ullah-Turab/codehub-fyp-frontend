@@ -346,21 +346,21 @@ const CourseLearningPage: React.FC = () => {
 
               <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-indigo-100 flex items-center justify-center">
-                  {course.instructor.profilePicture ? (
+                  {course.instructor?.profilePicture ? (
                     <img
                       src={course.instructor.profilePicture}
-                      alt={course.instructor.name}
+                      alt={course.instructor.name || 'Instructor'}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <span className="text-indigo-600 font-bold text-lg">
-                      {course.instructor.name.charAt(0).toUpperCase()}
+                      {course.instructor?.name?.charAt(0).toUpperCase() || 'I'}
                     </span>
                   )}
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Instructor</p>
-                  <p className="font-semibold text-gray-900">{course.instructor.name}</p>
+                  <p className="font-semibold text-gray-900">{course.instructor?.name || 'Unknown Instructor'}</p>
                 </div>
               </div>
             </div>

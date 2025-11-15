@@ -1,920 +1,465 @@
-import { useState, useEffect } from "react";
-import { fetchTutorials, removeTutorial, createNewTutorial } from "../../../functions";
-import { PAGINATION, LANGUAGES, DIFFICULTY_LEVELS } from "../../../constants";
+import React, { useState } from "react";
+import {
+  Search,
+  Plus,
+  Trash2,
+  Edit,
+  X,
+  Bold,
+  Italic,
+  Underline,
+  List,
+  Link,
+  Code,
+  Info,
+} from "lucide-react";
 
-interface Tutorial {
-  _id: string;
-  title: string;
-  language: string;
-  concept: string;
-  difficulty: string;
-  createdAt: string;
-}
-
-interface Pagination {
-  total: number;
-  pages: number;
-  currentPage: number;
-}
-
-function TutorialManagement({ onError }: { onError: (msg: string) => void }) {
-  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [languageFilter, setLanguageFilter] = useState("");
+export default function TutorialManagement() {
   const [showAddModal, setShowAddModal] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [formData, setFormData] = useState({
     title: "",
-    description: "",
-    language: LANGUAGES.PYTHON,
-    concept: "",
-    difficulty: DIFFICULTY_LEVELS.BEGINNER,
+    category: "",
+    tags: ["python", "beginners"],
+    status: "draft",
     content: "",
-    notes: [""],
-    tips: [""],
-    tags: [""],
-    codeExamples: [
-      {
-        title: "",
-        description: "",
-        code: "",
-        expectedOutput: "",
-      },
-    ],
-  });
-  const [pagination, setPagination] = useState<Pagination>({
-    total: 0,
-    pages: 0,
-    currentPage: 1,
   });
 
-  const loadTutorials = async (page = 1) => {
-    try {
-      setLoading(true);
-      const data = await fetchTutorials(page, PAGINATION.DEFAULT_LIMIT, languageFilter, search);
-      setTutorials(data.tutorials);
-      setPagination({
-        total: data.total,
-        pages: data.pages,
-        currentPage: page,
-      });
-    } catch {
-      onError("Failed to load tutorials");
-      // Ensure we have valid state even on error
-      setTutorials([]);
-      setPagination({
-        total: 0,
-        pages: 0,
-        currentPage: page,
-      });
-    } finally {
-      setLoading(false);
+  // Sample tutorials data
+  const [tutorials] = useState([
+    {
+      id: 1,
+      title: "Introduction to Python Variables",
+      category: "Python Basics",
+      author: "John Doe",
+      status: "Published",
+      date: "2024-01-15",
+      views: 1234,
+      language: "Python",
+    },
+    {
+      id: 2,
+      title: "JavaScript Array Methods",
+      category: "JavaScript",
+      author: "Jane Smith",
+      status: "Published",
+      date: "2024-01-14",
+      views: 856,
+      language: "JavaScript",
+    },
+    {
+      id: 3,
+      title: "Understanding React Hooks",
+      category: "React",
+      author: "Mike Johnson",
+      status: "Draft",
+      date: "2024-01-13",
+      views: 432,
+      language: "JavaScript",
+    },
+    {
+      id: 4,
+      title: "Python List Comprehensions",
+      category: "Python Advanced",
+      author: "Sarah Williams",
+      status: "Published",
+      date: "2024-01-12",
+      views: 967,
+      language: "Python",
+    },
+    {
+      id: 5,
+      title: "CSS Flexbox Guide",
+      category: "CSS",
+      author: "Alex Brown",
+      status: "Published",
+      date: "2024-01-11",
+      views: 723,
+      language: "CSS",
+    },
+  ]);
+
+  const addTag = (tag) => {
+    if (tag.trim() && !formData.tags.includes(tag.trim())) {
+      setFormData({ ...formData, tags: [...formData.tags, tag.trim()] });
     }
   };
 
-  useEffect(() => {
-    loadTutorials();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, languageFilter]);
-
-  const handleDeleteTutorial = async (tutorial: Tutorial) => {
-    if (window.confirm(`Are you sure you want to delete "${tutorial.title}"?`)) {
-      try {
-        await removeTutorial(tutorial._id);
-        loadTutorials(pagination.currentPage);
-        onError("");
-      } catch {
-        onError("Failed to delete tutorial");
-      }
-    }
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "beginner":
-        return "#10b981";
-      case "intermediate":
-        return "#f59e0b";
-      case "advanced":
-        return "#ef4444";
-      default:
-        return "#6b7280";
-    }
-  };
-
-  const handleAddTutorial = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title || !formData.description || !formData.concept || !formData.content) {
-      onError("Please fill in all required fields");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      // Filter empty items from arrays
-      const filteredData = {
-        ...formData,
-        notes: formData.notes.filter((n) => n.trim() !== ""),
-        tips: formData.tips.filter((t) => t.trim() !== ""),
-        tags: formData.tags.filter((tag) => tag.trim() !== ""),
-        codeExamples: formData.codeExamples.filter(
-          (ex) => ex.title.trim() !== "" && ex.code.trim() !== ""
-        ),
-      };
-
-      await createNewTutorial(filteredData);
-      setShowAddModal(false);
-      setFormData({
-        title: "",
-        description: "",
-        language: LANGUAGES.PYTHON,
-        concept: "",
-        difficulty: DIFFICULTY_LEVELS.BEGINNER,
-        content: "",
-        notes: [""],
-        tips: [""],
-        tags: [""],
-        codeExamples: [
-          {
-            title: "",
-            description: "",
-            code: "",
-            expectedOutput: "",
-          },
-        ],
-      });
-      onError("");
-      loadTutorials(1);
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create tutorial';
-      onError(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Handle array field changes
-  const handleArrayItemChange = (
-    field: "notes" | "tips" | "tags",
-    index: number,
-    value: string
-  ) => {
-    setFormData((prev) => {
-      const newArray = [...prev[field]];
-      newArray[index] = value;
-      return { ...prev, [field]: newArray };
+  const removeTag = (tagToRemove) => {
+    setFormData({
+      ...formData,
+      tags: formData.tags.filter((tag) => tag !== tagToRemove),
     });
   };
 
-  // Add new item to array field
-  const addArrayItem = (field: "notes" | "tips" | "tags") => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: [...prev[field], ""],
-    }));
-  };
-
-  // Remove item from array field
-  const removeArrayItem = (field: "notes" | "tips" | "tags", index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index),
-    }));
-  };
-
-  // Handle code example changes
-  const handleCodeExampleChange = (
-    index: number,
-    field: keyof (typeof formData.codeExamples)[0],
-    value: string
-  ) => {
-    setFormData((prev) => {
-      const newExamples = [...prev.codeExamples];
-      newExamples[index] = {
-        ...newExamples[index],
-        [field]: value,
-      };
-      return { ...prev, codeExamples: newExamples };
-    });
-  };
-
-  // Add new code example
-  const addCodeExample = () => {
-    setFormData((prev) => ({
-      ...prev,
-      codeExamples: [
-        ...prev.codeExamples,
-        {
-          title: "",
-          description: "",
-          code: "",
-          expectedOutput: "",
-        },
-      ],
-    }));
-  };
-
-  // Remove code example
-  const removeCodeExample = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      codeExamples: prev.codeExamples.filter((_, i) => i !== index),
-    }));
-  };
+  const filteredTutorials = tutorials.filter((tutorial) => {
+    const matchesSearch =
+      tutorial.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tutorial.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || tutorial.language === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="">
-      <div className="management-header">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h2>Tutorial Management</h2>
-            <p>Total Tutorials: {pagination.total}</p>
+            <div className="text-sm text-gray-500 mb-1">
+              Admin Panel / Tutorials
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Tutorial Management
+            </h1>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "#3b82f6",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "600",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#2563eb")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#3b82f6")}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm font-medium flex items-center gap-2"
           >
-            + Add Tutorial
+            <Plus className="w-4 h-4" />
+            Add New Tutorial
           </button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="filters-section">
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Search by title or concept..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="search-input"
-          />
+      <div className="px-6 py-4 bg-white border-b border-gray-200">
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search tutorials..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="all">All Languages</option>
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="CSS">CSS</option>
+          </select>
         </div>
-
-        <select
-          value={languageFilter}
-          onChange={(e) => setLanguageFilter(e.target.value)}
-          className="filter-select"
-        >
-          <option value="">All Languages</option>
-          <option value="python">Python</option>
-          <option value="javascript">JavaScript</option>
-          <option value="cpp">C++</option>
-        </select>
       </div>
 
-      {/* Tutorials Grid */}
-      {loading ? (
-        <div className="flex items-center justify-center h-64">Loading tutorials...</div>
-      ) : !tutorials || tutorials.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-lg p-12 text-center border border-gray-100">No tutorials found</div>
-      ) : (
-        <div className="tutorials-grid">
-          {tutorials.map((tutorial) => (
-            <div key={tutorial._id} className="tutorial-card">
-              <div className="card-header">
-                <h3>{tutorial.title}</h3>
-                <button
-                  className="delete-btn"
-                  onClick={() => handleDeleteTutorial(tutorial)}
-                  title="Delete tutorial"
+      {/* Tutorials Table */}
+      <div className="px-6 py-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
+                  TITLE
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
+                  CATEGORY
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
+                  AUTHOR
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
+                  STATUS
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
+                  DATE
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
+                  VIEWS
+                </th>
+                <th className="text-right px-6 py-3 text-xs font-semibold text-gray-600">
+                  ACTIONS
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTutorials.map((tutorial) => (
+                <tr
+                  key={tutorial.id}
+                  className="border-b border-gray-100 hover:bg-gray-50"
                 >
-                  🗑️
-                </button>
-              </div>
-
-              <div className="card-meta">
-                <span className="language-badge">
-                  {tutorial.language === "python"
-                    ? "🐍"
-                    : tutorial.language === "javascript"
-                    ? "🟨"
-                    : "⚙️"}{" "}
-                  {tutorial.language}
-                </span>
-
-                <span
-                  className="difficulty-badge"
-                  style={{ backgroundColor: getDifficultyColor(tutorial.difficulty) }}
-                >
-                  {tutorial.difficulty}
-                </span>
-              </div>
-
-              <div className="card-content">
-                <p className="concept">Concept: {tutorial.concept}</p>
-                <p className="created-date">
-                  Created: {new Date(tutorial.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          ))}
+                  <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+                    {tutorial.title}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {tutorial.category}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {tutorial.author}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`px-2.5 py-1 rounded text-xs font-medium ${
+                        tutorial.status === "Published"
+                          ? "bg-green-50 text-green-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {tutorial.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {new Date(tutorial.date).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {tutorial.views.toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button className="p-1.5 hover:bg-gray-100 rounded text-blue-600">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button className="p-1.5 hover:bg-gray-100 rounded text-red-600">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
 
-      {/* Pagination */}
-      {pagination.pages > 1 && (
-        <div className="pagination">
-          {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => fetchTutorials(page)}
-              className={`page-btn ${pagination.currentPage === page ? "active" : ""}`}
-            >
-              {page}
+        {/* Stats */}
+        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+          <div>
+            Showing {filteredTutorials.length} of {tutorials.length} tutorials
+          </div>
+          <div className="flex gap-2">
+            <button className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50">
+              Previous
             </button>
-          ))}
+            <button className="px-3 py-1 bg-blue-500 text-white rounded">
+              1
+            </button>
+            <button className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50">
+              2
+            </button>
+            <button className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50">
+              Next
+            </button>
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Add Tutorial Modal */}
       {showAddModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.7)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-          onClick={() => setShowAddModal(false)}
-        >
-          <div
-            style={{
-              backgroundColor: "#0f172a",
-              padding: "30px",
-              borderRadius: "12px",
-              width: "90%",
-              maxWidth: "700px",
-              maxHeight: "95vh",
-              overflowY: "auto",
-              border: "1px solid rgba(102, 126, 234, 0.2)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ margin: "0 0 20px 0", color: "#f1f5f9", fontSize: "20px" }}>
-              Add New Tutorial
-            </h3>
-
-            <form onSubmit={handleAddTutorial} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {/* Title */}
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <div>
-                <label style={{ display: "block", marginBottom: "8px", color: "#cbd5e1", fontSize: "14px" }}>
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleFormChange}
-                  placeholder="Tutorial title"
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    backgroundColor: "#1e293b",
-                    border: "1px solid rgba(102, 126, 234, 0.3)",
-                    borderRadius: "8px",
-                    color: "#f1f5f9",
-                    fontSize: "14px",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label style={{ display: "block", marginBottom: "8px", color: "#cbd5e1", fontSize: "14px" }}>
-                  Description *
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleFormChange}
-                  placeholder="Brief description of the tutorial"
-                  required
-                  rows={2}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    backgroundColor: "#1e293b",
-                    border: "1px solid rgba(102, 126, 234, 0.3)",
-                    borderRadius: "8px",
-                    color: "#f1f5f9",
-                    fontSize: "14px",
-                    boxSizing: "border-box",
-                    fontFamily: "inherit",
-                  }}
-                />
-              </div>
-
-              {/* Language */}
-              <div>
-                <label style={{ display: "block", marginBottom: "8px", color: "#cbd5e1", fontSize: "14px" }}>
-                  Language
-                </label>
-                <select
-                  name="language"
-                  value={formData.language}
-                  onChange={handleFormChange}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    backgroundColor: "#1e293b",
-                    border: "1px solid rgba(102, 126, 234, 0.3)",
-                    borderRadius: "8px",
-                    color: "#f1f5f9",
-                    fontSize: "14px",
-                    boxSizing: "border-box",
-                  }}
-                >
-                  <option value={LANGUAGES.PYTHON}>Python</option>
-                  <option value={LANGUAGES.JAVASCRIPT}>JavaScript</option>
-                  <option value={LANGUAGES.CPP}>C++</option>
-                </select>
-              </div>
-
-              {/* Concept */}
-              <div>
-                <label style={{ display: "block", marginBottom: "8px", color: "#cbd5e1", fontSize: "14px" }}>
-                  Concept *
-                </label>
-                <input
-                  type="text"
-                  name="concept"
-                  value={formData.concept}
-                  onChange={handleFormChange}
-                  placeholder="e.g., Variables, Functions"
-                  required
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    backgroundColor: "#1e293b",
-                    border: "1px solid rgba(102, 126, 234, 0.3)",
-                    borderRadius: "8px",
-                    color: "#f1f5f9",
-                    fontSize: "14px",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
-              {/* Difficulty */}
-              <div>
-                <label style={{ display: "block", marginBottom: "8px", color: "#cbd5e1", fontSize: "14px" }}>
-                  Difficulty
-                </label>
-                <select
-                  name="difficulty"
-                  value={formData.difficulty}
-                  onChange={handleFormChange}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    backgroundColor: "#1e293b",
-                    border: "1px solid rgba(102, 126, 234, 0.3)",
-                    borderRadius: "8px",
-                    color: "#f1f5f9",
-                    fontSize: "14px",
-                    boxSizing: "border-box",
-                  }}
-                >
-                  <option value={DIFFICULTY_LEVELS.BEGINNER}>Beginner</option>
-                  <option value={DIFFICULTY_LEVELS.INTERMEDIATE}>Intermediate</option>
-                  <option value={DIFFICULTY_LEVELS.ADVANCED}>Advanced</option>
-                </select>
-              </div>
-
-              {/* Content */}
-              <div>
-                <label style={{ display: "block", marginBottom: "8px", color: "#cbd5e1", fontSize: "14px" }}>
-                  Content *
-                </label>
-                <textarea
-                  name="content"
-                  value={formData.content}
-                  onChange={handleFormChange}
-                  placeholder="Tutorial content and detailed explanation"
-                  required
-                  rows={6}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    backgroundColor: "#1e293b",
-                    border: "1px solid rgba(102, 126, 234, 0.3)",
-                    borderRadius: "8px",
-                    color: "#f1f5f9",
-                    fontSize: "14px",
-                    boxSizing: "border-box",
-                    fontFamily: "inherit",
-                  }}
-                />
-              </div>
-
-              {/* Notes Section */}
-              <div style={{ borderTop: "1px solid rgba(102, 126, 234, 0.2)", paddingTop: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                  <label style={{ color: "#cbd5e1", fontSize: "14px", fontWeight: "600" }}>
-                    📝 Key Notes (Optional)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => addArrayItem("notes")}
-                    style={{
-                      padding: "4px 8px",
-                      backgroundColor: "#667eea",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                    }}
-                  >
-                    + Add
-                  </button>
+                <div className="text-sm text-gray-500 mb-1">
+                  Admin Panel / Tutorials / Create New
                 </div>
-                {formData.notes.map((note, idx) => (
-                  <div key={idx} style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-                    <input
-                      type="text"
-                      value={note}
-                      onChange={(e) => handleArrayItemChange("notes", idx, e.target.value)}
-                      placeholder={`Note ${idx + 1}`}
-                      style={{
-                        flex: 1,
-                        padding: "8px",
-                        backgroundColor: "#1e293b",
-                        border: "1px solid rgba(102, 126, 234, 0.3)",
-                        borderRadius: "6px",
-                        color: "#f1f5f9",
-                        fontSize: "13px",
-                        boxSizing: "border-box",
-                      }}
+                <h2 className="text-xl font-bold text-gray-900">
+                  Create New Tutorial
+                </h2>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
                     />
-                    {formData.notes.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem("notes", idx)}
-                        style={{
-                          padding: "8px 12px",
-                          backgroundColor: "#ef4444",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          fontSize: "12px",
-                        }}
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Tips Section */}
-              <div style={{ borderTop: "1px solid rgba(102, 126, 234, 0.2)", paddingTop: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                  <label style={{ color: "#cbd5e1", fontSize: "14px", fontWeight: "600" }}>
-                    💡 Tips & Best Practices (Optional)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => addArrayItem("tips")}
-                    style={{
-                      padding: "4px 8px",
-                      backgroundColor: "#667eea",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                    }}
-                  >
-                    + Add
-                  </button>
+                  </svg>
+                  Changes saved
                 </div>
-                {formData.tips.map((tip, idx) => (
-                  <div key={idx} style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-                    <input
-                      type="text"
-                      value={tip}
-                      onChange={(e) => handleArrayItemChange("tips", idx, e.target.value)}
-                      placeholder={`Tip ${idx + 1}`}
-                      style={{
-                        flex: 1,
-                        padding: "8px",
-                        backgroundColor: "#1e293b",
-                        border: "1px solid rgba(102, 126, 234, 0.3)",
-                        borderRadius: "6px",
-                        color: "#f1f5f9",
-                        fontSize: "13px",
-                        boxSizing: "border-box",
-                      }}
-                    />
-                    {formData.tips.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem("tips", idx)}
-                        style={{
-                          padding: "8px 12px",
-                          backgroundColor: "#ef4444",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          fontSize: "12px",
-                        }}
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Tags Section */}
-              <div style={{ borderTop: "1px solid rgba(102, 126, 234, 0.2)", paddingTop: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                  <label style={{ color: "#cbd5e1", fontSize: "14px", fontWeight: "600" }}>
-                    🏷️ Tags (Optional)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => addArrayItem("tags")}
-                    style={{
-                      padding: "4px 8px",
-                      backgroundColor: "#667eea",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                    }}
-                  >
-                    + Add
-                  </button>
-                </div>
-                {formData.tags.map((tag, idx) => (
-                  <div key={idx} style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-                    <input
-                      type="text"
-                      value={tag}
-                      onChange={(e) => handleArrayItemChange("tags", idx, e.target.value)}
-                      placeholder={`Tag ${idx + 1}`}
-                      style={{
-                        flex: 1,
-                        padding: "8px",
-                        backgroundColor: "#1e293b",
-                        border: "1px solid rgba(102, 126, 234, 0.3)",
-                        borderRadius: "6px",
-                        color: "#f1f5f9",
-                        fontSize: "13px",
-                        boxSizing: "border-box",
-                      }}
-                    />
-                    {formData.tags.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem("tags", idx)}
-                        style={{
-                          padding: "8px 12px",
-                          backgroundColor: "#ef4444",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          fontSize: "12px",
-                        }}
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Code Examples Section */}
-              <div style={{ borderTop: "1px solid rgba(102, 126, 234, 0.2)", paddingTop: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                  <label style={{ color: "#cbd5e1", fontSize: "14px", fontWeight: "600" }}>
-                    👨‍💻 Code Examples (Optional)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={addCodeExample}
-                    style={{
-                      padding: "4px 8px",
-                      backgroundColor: "#667eea",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                    }}
-                  >
-                    + Add Example
-                  </button>
-                </div>
-                {formData.codeExamples.map((example, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      backgroundColor: "#1a1f3a",
-                      padding: "12px",
-                      borderRadius: "8px",
-                      marginBottom: "12px",
-                      border: "1px solid rgba(102, 126, 234, 0.2)",
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                      <h4 style={{ margin: "0", color: "#cbd5e1", fontSize: "13px" }}>Example {idx + 1}</h4>
-                      {formData.codeExamples.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeCodeExample(idx)}
-                          style={{
-                            padding: "4px 8px",
-                            backgroundColor: "#ef4444",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "11px",
-                          }}
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Example Title */}
-                    <div style={{ marginBottom: "10px" }}>
-                      <label style={{ display: "block", marginBottom: "4px", color: "#a1aec7", fontSize: "12px" }}>
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        value={example.title}
-                        onChange={(e) => handleCodeExampleChange(idx, "title", e.target.value)}
-                        placeholder="Example title"
-                        style={{
-                          width: "100%",
-                          padding: "6px",
-                          backgroundColor: "#0f172a",
-                          border: "1px solid rgba(102, 126, 234, 0.2)",
-                          borderRadius: "4px",
-                          color: "#f1f5f9",
-                          fontSize: "12px",
-                          boxSizing: "border-box",
-                        }}
-                      />
-                    </div>
-
-                    {/* Example Description */}
-                    <div style={{ marginBottom: "10px" }}>
-                      <label style={{ display: "block", marginBottom: "4px", color: "#a1aec7", fontSize: "12px" }}>
-                        Description
-                      </label>
-                      <input
-                        type="text"
-                        value={example.description}
-                        onChange={(e) => handleCodeExampleChange(idx, "description", e.target.value)}
-                        placeholder="What does this example demonstrate?"
-                        style={{
-                          width: "100%",
-                          padding: "6px",
-                          backgroundColor: "#0f172a",
-                          border: "1px solid rgba(102, 126, 234, 0.2)",
-                          borderRadius: "4px",
-                          color: "#f1f5f9",
-                          fontSize: "12px",
-                          boxSizing: "border-box",
-                        }}
-                      />
-                    </div>
-
-                    {/* Example Code */}
-                    <div style={{ marginBottom: "10px" }}>
-                      <label style={{ display: "block", marginBottom: "4px", color: "#a1aec7", fontSize: "12px" }}>
-                        Code
-                      </label>
-                      <textarea
-                        value={example.code}
-                        onChange={(e) => handleCodeExampleChange(idx, "code", e.target.value)}
-                        placeholder="Enter the code example"
-                        rows={4}
-                        style={{
-                          width: "100%",
-                          padding: "6px",
-                          backgroundColor: "#0f172a",
-                          border: "1px solid rgba(102, 126, 234, 0.2)",
-                          borderRadius: "4px",
-                          color: "#f1f5f9",
-                          fontSize: "12px",
-                          boxSizing: "border-box",
-                          fontFamily: "monospace",
-                        }}
-                      />
-                    </div>
-
-                    {/* Expected Output */}
-                    <div>
-                      <label style={{ display: "block", marginBottom: "4px", color: "#a1aec7", fontSize: "12px" }}>
-                        Expected Output
-                      </label>
-                      <textarea
-                        value={example.expectedOutput}
-                        onChange={(e) => handleCodeExampleChange(idx, "expectedOutput", e.target.value)}
-                        placeholder="Expected output when code is run"
-                        rows={3}
-                        style={{
-                          width: "100%",
-                          padding: "6px",
-                          backgroundColor: "#0f172a",
-                          border: "1px solid rgba(102, 126, 234, 0.2)",
-                          borderRadius: "4px",
-                          color: "#f1f5f9",
-                          fontSize: "12px",
-                          boxSizing: "border-box",
-                          fontFamily: "monospace",
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Buttons */}
-              <div style={{ display: "flex", gap: "12px", marginTop: "20px", borderTop: "1px solid rgba(102, 126, 234, 0.2)", paddingTop: "16px" }}>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  style={{
-                    flex: 1,
-                    padding: "10px",
-                    backgroundColor: isSubmitting ? "#667eea4d" : "#3b82f6",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: isSubmitting ? "not-allowed" : "pointer",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                  }}
-                >
-                  {isSubmitting ? "Creating..." : "Create Tutorial"}
+                <button className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50">
+                  Save as Draft
+                </button>
+                <button className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600">
+                  Publish
                 </button>
                 <button
-                  type="button"
                   onClick={() => setShowAddModal(false)}
-                  disabled={isSubmitting}
-                  style={{
-                    flex: 1,
-                    padding: "10px",
-                    backgroundColor: "#64748b",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: isSubmitting ? "not-allowed" : "pointer",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                  }}
+                  className="p-2 hover:bg-gray-100 rounded-md"
                 >
-                  Cancel
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </form>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="grid grid-cols-3 gap-6 p-6">
+                {/* Left Sidebar */}
+                <div className="space-y-6">
+                  {/* Tutorial Title */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      Tutorial Title
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter Tutorial Title"
+                      value={formData.title}
+                      onChange={(e) =>
+                        setFormData({ ...formData, title: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Category */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      Category
+                    </label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) =>
+                        setFormData({ ...formData, category: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select a category</option>
+                      <option value="python">Python</option>
+                      <option value="javascript">JavaScript</option>
+                      <option value="react">React</option>
+                      <option value="css">CSS</option>
+                    </select>
+                  </div>
+
+                  {/* Tags */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      Tags
+                    </label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {formData.tags.map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 rounded text-xs font-medium"
+                        >
+                          {tag}
+                          <button
+                            onClick={() => removeTag(tag)}
+                            className="hover:bg-blue-100 rounded-full p-0.5"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Add tags..."
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addTag(e.currentTarget.value);
+                          e.currentTarget.value = "";
+                        }
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Add tags to improve discoverability.
+                    </p>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
+                      Status
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() =>
+                          setFormData({ ...formData, status: "draft" })
+                        }
+                        className={`flex-1 px-4 py-2 rounded-md text-sm font-medium border ${
+                          formData.status === "draft"
+                            ? "bg-gray-100 border-gray-300 text-gray-900"
+                            : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        Draft
+                      </button>
+                      <button
+                        onClick={() =>
+                          setFormData({ ...formData, status: "published" })
+                        }
+                        className={`flex-1 px-4 py-2 rounded-md text-sm font-medium border ${
+                          formData.status === "published"
+                            ? "bg-gray-100 border-gray-300 text-gray-900"
+                            : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        Published
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="col-span-2">
+                  <div className="border border-gray-300 rounded-md overflow-hidden">
+                    {/* Toolbar */}
+                    <div className="bg-gray-50 border-b border-gray-300 px-4 py-2 flex items-center gap-1">
+                      <button className="p-1.5 hover:bg-gray-200 rounded">
+                        <Bold className="w-4 h-4 text-gray-700" />
+                      </button>
+                      <button className="p-1.5 hover:bg-gray-200 rounded">
+                        <Italic className="w-4 h-4 text-gray-700" />
+                      </button>
+                      <button className="p-1.5 hover:bg-gray-200 rounded">
+                        <Underline className="w-4 h-4 text-gray-700" />
+                      </button>
+                      <div className="w-px h-6 bg-gray-300 mx-2"></div>
+                      <button className="p-1.5 hover:bg-gray-200 rounded">
+                        <List className="w-4 h-4 text-gray-700" />
+                      </button>
+                      <button className="p-1.5 hover:bg-gray-200 rounded">
+                        <List className="w-4 h-4 text-gray-700 transform rotate-180" />
+                      </button>
+                      <div className="w-px h-6 bg-gray-300 mx-2"></div>
+                      <button className="p-1.5 hover:bg-gray-200 rounded">
+                        <Link className="w-4 h-4 text-gray-700" />
+                      </button>
+                      <button className="p-1.5 hover:bg-gray-200 rounded">
+                        <Code className="w-4 h-4 text-gray-700" />
+                      </button>
+                      <button className="p-1.5 hover:bg-gray-200 rounded">
+                        <Info className="w-4 h-4 text-blue-500" />
+                      </button>
+                    </div>
+
+                    {/* Text Editor */}
+                    <div className="bg-white p-4 min-h-[400px]">
+                      <textarea
+                        placeholder="Start writing your tutorial here... Use the toolbar to format text and insert code blocks."
+                        value={formData.content}
+                        onChange={(e) =>
+                          setFormData({ ...formData, content: e.target.value })
+                        }
+                        className="w-full h-full min-h-[380px] text-sm text-gray-700 focus:outline-none resize-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 }
-
-export default TutorialManagement;
-

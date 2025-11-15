@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Editor from "@monaco-editor/react";
 import {
   handleLanguageChange,
@@ -6,6 +6,10 @@ import {
   getDefaultCodeForLanguage,
 } from "../../../functions";
 import { codeAPI } from "../../../services/api";
+import { snippetAPI, type CodeSnippet } from "../../../services/snippetAPI";
+import { useAuth } from "../../../hooks/useAuth";
+import { useToast } from "../../../contexts/ToastContext";
+import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
 
 export interface CodeEditorProps {
   initialCode?: string;
@@ -30,6 +34,85 @@ export default function CodeEditor({
   const [activeTab, setActiveTab] = useState<"output" | "input">("output");
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFileName, setExportFileName] = useState("code");
+  
+  // --- State for Saved Snippets ---
+  const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
+  const [snippets, setSnippets] = useState<CodeSnippet[]>([]);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveTitle, setSaveTitle] = useState("");
+  const [showSnippetsPanel, setShowSnippetsPanel] = useState(false);
+  const [loadingSnippets, setLoadingSnippets] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; snippetId: string | null }>({
+    show: false,
+    snippetId: null,
+  });
+
+  // --- Load Snippets on Mount ---
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadSnippets();
+    }
+  }, [isAuthenticated]);
+
+  const loadSnippets = async () => {
+    try {
+      setLoadingSnippets(true);
+      const result = await snippetAPI.getUserSnippets();
+      setSnippets(result.data);
+    } catch (error) {
+      console.error("Error loading snippets:", error);
+    } finally {
+      setLoadingSnippets(false);
+    }
+  };
+
+  const handleSaveSnippet = async () => {
+    if (!saveTitle.trim()) return;
+
+    try {
+      await snippetAPI.createSnippet({
+        title: saveTitle.trim(),
+        language,
+        code,
+        output,
+      });
+      setSaveTitle("");
+      setShowSaveModal(false);
+      await loadSnippets();
+      showToast("Code snippet saved successfully!", "success");
+    } catch (error) {
+      console.error("Error saving snippet:", error);
+      showToast(error instanceof Error ? error.message : "Failed to save snippet", "error");
+    }
+  };
+
+  const handleLoadSnippet = async (snippet: CodeSnippet) => {
+    setCode(snippet.code);
+    setLanguage(snippet.language);
+    setOutput(snippet.output || "");
+    setShowSnippetsPanel(false);
+    showToast("Code snippet loaded!", "success");
+  };
+
+  const confirmDeleteSnippet = (id: string) => {
+    setDeleteConfirm({ show: true, snippetId: id });
+  };
+
+  const handleDeleteSnippet = async () => {
+    if (!deleteConfirm.snippetId) return;
+
+    try {
+      await snippetAPI.deleteSnippet(deleteConfirm.snippetId);
+      await loadSnippets();
+      showToast("Snippet deleted successfully", "success");
+    } catch (error) {
+      console.error("Error deleting snippet:", error);
+      showToast(error instanceof Error ? error.message : "Failed to delete snippet", "error");
+    } finally {
+      setDeleteConfirm({ show: false, snippetId: null });
+    }
+  };
 
   // --- Your Existing Functions (Unchanged) ---
   const runCode = async () => {
@@ -148,6 +231,30 @@ export default function CodeEditor({
             ))}
           </select>
           <div className="flex items-center gap-2">
+            {isAuthenticated && (
+              <>
+                <button
+                  onClick={() => setShowSnippetsPanel(!showSnippetsPanel)}
+                  title="My Saved Code"
+                  className="px-3 py-1 rounded bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 flex items-center gap-1 relative"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                  </svg>
+                  Saved ({snippets.length})
+                </button>
+                <button
+                  onClick={() => setShowSaveModal(true)}
+                  title="Save Code"
+                  className="px-3 py-1 rounded bg-green-600 text-white text-sm font-medium hover:bg-green-700 flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  </svg>
+                  Save
+                </button>
+              </>
+            )}
             <button
               onClick={handleImportCode}
               title="Import Code"
@@ -190,7 +297,11 @@ export default function CodeEditor({
               )}
             </button>
             <button
-              onClick={() => setCode(getDefaultCodeForLanguage(language))}
+              onClick={() => {
+                setCode(getDefaultCodeForLanguage(language));
+                showToast("Code reset to default template", "info");
+              }}
+              title="Reset Code"
               className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm font-medium hover:bg-gray-300"
             >
               Reset
@@ -235,18 +346,28 @@ export default function CodeEditor({
           {activeTab === "output" && (
             <div className="flex gap-2">
               <button
-                onClick={() => navigator.clipboard.writeText(output)}
-                title="Copy"
-                className="text-gray-500 hover:text-gray-800 p-1"
+                onClick={() => {
+                  if (output) {
+                    navigator.clipboard.writeText(output);
+                    showToast("Output copied to clipboard!", "success");
+                  } else {
+                    showToast("No output to copy", "warning");
+                  }
+                }}
+                title="Copy Output"
+                className="text-gray-500 hover:text-gray-800 p-1 hover:bg-gray-100 rounded transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
               </button>
               <button
-                onClick={() => setOutput("")}
-                title="Clear"
-                className="text-gray-500 hover:text-gray-800 p-1"
+                onClick={() => {
+                  setOutput("");
+                  showToast("Output cleared", "info");
+                }}
+                title="Clear Output"
+                className="text-gray-500 hover:text-red-600 p-1 hover:bg-red-50 rounded transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -272,6 +393,131 @@ export default function CodeEditor({
           )}
         </div>
       </div>
+
+      {/* Save Modal */}
+      {showSaveModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-96">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Save Code Snippet</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Title
+              </label>
+              <input
+                type="text"
+                value={saveTitle}
+                onChange={(e) => setSaveTitle(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveSnippet()}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Enter snippet title"
+                autoFocus
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Language: {language.toUpperCase()}
+              </p>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => {
+                  setShowSaveModal(false);
+                  setSaveTitle("");
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveSnippet}
+                disabled={!saveTitle.trim()}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Saved Snippets Panel */}
+      {showSnippetsPanel && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">My Saved Code</h3>
+              <button
+                onClick={() => setShowSnippetsPanel(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              {loadingSnippets ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-8 h-8 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                </div>
+              ) : snippets.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p className="text-lg font-medium">No saved code yet</p>
+                  <p className="text-sm mt-1">Save your code snippets to access them later</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {snippets.map((snippet) => (
+                    <div
+                      key={snippet._id}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900 truncate">{snippet.title}</h4>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">
+                            {snippet.language.toUpperCase()}
+                          </span>
+                          <span>{new Date(snippet.updatedAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 ml-4">
+                        <button
+                          onClick={() => handleLoadSnippet(snippet)}
+                          className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium"
+                        >
+                          Load
+                        </button>
+                        <button
+                          onClick={() => confirmDeleteSnippet(snippet._id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteConfirm.show}
+        title="Delete Code Snippet"
+        message="Are you sure you want to delete this code snippet? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
+        onConfirm={handleDeleteSnippet}
+        onCancel={() => setDeleteConfirm({ show: false, snippetId: null })}
+      />
 
       {/* Export Modal */}
       {showExportModal && (

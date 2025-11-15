@@ -46,18 +46,38 @@ export interface CourseSection {
   description: string;
   order: number;
   lessons: CourseLesson[];
-  sectionQuiz?: {
-    _id: string;
-  };
+  sectionQuiz?: Quiz;
 }
 
 export interface CourseLesson {
   _id: string;
   title: string;
+  description?: string;
   content: string;
-  type: 'video' | 'text' | 'code' | 'quiz';
+  type?: 'video' | 'text' | 'code' | 'quiz';
   videoUrl?: string;
-  codeExample?: string;
+  duration?: number;
+  codeExample?: string; // Legacy support
+  codeExamples?: Array<{
+    _id?: string;
+    title: string;
+    description?: string;
+    code: string;
+    language?: string;
+    input?: string;
+    expectedOutput?: string;
+    order?: number;
+  }>;
+  practiceProblems?: string[];
+  notes?: string[];
+  tips?: string[];
+  resources?: Array<{
+    title: string;
+    url: string;
+    type: string;
+  }>;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  estimatedHours?: number;
   order: number;
 }
 
@@ -383,8 +403,9 @@ export const submitQuizAnswers = async (
     });
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Quiz submission error:', errorData);
+      throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);
     }
     
     return await response.json();
@@ -397,7 +418,11 @@ export const submitQuizAnswers = async (
 // Get quiz details
 export const getQuizDetails = async (quizId: string): Promise<{
   success: boolean;
-  data: Quiz;
+  data: {
+    quiz: Quiz;
+    previousScore?: any;
+    canRetake?: boolean;
+  };
 }> => {
   try {
     const token = localStorage.getItem('authToken');

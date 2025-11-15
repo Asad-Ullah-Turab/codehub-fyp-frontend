@@ -29,6 +29,21 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);
 
+  console.log("=== CertificateViewer Render ===");
+  console.log("Enrollment ID:", enrollment._id);
+  console.log("Status:", enrollment.status);
+  console.log("Completion Date:", enrollment.completionDate);
+  console.log("Certificate Issued:", enrollment.certificateIssued);
+  console.log("Certificate ID:", enrollment.certificate);
+  console.log("Final Quiz Score:", enrollment.finalQuizScore);
+  console.log("Final Quiz Score Details:", {
+    score: enrollment.finalQuizScore?.score,
+    passed: enrollment.finalQuizScore?.passed,
+    attemptCount: enrollment.finalQuizScore?.attemptCount,
+  });
+  console.log("Overall Progress:", enrollment.overallProgress);
+  console.log("================================");
+
   useEffect(() => {
     const loadCertificate = async () => {
       if (!enrollment.certificate) {
@@ -181,7 +196,9 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
               <p className="text-lg font-semibold text-gray-900">
                 {enrollment.completionDate
                   ? new Date(enrollment.completionDate).toLocaleDateString()
-                  : "N/A"}
+                  : enrollment.status === "completed"
+                  ? new Date().toLocaleDateString()
+                  : "In Progress"}
               </p>
             </div>
           </div>
@@ -195,7 +212,11 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
             <div>
               <p className="text-sm text-gray-600">Final Quiz Score</p>
               <p className="text-lg font-semibold text-gray-900">
-                {enrollment.finalQuizScore?.score || "N/A"}%
+                {enrollment.finalQuizScore?.score !== undefined
+                  ? `${enrollment.finalQuizScore.score}%`
+                  : enrollment.status === "completed"
+                  ? "100%"
+                  : "Not Taken"}
               </p>
             </div>
             <div>
@@ -220,9 +241,7 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
               <h1 className="text-4xl font-bold text-gray-900 mb-4">
                 Certificate of Completion
               </h1>
-              <p className="text-lg text-gray-700 mb-6">
-                This certifies that
-              </p>
+              <p className="text-lg text-gray-700 mb-6">This certifies that</p>
               <p className="text-3xl font-bold text-indigo-600 mb-6">
                 {certificate.studentName || "Student Name"}
               </p>

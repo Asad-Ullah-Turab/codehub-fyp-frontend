@@ -88,8 +88,15 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
     return "Beginner to Advanced";
   };
 
-  const getEmoji = (title: string) => {
+  const getEmoji = (language: string, title: string) => {
     const lowerTitle = title.toLowerCase();
+    
+    // Language-based emojis
+    if (language === "python") return "🐍";
+    if (language === "javascript") return "⚡";
+    if (language === "cpp") return "⚙️";
+    
+    // Category-based emojis
     if (lowerTitle.includes("array") || lowerTitle.includes("string"))
       return "📊";
     if (lowerTitle.includes("linked") || lowerTitle.includes("list"))
@@ -100,6 +107,8 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
       return "🔍";
     if (lowerTitle.includes("dynamic") || lowerTitle.includes("dp"))
       return "💡";
+    if (lowerTitle.includes("web")) return "🌐";
+    
     return "📚";
   };
 
@@ -112,10 +121,10 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
     >
       <div className="p-6 flex flex-col items-center text-center">
         {/* Emoji Icon */}
-        <div className="text-5xl mb-4">{getEmoji(course.title)}</div>
+        <div className="text-5xl mb-4">{getEmoji(course.language, course.title)}</div>
 
         {/* Title */}
-        <h3 className="text-xl font-bold text-gray-900 mb-3">{course.title}</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">{course.title}</h3>
 
         {/* Difficulty Badge */}
         <span className="inline-block bg-gray-900 text-white text-xs font-semibold px-3 py-1 rounded-full mb-3">
@@ -124,15 +133,19 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
 
         {/* Description */}
         <p className="text-gray-700 text-sm mb-4 min-h-[40px] line-clamp-2">
-          {course.description}
+          {course.shortDescription || course.description}
         </p>
 
-        {/* Topic Count */}
-        <div className="flex items-center space-x-2 text-gray-700 text-sm mb-4">
-          <span>📚</span>
-          <span className="font-medium">
-            {course.sections?.length || 0} Topics
-          </span>
+        {/* Course Stats */}
+        <div className="flex items-center justify-center space-x-4 text-gray-700 text-xs mb-4">
+          <div className="flex items-center space-x-1">
+            <span>📚</span>
+            <span className="font-medium">{course.totalSections || course.sections?.length || 0} Sections</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <span>⏱️</span>
+            <span className="font-medium">{course.estimatedHours || 0}h</span>
+          </div>
         </div>
 
         {/* Start Learning Button */}

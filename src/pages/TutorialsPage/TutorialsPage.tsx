@@ -134,11 +134,14 @@ const TutorialsPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Data Structures & Algorithms Section */}
+        {/* Comprehensive Courses Section */}
         <section className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
-            Data Structures & Algorithms
+            Comprehensive Courses
           </h2>
+          <p className="text-center text-gray-600 mb-8 max-w-2xl mx-auto">
+            Deep dive into structured courses with lessons, quizzes, and certificates
+          </p>
 
           {courses.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">

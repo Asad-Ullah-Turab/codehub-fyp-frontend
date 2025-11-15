@@ -31,6 +31,7 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
 
   useEffect(() => {
     const loadQuiz = async () => {
+      console.log('QuizViewer - quizId:', quizId);
       if (!quizId) {
         setError("Quiz not found");
         setLoading(false);
@@ -40,7 +41,13 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
       try {
         setLoading(true);
         const response = await getQuizDetails(quizId);
-        setQuiz(response.data);
+        console.log('Quiz response:', response);
+        console.log('Quiz data:', response.data);
+        // Backend returns { data: { quiz, previousScore, canRetake } }
+        const quizData = response.data.quiz;
+        console.log('Quiz object:', quizData);
+        console.log('Quiz questions:', quizData?.questions);
+        setQuiz(quizData);
       } catch (err: any) {
         console.error("Error loading quiz:", err);
         setError(err.message || "Failed to load quiz");
@@ -81,6 +88,7 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
         answers
       );
 
+      console.log('Quiz submitted successfully:', response.data);
       setResult(response.data);
     } catch (err: any) {
       console.error("Error submitting quiz:", err);
@@ -264,18 +272,18 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
     <div className="max-w-5xl mx-auto px-8 py-8">
       {/* Quiz Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{quiz.title}</h1>
-        {quiz.description && (
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{quiz?.title}</h1>
+        {quiz?.description && (
           <p className="text-gray-600">{quiz.description}</p>
         )}
         <div className="mt-4 flex items-center space-x-6 text-sm text-gray-600">
           <span>
-            <strong>{quiz.questions.length}</strong> Questions
+            <strong>{quiz?.questions?.length || 0}</strong> Questions
           </span>
           <span>
-            Passing Score: <strong>{quiz.passingScore}%</strong>
+            Passing Score: <strong>{quiz?.passingScore}%</strong>
           </span>
-          {quiz.timeLimit && (
+          {quiz?.timeLimit && (
             <span>
               Time Limit: <strong>{quiz.timeLimit} minutes</strong>
             </span>
@@ -286,7 +294,7 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
       {/* Quiz Questions */}
       <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 mb-6">
         <div className="space-y-8">
-          {quiz.questions.map((question, index) => (
+          {quiz.questions && quiz.questions.length > 0 ? quiz.questions.map((question, index) => (
             <div key={question._id} className="pb-8 border-b border-gray-200 last:border-b-0 last:pb-0">
               <h3 className="font-semibold text-lg text-gray-900 mb-4">
                 {index + 1}. {question.question}
@@ -350,7 +358,9 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
                 />
               )}
             </div>
-          ))}
+          )) : (
+            <p className="text-gray-600">No questions available for this quiz.</p>
+          )}
         </div>
       </div>
 

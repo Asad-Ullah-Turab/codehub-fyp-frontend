@@ -9,22 +9,27 @@ import {
   getAllCourses,
   type Course,
 } from "../../functions/CourseFunctions/courseFunctions";
+import { getProfile } from "../../functions/ProfileFunctions/profileFunctions";
+import { useAuth } from "../../hooks/useAuth";
 import LanguageCard from "./Components/LanguageCard";
 import CourseCard from "./Components/CourseCard";
 
 const TutorialsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [mainConcepts, setMainConcepts] = useState<MainConcepts>({
     python: [],
     javascript: [],
     cpp: [],
   });
   const [courses, setCourses] = useState<Course[]>([]);
+  const [userLanguages, setUserLanguages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadPageData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadPageData = async () => {
@@ -39,6 +44,19 @@ const TutorialsPage: React.FC = () => {
       // Load courses data
       const coursesResponse = await getAllCourses({ limit: 8 });
       setCourses(coursesResponse.data);
+
+      // Load user profile to get programming languages (if authenticated)
+      if (isAuthenticated) {
+        try {
+          const profileResponse = await getProfile();
+          const languages = profileResponse.data.programmingLanguages || [];
+          // Normalize language names to lowercase for comparison
+          setUserLanguages(languages.map((lang: string) => lang.toLowerCase()));
+        } catch (err) {
+          console.error("Error loading user profile:", err);
+          // Don't set error state, just continue without recommendations
+        }
+      }
     } catch (err) {
       console.error("Error loading page data:", err);
       setError("Failed to load data. Please try again later.");
@@ -61,6 +79,18 @@ const TutorialsPage: React.FC = () => {
 
   const getTutorialCount = (language: keyof MainConcepts) => {
     return mainConcepts[language]?.length || 0;
+  };
+
+  const isRecommended = (language: string) => {
+    const normalizedLang = language.toLowerCase();
+    // Check if user has this language in their profile
+    return userLanguages.some(userLang => {
+      // Handle common variations
+      if (normalizedLang === 'cpp' || normalizedLang === 'c++') {
+        return userLang === 'cpp' || userLang === 'c++' || userLang.includes('c++');
+      }
+      return userLang === normalizedLang || userLang.includes(normalizedLang);
+    });
   };
 
   if (loading) {
@@ -128,6 +158,7 @@ const TutorialsPage: React.FC = () => {
                 language={language}
                 emoji={getLanguageEmoji(language)}
                 tutorialCount={getTutorialCount(language)}
+                isRecommended={isRecommended(language)}
                 onClick={() => handleLanguageClick(language)}
               />
             ))}

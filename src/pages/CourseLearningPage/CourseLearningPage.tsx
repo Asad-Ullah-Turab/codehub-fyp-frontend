@@ -4,13 +4,14 @@ import {
   getCourseById,
   getEnrollmentDetails,
   enrollInCourse,
-  completeLessonProgress,
   type Course,
   type CourseEnrollment,
   type CourseSection,
   type CourseLesson,
 } from "../../functions/CourseFunctions/courseFunctions";
 import CourseLessonViewer from "./components/CourseLessonViewer";
+import QuizViewer from "./components/QuizViewer";
+import CertificateViewer from "./components/CertificateViewer";
 import AIChatAssistant from "../../components/AIChatAssistant/AIChatAssistant";
 
 const CourseLearningPage: React.FC = () => {
@@ -21,12 +22,15 @@ const CourseLearningPage: React.FC = () => {
   const [enrollment, setEnrollment] = useState<CourseEnrollment | null>(null);
   const [selectedSection, setSelectedSection] = useState<CourseSection | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<CourseLesson | null>(null);
+  const [viewMode, setViewMode] = useState<"lesson" | "quiz" | "certificate">("lesson");
+  const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [lessonLoading, setLessonLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAIChat, setShowAIChat] = useState(true);
   const [searchFilter, setSearchFilter] = useState("");
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
   // Load course data
   useEffect(() => {
@@ -41,12 +45,17 @@ const CourseLearningPage: React.FC = () => {
         setCourse(courseResponse.data);
         setEnrollment(courseResponse.enrollment || null);
 
-        // Auto-select first lesson if enrolled
-        if (courseResponse.enrollment && courseResponse.data.sections?.length > 0) {
-          const firstSection = courseResponse.data.sections[0];
-          if (firstSection.lessons?.length > 0) {
-            setSelectedSection(firstSection);
-            setSelectedLesson(firstSection.lessons[0]);
+        // Expand first section by default
+        if (courseResponse.data.sections?.length > 0) {
+          setExpandedSections([courseResponse.data.sections[0]._id]);
+          
+          // Auto-select first lesson if enrolled
+          if (courseResponse.enrollment) {
+            const firstSection = courseResponse.data.sections[0];
+            if (firstSection.lessons?.length > 0) {
+              setSelectedSection(firstSection);
+              setSelectedLesson(firstSection.lessons[0]);
+            }
           }
         }
 
@@ -70,11 +79,81 @@ const CourseLearningPage: React.FC = () => {
     loadCourseData();
   }, [courseId]);
 
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev =>
+      prev.includes(sectionId)
+        ? prev.filter(id => id !== sectionId)
+        : [...prev, sectionId]
+    );
+  };
+
   const handleLessonSelect = (section: CourseSection, lesson: CourseLesson) => {
+    const lessonIndex = section.lessons.findIndex(l => l._id === lesson._id);
+    
+    if (!isContentUnlocked(section, lessonIndex)) {
+      alert("Please complete the previous content before accessing this lesson.");
+      return;
+    }
+    
     setLessonLoading(true);
     setSelectedSection(section);
     setSelectedLesson(lesson);
+    setViewMode("lesson");
     setLessonLoading(false);
+  };
+
+  const handleQuizSelect = (section: CourseSection) => {
+    if (!isContentUnlocked(section)) {
+      alert("Please complete all lessons in this section before taking the quiz.");
+      return;
+    }
+    
+    setSelectedSection(section);
+    setSelectedQuiz(section.sectionQuiz);
+    setViewMode("quiz");
+  };
+
+  const handleLessonComplete = async () => {
+    if (!courseId || !selectedSection || !selectedLesson) return;
+
+    try {
+      // Mark lesson as complete via API
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        alert("Authentication required. Please log in again.");
+        return;
+      }
+
+      const response = await fetch(
+        `http://localhost:5000/api/courses/${courseId}/progress/lesson`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            courseId,
+            sectionId: selectedSection._id,
+            lessonId: selectedLesson._id,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to complete lesson");
+      }
+
+      const data = await response.json();
+      setEnrollment(data.data);
+      
+      // Show success message
+      alert("Lesson completed successfully!");
+    } catch (err: any) {
+      console.error("Error completing lesson:", err);
+      alert(err.message || "Failed to complete lesson. Please try again.");
+    }
   };
 
   const handleNextLesson = () => {
@@ -86,6 +165,9 @@ const CourseLearningPage: React.FC = () => {
     // Check if there's a next lesson in current section
     if (currentLessonIndex < selectedSection.lessons.length - 1) {
       handleLessonSelect(selectedSection, selectedSection.lessons[currentLessonIndex + 1]);
+    } else if (selectedSection.sectionQuiz) {
+      // Show section quiz after last lesson
+      handleQuizSelect(selectedSection);
     } else if (currentSectionIndex < course.sections.length - 1) {
       // Move to first lesson of next section
       const nextSection = course.sections[currentSectionIndex + 1];
@@ -97,7 +179,17 @@ const CourseLearningPage: React.FC = () => {
   };
 
   const handlePreviousLesson = () => {
-    if (!course || !selectedSection || !selectedLesson) return;
+    if (!course || !selectedSection) return;
+
+    if (viewMode === "quiz") {
+      // Go back to last lesson of section
+      if (selectedSection.lessons?.length > 0) {
+        handleLessonSelect(selectedSection, selectedSection.lessons[selectedSection.lessons.length - 1]);
+      }
+      return;
+    }
+
+    if (!selectedLesson) return;
 
     const currentSectionIndex = course.sections.findIndex(s => s._id === selectedSection._id);
     const currentLessonIndex = selectedSection.lessons.findIndex(l => l._id === selectedLesson._id);
@@ -115,6 +207,43 @@ const CourseLearningPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleQuizComplete = async () => {
+    // Reload course data to get updated progress
+    if (!courseId) return;
+    
+    try {
+      const courseResponse = await getCourseById(courseId);
+      setEnrollment(courseResponse.enrollment || null);
+      
+      if (courseResponse.enrollment) {
+        const enrollmentResponse = await getEnrollmentDetails(courseId);
+        setEnrollment(enrollmentResponse.data);
+      }
+    } catch (err) {
+      console.error("Error reloading course data:", err);
+    }
+
+    // Move to next section or show certificate
+    if (!course || !selectedSection) return;
+
+    const currentSectionIndex = course.sections.findIndex(s => s._id === selectedSection._id);
+    
+    if (currentSectionIndex < course.sections.length - 1) {
+      // Move to next section
+      const nextSection = course.sections[currentSectionIndex + 1];
+      if (nextSection.lessons?.length > 0) {
+        handleLessonSelect(nextSection, nextSection.lessons[0]);
+      }
+    } else {
+      // Course completed - check for certificate
+      if (enrollment?.certificateIssued) {
+        setViewMode("certificate");
+      } else {
+        alert("Course completed! Your certificate will be issued after admin approval.");
+      }
+    }
+  };
+
   const handleBackClick = () => {
     navigate("/tutorials");
   };
@@ -124,32 +253,68 @@ const CourseLearningPage: React.FC = () => {
 
     try {
       await enrollInCourse(courseId);
-      // Reload page to show enrolled state
       window.location.reload();
     } catch (err: any) {
       alert(err.message || "Failed to enroll in course");
     }
   };
 
-  // Filter all lessons across sections
-  const getAllLessons = () => {
-    if (!course) return [];
-    return course.sections.flatMap(section =>
-      section.lessons.map(lesson => ({ section, lesson }))
-    );
+  const isLessonCompleted = (sectionId: string, lessonId: string): boolean => {
+    if (!enrollment?.sectionProgress) return false;
+    
+    const sectionProgress = enrollment.sectionProgress.find((sp: any) => sp.section === sectionId);
+    if (!sectionProgress) return false;
+    
+    return sectionProgress.lessons.some((lp: any) => lp.lesson === lessonId && lp.isCompleted);
   };
 
-  const filteredLessons = getAllLessons().filter(({ section, lesson }) =>
-    lesson.title.toLowerCase().includes(searchFilter.toLowerCase()) ||
-    section.title.toLowerCase().includes(searchFilter.toLowerCase()) ||
-    lesson.difficulty?.toLowerCase().includes(searchFilter.toLowerCase())
-  );
+  const isSectionQuizCompleted = (sectionId: string): boolean => {
+    if (!enrollment?.sectionProgress) return false;
+    
+    const sectionProgress = enrollment.sectionProgress.find((sp: any) => sp.section === sectionId);
+    return sectionProgress?.sectionQuizScore?.passed || false;
+  };
+
+  const isContentUnlocked = (section: CourseSection, lessonIndex?: number): boolean => {
+    if (!course) return false;
+    
+    const sectionIndex = course.sections.findIndex(s => s._id === section._id);
+    
+    // First section, first lesson is always unlocked
+    if (sectionIndex === 0 && (lessonIndex === undefined || lessonIndex === 0)) {
+      return true;
+    }
+    
+    // Check if this is a lesson or quiz
+    if (lessonIndex !== undefined) {
+      // For lessons after the first one in first section
+      if (lessonIndex > 0) {
+        // Previous lesson must be completed
+        const previousLesson = section.lessons[lessonIndex - 1];
+        return isLessonCompleted(section._id, previousLesson._id);
+      } else {
+        // First lesson of a section - previous section quiz must be completed
+        if (sectionIndex > 0) {
+          const previousSection = course.sections[sectionIndex - 1];
+          return isSectionQuizCompleted(previousSection._id);
+        }
+      }
+    } else {
+      // This is a section quiz - all lessons in section must be completed
+      return section.lessons.every(lesson => isLessonCompleted(section._id, lesson._id));
+    }
+    
+    return true;
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <svg className="animate-spin h-12 w-12 text-indigo-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
           <p className="text-gray-600 text-lg">Loading course...</p>
         </div>
       </div>
@@ -160,7 +325,9 @@ const CourseLearningPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md mx-4">
-          <div className="text-6xl mb-4">⚠️</div>
+          <svg className="w-20 h-20 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h2>
           <p className="text-gray-600 mb-6">{error || "Course not found"}</p>
           <button
@@ -193,10 +360,16 @@ const CourseLearningPage: React.FC = () => {
               {course.difficulty}
             </span>
             <span className="text-gray-700 flex items-center gap-1">
-              ⏱️ {course.estimatedHours}h
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {course.estimatedHours}h
             </span>
             <span className="text-gray-700 flex items-center gap-1">
-              📚 {course.sections?.length || 0} sections
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              {course.sections?.length || 0} sections
             </span>
           </div>
 
@@ -257,7 +430,7 @@ const CourseLearningPage: React.FC = () => {
           <div className="p-4 border-b border-gray-200">
             <input
               type="text"
-              placeholder="Filter lessons"
+              placeholder="Filter sections"
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
@@ -266,38 +439,148 @@ const CourseLearningPage: React.FC = () => {
 
           <div className="flex-1 overflow-y-auto p-4 hide-scrollbar">
             <div className="space-y-2">
-              {filteredLessons.length > 0 ? (
-                filteredLessons.map(({ section, lesson }) => (
-                  <div
-                    key={lesson._id}
-                    onClick={() => handleLessonSelect(section, lesson)}
-                    className={`p-3 rounded-lg cursor-pointer transition-all text-sm ${
-                      selectedLesson?._id === lesson._id
-                        ? "bg-blue-50 border border-blue-200 text-blue-800"
-                        : "hover:bg-gray-50 text-gray-700"
-                    }`}
-                  >
-                    <div className="font-medium mb-1">• {lesson.title}</div>
-                    <div className="text-xs text-gray-500">{section.title}</div>
+              {course.sections.map((section, sectionIdx) => {
+                const isExpanded = expandedSections.includes(section._id);
+                const filteredLessons = section.lessons.filter(lesson =>
+                  searchFilter === "" ||
+                  lesson.title.toLowerCase().includes(searchFilter.toLowerCase()) ||
+                  section.title.toLowerCase().includes(searchFilter.toLowerCase())
+                );
+
+                if (searchFilter && filteredLessons.length === 0 && !section.title.toLowerCase().includes(searchFilter.toLowerCase())) {
+                  return null;
+                }
+
+                return (
+                  <div key={section._id} className="mb-2">
+                    {/* Section Header */}
+                    <button
+                      onClick={() => toggleSection(section._id)}
+                      className="w-full flex items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-semibold text-gray-900 transition-colors text-left"
+                    >
+                      <span className="flex items-center gap-2">
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isExpanded ? "M19 9l-7 7-7-7" : "M9 5l7 7-7 7"} />
+                        </svg>
+                        <span>Section {sectionIdx + 1}: {section.title}</span>
+                      </span>
+                    </button>
+
+                    {/* Section Content */}
+                    {isExpanded && (
+                      <div className="mt-1 ml-4 space-y-1">
+                        {filteredLessons.map((lesson, lessonIdx) => {
+                          const isCompleted = isLessonCompleted(section._id, lesson._id);
+                          const isCurrent = viewMode === "lesson" && selectedLesson?._id === lesson._id;
+                          const isUnlocked = isContentUnlocked(section, lessonIdx);
+
+                          return (
+                            <button
+                              key={lesson._id}
+                              onClick={() => handleLessonSelect(section, lesson)}
+                              disabled={!isUnlocked}
+                              className={`w-full text-left p-2 rounded-lg text-sm transition-colors ${
+                                isCurrent
+                                  ? "bg-blue-50 border border-blue-200 text-blue-800 font-medium"
+                                  : isCompleted
+                                  ? "bg-green-50 text-green-700 hover:bg-green-100"
+                                  : !isUnlocked
+                                  ? "text-gray-400 cursor-not-allowed opacity-60"
+                                  : "text-gray-700 hover:bg-gray-50"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="flex-1 truncate flex items-center gap-2">
+                                  {!isUnlocked ? (
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                  )}
+                                  {lesson.title}
+                                </span>
+                                {isCompleted && (
+                                  <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+
+                        {/* Section Quiz */}
+                        {section.sectionQuiz && (
+                          <button
+                            onClick={() => handleQuizSelect(section)}
+                            disabled={!isContentUnlocked(section)}
+                            className={`w-full text-left p-2 rounded-lg text-sm transition-colors ${
+                              viewMode === "quiz" && selectedSection?._id === section._id
+                                ? "bg-blue-50 border border-blue-200 text-blue-800 font-medium"
+                                : isSectionQuizCompleted(section._id)
+                                ? "bg-green-50 text-green-700 hover:bg-green-100"
+                                : !isContentUnlocked(section)
+                                ? "text-gray-400 cursor-not-allowed opacity-60"
+                                : "text-gray-700 hover:bg-gray-50"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="flex items-center gap-2">
+                                {!isContentUnlocked(section) ? (
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                  </svg>
+                                )}
+                                <span>Section Quiz</span>
+                              </span>
+                              {isSectionQuizCompleted(section._id) && (
+                                <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </div>
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-gray-500 text-sm">
-                  <svg className="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  No lessons found
-                </div>
+                );
+              })}
+
+              {/* Certificate */}
+              {enrollment.certificateIssued && (
+                <button
+                  onClick={() => setViewMode("certificate")}
+                  className={`w-full text-left p-3 rounded-lg text-sm font-semibold transition-colors ${
+                    viewMode === "certificate"
+                      ? "bg-blue-50 border border-blue-200 text-blue-800"
+                      : "bg-gradient-to-r from-yellow-50 to-orange-50 text-gray-700 hover:shadow-md"
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                    </svg>
+                    <span>View Certificate</span>
+                  </span>
+                </button>
               )}
             </div>
           </div>
 
-          {/* Progress Bar and AI Button */}
-          <div className="p-4 border-t border-gray-200 space-y-4">
+          {/* Progress Bar */}
+          <div className="p-4 border-t border-gray-200">
             <div>
               <div className="flex justify-between text-xs text-gray-600 mb-1">
                 <span>Progress</span>
-                <span className="font-semibold">{enrollment.overallProgress}%</span>
+                <span className="font-semibold">{Math.round(enrollment.overallProgress)}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
@@ -306,13 +589,6 @@ const CourseLearningPage: React.FC = () => {
                 ></div>
               </div>
             </div>
-            
-            <button className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-              Generate with AI
-            </button>
           </div>
         </div>
 
@@ -320,7 +596,7 @@ const CourseLearningPage: React.FC = () => {
         <div className="flex-1 flex overflow-hidden">
           {/* Lesson Content */}
           <div className="flex-1 overflow-y-auto hide-scrollbar overflow-x-hidden">
-            {selectedLesson ? (
+            {viewMode === "lesson" && selectedLesson ? (
               <>
                 {/* Breadcrumb */}
                 <div className="bg-white border-b border-gray-200 px-6 py-3">
@@ -338,7 +614,10 @@ const CourseLearningPage: React.FC = () => {
                 <div className="max-w-4xl mx-auto p-8 overflow-x-hidden">
                   {lessonLoading ? (
                     <div className="flex items-center justify-center h-64">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                      <svg className="animate-spin h-8 w-8 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
                     </div>
                   ) : (
                     <CourseLessonViewer
@@ -350,7 +629,7 @@ const CourseLearningPage: React.FC = () => {
                   )}
 
                   {/* Navigation Buttons */}
-                  <div className="mt-8 flex items-center justify-between bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <div className="flex items-center justify-between bg-white rounded-xl shadow-lg p-6 border border-gray-100">
                     <button
                       onClick={handlePreviousLesson}
                       disabled={
@@ -359,28 +638,65 @@ const CourseLearningPage: React.FC = () => {
                       }
                       className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
-                      <span>←</span>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
                       Previous
                     </button>
 
-                    <button
-                      onClick={handleNextLesson}
-                      disabled={
-                        course.sections[course.sections.length - 1]._id === selectedSection?._id &&
-                        selectedSection.lessons[selectedSection.lessons.length - 1]._id === selectedLesson._id
-                      }
-                      className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      Next
-                      <span>→</span>
-                    </button>
+                    <div className="flex items-center gap-4">
+                      {!isLessonCompleted(selectedSection!._id, selectedLesson._id) ? (
+                        <button
+                          onClick={handleLessonComplete}
+                          className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Mark Complete
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2 text-green-600 font-semibold">
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Completed
+                        </div>
+                      )}
+                      <button
+                        onClick={handleNextLesson}
+                        className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                      >
+                        Next
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </>
+            ) : viewMode === "quiz" && selectedQuiz ? (
+              <QuizViewer
+                courseId={courseId!}
+                quizId={selectedQuiz._id}
+                sectionId={selectedSection?._id || null}
+                isFinalQuiz={false}
+                onComplete={handleQuizComplete}
+                onBack={handlePreviousLesson}
+              />
+            ) : viewMode === "certificate" ? (
+              <CertificateViewer
+                enrollment={enrollment}
+                course={course}
+                onBackToCourse={handleBackClick}
+              />
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center text-gray-500">
-                  <div className="text-6xl mb-4">📚</div>
+                  <svg className="w-24 h-24 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
                   <p className="text-lg">Select a lesson to begin learning</p>
                 </div>
               </div>

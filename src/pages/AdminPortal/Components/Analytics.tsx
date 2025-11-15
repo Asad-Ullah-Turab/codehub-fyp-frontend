@@ -1,195 +1,302 @@
-import { useState, useEffect } from "react";
-import { fetchAnalyticsData } from "../../../functions";
+import React, { useState } from "react";
+import { Search, ChevronDown } from "lucide-react";
 
-interface LanguageStat {
-  _id: string;
-  count: number;
-}
+export default function AnalyticsDashboard() {
+  const [searchTerm, setSearchTerm] = useState("");
 
-interface AnalyticsData {
-  totalExecutions: number;
-  languageStats: LanguageStat[];
-  totalChats: number;
-  totalProgress: number;
-}
+  // Sample data
+  const stats = [
+    { label: "Total Users", value: "12,450", change: "+5.2%", positive: true },
+    { label: "Active Users", value: "3,120", change: "+2.1%", positive: true },
+    {
+      label: "Tutorials Published",
+      value: "256",
+      change: "+1.5%",
+      positive: true,
+    },
+    {
+      label: "AI Chatbot Queries",
+      value: "8,981",
+      change: "+8.5%",
+      positive: true,
+    },
+  ];
 
-function Analytics({ onError }: { onError: (msg: string) => void }) {
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const tutorials = [
+    {
+      name: "Intro to Python",
+      category: "Python",
+      views: 45102,
+      completion: 85,
+      avgTime: "25 min",
+    },
+    {
+      name: "JavaScript Promises",
+      category: "JavaScript",
+      views: 36541,
+      completion: 72,
+      avgTime: "18 min",
+    },
+    {
+      name: "CSS Grid Layout",
+      category: "CSS",
+      views: 35889,
+      completion: 91,
+      avgTime: "15 min",
+    },
+    {
+      name: "React State Management",
+      category: "React",
+      views: 31220,
+      completion: 68,
+      avgTime: "35 min",
+    },
+    {
+      name: "Understanding SQL Joins",
+      category: "Databases",
+      views: 28991,
+      completion: 82,
+      avgTime: "22 min",
+    },
+  ];
 
-  const loadAnalytics = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchAnalyticsData();
-      setAnalytics(data as unknown as AnalyticsData);
-    } catch {
-      onError("Failed to load analytics");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadAnalytics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const getLanguageEmoji = (lang: string) => {
-    switch (lang) {
-      case "python":
-        return "🐍";
-      case "javascript":
-        return "🟨";
-      case "cpp":
-        return "⚙️";
-      default:
-        return "💻";
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading analytics...</p>
-        </div>
-      </div>
-    );
-  }
+  const chatCategories = [
+    { name: "Python Help", color: "#a855f7", value: 3200 },
+    { name: "JS Bugs", color: "#22c55e", value: 2800 },
+    { name: "Conceptual", color: "#f97316", value: 2981 },
+  ];
 
   return (
-    <div>
-      {/* Header */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Analytics & Statistics</h2>
-          <button
-            onClick={loadAnalytics}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
-          >
-            <span>🔄</span>
-            <span>Refresh</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-gray-600 text-sm font-medium mb-2">Total Code Executions</p>
-              <h3 className="text-3xl font-bold text-gray-900">{analytics?.totalExecutions || 0}</h3>
-            </div>
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-2xl shadow-lg">
-              ⚡
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Analytics Dashboard
+            </h1>
+            <div className="flex items-center gap-3">
+              <button className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
+                Last 30 Days
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              <button className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-gray-800">
+                Export to CSV
+              </button>
             </div>
           </div>
+          <p className="text-gray-600 text-sm">
+            Overview of site performance and user engagement.
+          </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-gray-600 text-sm font-medium mb-2">AI Chat Interactions</p>
-              <h3 className="text-3xl font-bold text-gray-900">{analytics?.totalChats || 0}</h3>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          {stats.map((stat, index) => (
+            <div key={index} className="bg-gray-900 rounded-lg p-6">
+              <div className="text-xs text-gray-400 mb-2">{stat.label}</div>
+              <div className="text-3xl font-bold text-white mb-1">
+                {stat.value}
+              </div>
+              <div
+                className={`text-sm font-semibold ${
+                  stat.positive ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                {stat.change}
+              </div>
             </div>
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center text-2xl shadow-lg">
-              💬
+          ))}
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-2 gap-6 mb-6">
+          {/* User Growth Chart */}
+          <div className="bg-gray-900 rounded-lg p-6">
+            <div className="mb-2">
+              <h3 className="text-white font-semibold text-base">
+                User Growth
+              </h3>
+              <p className="text-gray-400 text-xs">
+                New signups over the last 30 days.
+              </p>
+            </div>
+            <div className="relative h-64 mt-6">
+              <svg
+                className="w-full h-full"
+                viewBox="0 0 400 200"
+                preserveAspectRatio="none"
+              >
+                {/* Area fill */}
+                <defs>
+                  <linearGradient
+                    id="areaGradient"
+                    x1="0%"
+                    y1="0%"
+                    x2="0%"
+                    y2="100%"
+                  >
+                    <stop
+                      offset="0%"
+                      style={{ stopColor: "#3b82f6", stopOpacity: 0.4 }}
+                    />
+                    <stop
+                      offset="100%"
+                      style={{ stopColor: "#3b82f6", stopOpacity: 0 }}
+                    />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M 0,120 Q 50,80 100,100 T 200,90 T 300,40 T 400,80 L 400,200 L 0,200 Z"
+                  fill="url(#areaGradient)"
+                />
+                {/* Line */}
+                <path
+                  d="M 0,120 Q 50,80 100,100 T 200,90 T 300,40 T 400,80"
+                  fill="none"
+                  stroke="#3b82f6"
+                  strokeWidth="2"
+                />
+              </svg>
+              <div className="absolute bottom-0 left-0 right-0 flex justify-between text-xs text-gray-500 px-2">
+                <span>Week 1</span>
+                <span>Week 2</span>
+                <span>Week 3</span>
+                <span>Week 4</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-gray-600 text-sm font-medium mb-2">User Progress Records</p>
-              <h3 className="text-3xl font-bold text-gray-900">{analytics?.totalProgress || 0}</h3>
+          {/* Chatbot Query Categories */}
+          <div className="bg-gray-900 rounded-lg p-6">
+            <div className="mb-2">
+              <h3 className="text-white font-semibold text-base">
+                Chatbot Query Categories
+              </h3>
+              <p className="text-gray-400 text-xs">
+                Breakdown of user query types.
+              </p>
             </div>
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-2xl shadow-lg">
-              📈
-            </div>
-          </div>
-        </div>
-      </div>
+            <div className="flex items-center justify-center h-64 relative">
+              {/* Center circle with total */}
+              <div className="text-center">
+                <div className="text-4xl font-bold text-white">8,981</div>
+                <div className="text-xs text-gray-400">Total Queries</div>
+              </div>
 
-      {/* Language Usage Chart */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Code Executions by Language</h3>
-        <div className="space-y-4">
-          {analytics?.languageStats && analytics.languageStats.length > 0 ? (
-            analytics.languageStats.map((stat) => {
-              const total = analytics.totalExecutions || 1;
-              const percentage = ((stat.count / total) * 100).toFixed(1);
-              const bgColor = stat._id === "python" ? "#3776ab" : stat._id === "javascript" ? "#f1e05a" : "#00599c";
-              
-              return (
-                <div key={stat._id} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{getLanguageEmoji(stat._id)}</span>
-                      <span className="font-semibold text-gray-900 capitalize">{stat._id}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-bold text-gray-900">{percentage}%</span>
-                      <span className="text-gray-500 text-sm ml-2">({stat.count} executions)</span>
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${percentage}%`, backgroundColor: bgColor }}
-                    ></div>
-                  </div>
+              {/* Decorative dots around */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative w-48 h-48">
+                  {chatCategories.map((cat, idx) => {
+                    const angle = (idx * 360) / chatCategories.length;
+                    const radius = 80;
+                    const x = Math.cos((angle * Math.PI) / 180) * radius;
+                    const y = Math.sin((angle * Math.PI) / 180) * radius;
+                    return (
+                      <div
+                        key={idx}
+                        className="absolute w-3 h-3 rounded-sm transform -translate-x-1/2 -translate-y-1/2"
+                        style={{
+                          backgroundColor: cat.color,
+                          left: `calc(50% + ${x}px)`,
+                          top: `calc(50% + ${y}px)`,
+                          transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+                        }}
+                      />
+                    );
+                  })}
                 </div>
-              );
-            })
-          ) : (
-            <p className="text-gray-500 text-center py-8">No execution data available</p>
-          )}
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center justify-center gap-6 mt-4">
+              {chatCategories.map((cat, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: cat.color }}
+                  ></div>
+                  <span className="text-xs text-gray-400">{cat.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Summary */}
-      <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">Summary</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
-            <p className="text-gray-700 text-sm font-medium mb-2">Platform Activity Level:</p>
-            <p className="text-2xl font-bold text-indigo-600">
-              {analytics && analytics.totalExecutions > 100
-                ? "High 🔥"
-                : analytics && analytics.totalExecutions > 50
-                ? "Medium 📈"
-                : "Low 📉"}
-            </p>
+        {/* Top Performing Tutorials */}
+        <div className="bg-gray-900 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-white font-semibold text-base">
+                Top Performing Tutorials
+              </h3>
+              <p className="text-gray-400 text-xs">
+                Detailed view of tutorial engagement metrics.
+              </p>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search tutorials..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
-            <p className="text-gray-700 text-sm font-medium mb-2">Most Used Language:</p>
-            <p className="text-2xl font-bold text-purple-600">
-              {analytics?.languageStats &&
-              analytics.languageStats.length > 0 &&
-              analytics.languageStats[0]
-                ? `${getLanguageEmoji(analytics.languageStats[0]._id)} ${analytics.languageStats[0]._id}`
-                : "N/A"}
-            </p>
-          </div>
-
-          <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-lg p-4 border border-green-200">
-            <p className="text-gray-700 text-sm font-medium mb-2">Total Platform Interactions:</p>
-            <p className="text-2xl font-bold text-green-600">
-              {(
-                (analytics?.totalExecutions || 0) +
-                (analytics?.totalChats || 0) +
-                (analytics?.totalProgress || 0)
-              ).toLocaleString()}
-            </p>
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-800">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
+                    Tutorial Name
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
+                    Category
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
+                    Views
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
+                    Completion Rate
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
+                    Avg. Time
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {tutorials.map((tutorial, index) => (
+                  <tr
+                    key={index}
+                    className="border-b border-gray-800 hover:bg-gray-800"
+                  >
+                    <td className="px-4 py-4 text-sm text-white">
+                      {tutorial.name}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-400">
+                      {tutorial.category}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-white">
+                      {tutorial.views.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-white">
+                      {tutorial.completion}%
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-400">
+                      {tutorial.avgTime}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-export default Analytics;

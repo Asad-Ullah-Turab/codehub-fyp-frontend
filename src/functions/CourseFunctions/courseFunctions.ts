@@ -223,7 +223,7 @@ export const enrollInCourse = async (courseId: string): Promise<{
   enrollment?: CourseEnrollment;
 }> => {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (!token) {
       throw new Error('Authentication required');
     }
@@ -238,7 +238,8 @@ export const enrollInCourse = async (courseId: string): Promise<{
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
     
     return await response.json();

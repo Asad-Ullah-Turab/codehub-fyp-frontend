@@ -12,8 +12,6 @@ import ResetPasswordPage from "./pages/ResetPasswordPage/ResetPasswordPage";
 import Layout from "./pages/Layout";
 import TutorialsPage from "./pages/TutorialsPage/TutorialsPage";
 import TutorialsDetailPage from "./pages/TutorialsPage/Components/TutorialsDetailPage";
-import CourseDetailPage from "./pages/TutorialsPage/Components/CourseDetailPage";
-import CoursePage from "./pages/CoursePage";
 import CourseLearningPage from "./pages/CourseLearningPage/CourseLearningPage";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import DemoAdminPortal from "./pages/DemoAdminPortal/DemoAdminPortal";
@@ -65,23 +63,7 @@ function App() {
               path="/courses/:courseId"
               element={
                 <ProtectedRoute>
-                  <CourseDetailPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/courses/:courseId/learn"
-              element={
-                <ProtectedRoute>
                   <CourseLearningPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/course/:courseId"
-              element={
-                <ProtectedRoute>
-                  <CoursePage />
                 </ProtectedRoute>
               }
             />

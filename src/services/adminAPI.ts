@@ -131,4 +131,14 @@ export const adminAPI = {
       throw error;
     }
   },
+
+  getRecentActivity: async (limit = 10) => {
+    try {
+      const response = await api.get(`/admin/recent-activity?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching recent activity:", error);
+      throw error;
+    }
+  },
 };

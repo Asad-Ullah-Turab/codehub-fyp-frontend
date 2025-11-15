@@ -13,8 +13,14 @@ export interface DashboardStats {
   totalAdmins: number;
   totalTutorials: number;
   totalChats: number;
+  totalCourses: number;
+  totalEnrollments: number;
   newUsersLast30Days: number;
   suspensionRate: string;
+  userGrowthRate: string;
+  enrollmentGrowthRate: string;
+  tutorialGrowthRate: string;
+  chatGrowthRate: string;
 }
 
 export interface User {
@@ -33,17 +39,26 @@ export interface Tutorial {
   language: string;
   difficulty: string;
   concept: string;
+  createdBy?: {
+    name: string;
+  };
   createdAt: string;
 }
 
 export interface AnalyticsData {
   totalExecutions: number;
   totalChats: number;
-  userProgress: number;
+  totalProgress: number;
   languageStats: Array<{
-    language: string;
+    _id: string;
     count: number;
   }>;
+}
+
+export interface RecentActivity {
+  type: 'user_signup' | 'tutorial_created' | 'content_updated' | 'course_created';
+  text: string;
+  timestamp: string;
 }
 
 // Dashboard functions
@@ -161,6 +176,14 @@ export const fetchAnalyticsData = async (): Promise<AnalyticsData> => {
     return response.data;
   }
   throw new Error(response.message || 'Failed to fetch analytics');
+};
+
+export const fetchRecentActivity = async (limit: number = 10): Promise<RecentActivity[]> => {
+  const response = await adminAPI.getRecentActivity(limit);
+  if (response.success) {
+    return response.data;
+  }
+  throw new Error(response.message || 'Failed to fetch recent activity');
 };
 
 // Utility functions

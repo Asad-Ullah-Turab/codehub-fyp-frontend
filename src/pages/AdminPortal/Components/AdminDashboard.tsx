@@ -1,104 +1,156 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import {
   Search,
   Bell,
   HelpCircle,
   User,
   Plus,
-  TrendingUp,
   Users,
   FileText,
   MessageSquare,
   BookOpen,
   Edit,
 } from "lucide-react";
+import {
+  fetchDashboardStats,
+  fetchAnalyticsData,
+  fetchTutorials,
+  fetchRecentActivity,
+  formatDate,
+  type DashboardStats,
+  type AnalyticsData,
+  type Tutorial,
+  type RecentActivity,
+} from "../../../functions/AdminFunctions/adminFunctions";
+
+interface ContentDataItem {
+  name: string;
+  value: number;
+  color: string;
+}
 
 export default function AdminDashboard() {
-  const stats = [
-    { label: "Total Users", value: "12,456", change: "+2.5%", positive: true },
-    {
-      label: "Active Subscriptions",
-      value: "3,120",
-      change: "+2.8%",
-      positive: true,
-    },
-    {
-      label: "Published Tutorials",
-      value: "852",
-      change: "+8.1%",
-      positive: true,
-    },
-    {
-      label: "AI Chatbot Queries",
-      value: "5,678",
-      change: "-1.2%",
-      positive: false,
-    },
-  ];
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const contentData = [
-    { name: "Python", value: 24.27, color: "#14b8a6" },
-    { name: "JavaScript", value: 20.15, color: "#ec4899" },
-    { name: "React", value: 18.88, color: "#a855f7" },
-    { name: "Node", value: 9.43, color: "#22c55e" },
-    { name: "CSS", value: 6.62, color: "#3b82f6" },
-    { name: "Django", value: 5.9, color: "#f97316" },
-    { name: "Vue", value: 4.16, color: "#eab308" },
-    { name: "SQL", value: 2.91, color: "#ef4444" },
-  ];
+  const loadDashboardStats = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await fetchDashboardStats();
+      setStats(data);
+    } catch (err) {
+      console.error("Error fetching dashboard stats:", err);
+      setError(err instanceof Error ? err.message : "Failed to load dashboard stats");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const maxValue = Math.max(...contentData.map((item) => item.value));
+  useEffect(() => {
+    loadDashboardStats();
+  }, []);
 
-  const recentActivity = [
-    {
-      icon: User,
-      text: "John Doe signed up.",
-      time: "2 minutes ago",
-      color: "bg-blue-100 text-blue-600",
-    },
-    {
-      icon: BookOpen,
-      text: 'Tutorial "React Hooks" was published.',
-      time: "15 minutes ago",
-      color: "bg-green-100 text-green-600",
-    },
-    {
-      icon: MessageSquare,
-      text: 'New comment on "DSA Algorithms"',
-      time: "1 hour ago",
-      color: "bg-purple-100 text-purple-600",
-    },
-    {
-      icon: Edit,
-      text: 'Content "Node.js Basics" was updated.',
-      time: "3 hours ago",
-      color: "bg-yellow-100 text-yellow-600",
-    },
-  ];
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [latestTutorials, setLatestTutorials] = useState<Tutorial[]>([]);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
 
-  const latestContent = [
-    {
-      title: "Mastering CSS Grid",
-      category: "Frontend",
-      author: "Alex Johnson",
-      status: "Published",
-      date: "2023-10-26",
-    },
-    {
-      title: "Intro to Django ORM",
-      category: "Backend",
-      author: "Maria Garcia",
-      status: "Published",
-      date: "2023-10-24",
-    },
-    {
-      title: "Binary Search Algorithm",
-      category: "DSA",
-      author: "Sam Lee",
-      status: "Draft",
-      date: "2023-10-22",
-    },
-  ];
+  const loadAnalytics = async () => {
+    try {
+      const data = await fetchAnalyticsData();
+      setAnalytics(data);
+    } catch (err) {
+      console.error("Error fetching analytics:", err);
+    }
+  };
+
+  const loadLatestTutorials = async () => {
+    try {
+      const { tutorials } = await fetchTutorials(1, 5);
+      setLatestTutorials(tutorials);
+    } catch (err) {
+      console.error("Error fetching tutorials:", err);
+    }
+  };
+
+  const loadRecentActivity = async () => {
+    try {
+      const activities = await fetchRecentActivity(4);
+      setRecentActivities(activities);
+    } catch (err) {
+      console.error("Error fetching recent activity:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadAnalytics();
+    loadLatestTutorials();
+    loadRecentActivity();
+  }, []);
+
+  const languageColors: { [key: string]: string } = {
+    python: "#14b8a6",
+    javascript: "#ec4899",
+    cpp: "#a855f7",
+    sql: "#22c55e",
+    rust: "#f97316",
+    haskell: "#3b82f6",
+  };
+
+  const contentData: ContentDataItem[] =
+    analytics?.languageStats.map((lang: { _id: string; count: number }) => ({
+      name: lang._id.charAt(0).toUpperCase() + lang._id.slice(1),
+      value: lang.count,
+      color: languageColors[lang._id.toLowerCase()] || "#6b7280",
+    })) || [];
+
+  const maxValue = contentData.length > 0 ? Math.max(...contentData.map((item) => item.value)) : 1;
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "user_signup":
+        return User;
+      case "tutorial_created":
+        return BookOpen;
+      case "content_updated":
+        return Edit;
+      case "course_created":
+        return FileText;
+      default:
+        return MessageSquare;
+    }
+  };
+
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case "user_signup":
+        return "bg-blue-100 text-blue-600";
+      case "tutorial_created":
+        return "bg-green-100 text-green-600";
+      case "content_updated":
+        return "bg-yellow-100 text-yellow-600";
+      case "course_created":
+        return "bg-purple-100 text-purple-600";
+      default:
+        return "bg-gray-100 text-gray-600";
+    }
+  };
+
+  const getTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const activityTime = new Date(timestamp);
+    const diffInMs = now.getTime() - activityTime.getTime();
+    const diffInMinutes = Math.floor(diffInMs / 60000);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInMinutes < 1) return "Just now";
+    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? "s" : ""} ago`;
+    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+    return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -122,17 +174,6 @@ export default function AdminDashboard() {
             <button className="p-2 hover:bg-gray-100 rounded-md">
               <HelpCircle className="w-5 h-5 text-gray-600" />
             </button>
-            <div className="flex items-center gap-2 ml-2">
-              <div className="w-9 h-9 bg-gray-700 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">AN</span>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-gray-900">
-                  Admin Name
-                </div>
-                <div className="text-xs text-gray-500">Administrator</div>
-              </div>
-            </div>
           </div>
         </div>
       </header>
@@ -143,10 +184,10 @@ export default function AdminDashboard() {
         <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Welcome back, Admin!
+              Dashboard Overview
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Here's a summary of your site's activity today.
+              Here's a summary of your site's activity.
             </p>
           </div>
           <div className="flex gap-3">
@@ -162,26 +203,73 @@ export default function AdminDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-4 mb-6">
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg p-5 shadow-sm border border-gray-100"
-            >
-              <div className="text-xs text-gray-500 mb-3">{stat.label}</div>
-              <div className="flex items-end justify-between">
-                <div className="text-2xl font-bold text-gray-900">
-                  {stat.value}
-                </div>
-                <div
-                  className={`text-xs font-semibold ${
-                    stat.positive ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {stat.change}
+          {loading ? (
+            Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-lg p-5 shadow-sm border border-gray-100 animate-pulse"
+              >
+                <div className="h-3 bg-gray-200 rounded w-24 mb-3"></div>
+                <div className="h-8 bg-gray-200 rounded w-16"></div>
+              </div>
+            ))
+          ) : error ? (
+            <div className="col-span-4 bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+              <p className="text-red-600 text-sm">{error}</p>
+              <button
+                onClick={loadDashboardStats}
+                className="mt-2 text-red-600 hover:text-red-700 text-sm font-medium"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : stats && stats.totalUsers !== undefined ? (
+            [
+              {
+                label: "Total Users",
+                value: (stats.totalUsers || 0).toLocaleString(),
+                change: `${stats.userGrowthRate || "0.0"}%`,
+                positive: parseFloat(stats.userGrowthRate || "0") >= 0,
+              },
+              {
+                label: "Course Enrollments",
+                value: (stats.totalEnrollments || 0).toLocaleString(),
+                change: `${stats.enrollmentGrowthRate || "0.0"}%`,
+                positive: parseFloat(stats.enrollmentGrowthRate || "0") >= 0,
+              },
+              {
+                label: "Published Tutorials",
+                value: (stats.totalTutorials || 0).toLocaleString(),
+                change: `${stats.tutorialGrowthRate || "0.0"}%`,
+                positive: parseFloat(stats.tutorialGrowthRate || "0") >= 0,
+              },
+              {
+                label: "AI Chatbot Queries",
+                value: (stats.totalChats || 0).toLocaleString(),
+                change: `${stats.chatGrowthRate || "0.0"}%`,
+                positive: parseFloat(stats.chatGrowthRate || "0") >= 0,
+              },
+            ].map((stat, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-lg p-5 shadow-sm border border-gray-100"
+              >
+                <div className="text-xs text-gray-500 mb-3">{stat.label}</div>
+                <div className="flex items-end justify-between">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {stat.value}
+                  </div>
+                  <div
+                    className={`text-xs font-semibold ${
+                      stat.positive ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {stat.change}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : null}
         </div>
 
         <div className="grid grid-cols-3 gap-6 mb-6">
@@ -264,23 +352,31 @@ export default function AdminDashboard() {
               Most Viewed Content
             </h2>
             <div className="space-y-2.5">
-              {contentData.map((item, index) => (
-                <div key={index} className="flex items-center gap-4">
-                  <div className="w-16 text-xs text-gray-600 text-right">
-                    {item.name}
-                  </div>
-                  <div className="flex-1 bg-gray-100 rounded h-7 relative overflow-hidden">
-                    <div
-                      className="h-7 rounded transition-all"
-                      style={{
-                        width: `${(item.value / maxValue) * 100}%`,
-                        backgroundColor: item.color,
-                      }}
-                    />
-                  </div>
-                  <div className="w-10 text-xs text-gray-600">{item.value}</div>
+              {contentData.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  No language data available
                 </div>
-              ))}
+              ) : (
+                contentData.map((item, index) => (
+                  <div key={index} className="flex items-center gap-4">
+                    <div className="w-16 text-xs text-gray-600 text-right">
+                      {item.name}
+                    </div>
+                    <div className="flex-1 bg-gray-100 rounded h-7 relative overflow-hidden">
+                      <div
+                        className="h-7 rounded transition-all"
+                        style={{
+                          width: `${(item.value / maxValue) * 100}%`,
+                          backgroundColor: item.color,
+                        }}
+                      />
+                    </div>
+                    <div className="w-10 text-xs text-gray-600">
+                      {item.value}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -290,24 +386,31 @@ export default function AdminDashboard() {
               Recent Activity
             </h2>
             <div className="space-y-3">
-              {recentActivity.map((activity, index) => {
-                const Icon = activity.icon;
-                return (
-                  <div key={index} className="flex gap-3">
-                    <div className={`${activity.color} p-1.5 rounded-md h-fit`}>
-                      <Icon className="w-4 h-4" />
+              {recentActivities.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  No recent activity
+                </div>
+              ) : (
+                recentActivities.map((activity, index) => {
+                  const Icon = getActivityIcon(activity.type);
+                  const color = getActivityColor(activity.type);
+                  return (
+                    <div key={index} className="flex gap-3">
+                      <div className={`${color} p-1.5 rounded-md h-fit`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-gray-900 leading-relaxed">
+                          {activity.text}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {getTimeAgo(activity.timestamp)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-xs text-gray-900 leading-relaxed">
-                        {activity.text}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {activity.time}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
@@ -345,41 +448,46 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {latestContent.map((content, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-50 hover:bg-gray-50"
-                  >
-                    <td className="px-5 py-4 text-sm text-gray-900">
-                      {content.title}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-gray-600">
-                      {content.category}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-gray-600">
-                      {content.author}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span
-                        className={`px-2.5 py-1 rounded text-xs font-medium ${
-                          content.status === "Published"
-                            ? "bg-teal-50 text-teal-700"
-                            : "bg-yellow-50 text-yellow-700"
-                        }`}
-                      >
-                        {content.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-sm text-gray-600">
-                      {content.date}
-                    </td>
-                    <td className="px-5 py-4 text-right">
-                      <button className="text-blue-500 hover:text-blue-600 text-sm font-medium">
-                        Edit
-                      </button>
+                {latestTutorials.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-5 py-8 text-center text-gray-500 text-sm"
+                    >
+                      No tutorials found
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  latestTutorials.map((tutorial, index) => (
+                    <tr
+                      key={tutorial._id || index}
+                      className="border-b border-gray-50 hover:bg-gray-50"
+                    >
+                      <td className="px-5 py-4 text-sm text-gray-900">
+                        {tutorial.title}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-gray-600">
+                        {tutorial.language?.toUpperCase() || "N/A"}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-gray-600">
+                        {tutorial.createdBy?.name || "Unknown"}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="px-2.5 py-1 rounded text-xs font-medium bg-teal-50 text-teal-700">
+                          Published
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-sm text-gray-600">
+                        {formatDate(tutorial.createdAt)}
+                      </td>
+                      <td className="px-5 py-4 text-right">
+                        <button className="text-blue-500 hover:text-blue-600 text-sm font-medium">
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

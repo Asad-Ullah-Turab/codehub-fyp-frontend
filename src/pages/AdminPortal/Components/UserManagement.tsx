@@ -1,256 +1,259 @@
-import { useState, useEffect } from "react";
-import { fetchUsers, updateUserAccountStatus, changeUserAdminRole, removeUser } from "../../../functions";
-import { PAGINATION } from "../../../constants";
+import React, { useState } from "react";
+import {
+  Search,
+  Plus,
+  Edit,
+  Eye,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  role: "user" | "admin";
-  accountStatus: "active" | "suspended" | "pending";
-  createdAt: string;
-}
+export default function UserManagement() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-interface Pagination {
-  total: number;
-  pages: number;
-  currentPage: number;
-}
-
-function UserManagement({ onError }: { onError: (msg: string) => void }) {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [pagination, setPagination] = useState<Pagination>({
-    total: 0,
-    pages: 0,
-    currentPage: 1,
-  });
-
-  const loadUsers = async (page = 1) => {
-    try {
-      setLoading(true);
-      const data = await fetchUsers(page, PAGINATION.DEFAULT_LIMIT, search, roleFilter, statusFilter);
-      setUsers(data.users);
-      setPagination({
-        total: data.total,
-        pages: data.pages,
-        currentPage: page,
-      });
-    } catch {
-      onError("Failed to load users");
-      setUsers([]);
-      setPagination({
-        total: 0,
-        pages: 0,
-        currentPage: page,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadUsers(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, roleFilter, statusFilter]);
-
-  const handleStatusChange = async (user: User, newStatus: string) => {
-    try {
-      await updateUserAccountStatus(user._id, newStatus as "active" | "suspended" | "pending");
-      loadUsers(pagination.currentPage);
-      onError("");
-    } catch {
-      onError("Failed to update user status");
-    }
-  };
-
-  const handleRoleChange = async (user: User, newRole: string) => {
-    try {
-      await changeUserAdminRole(user._id, newRole as "user" | "admin");
-      loadUsers(pagination.currentPage);
-      onError("");
-    } catch {
-      onError("Failed to change user role");
-    }
-  };
-
-  const handleDeleteUser = async (user: User) => {
-    if (window.confirm(`Are you sure you want to delete ${user.name}?`)) {
-      try {
-        await removeUser(user._id);
-        loadUsers(pagination.currentPage);
-        onError("");
-      } catch {
-        onError("Failed to delete user");
-      }
-    }
-  };
+  // Sample users data
+  const users = [
+    {
+      id: 1,
+      name: "Alex Johnson",
+      email: "alex.j@example.com",
+      userId: "alex.j",
+      role: "Admin",
+      dateJoined: "2023-01-15",
+      lastActive: "2024-07-20",
+      status: "Active",
+    },
+    {
+      id: 2,
+      name: "Maria Garcia",
+      email: "maria.g@example.com",
+      userId: "maria.g",
+      role: "Member",
+      dateJoined: "2023-02-20",
+      lastActive: "2024-07-18",
+      status: "Active",
+    },
+    {
+      id: 3,
+      name: "David Chen",
+      email: "david.c@example.com",
+      userId: "david.c",
+      role: "Member",
+      dateJoined: "2023-03-10",
+      lastActive: "2024-05-11",
+      status: "Suspended",
+    },
+    {
+      id: 4,
+      name: "Sarah Lee",
+      email: "sarah.l@example.com",
+      userId: "sarah.l",
+      role: "Member",
+      dateJoined: "2023-04-05",
+      lastActive: "2024-07-19",
+      status: "Active",
+    },
+    {
+      id: 5,
+      name: "Tom Williams",
+      email: "Tom.w@example.com",
+      userId: "tom.w",
+      role: "Guest",
+      dateJoined: "2023-05-22",
+      lastActive: "2024-06-30",
+      status: "Active",
+    },
+  ];
 
   return (
-    <div>
-      {/* Header */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
-            <p className="text-gray-600 mt-1">Total Users: <span className="font-semibold text-indigo-600">{pagination.total}</span></p>
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+          <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm font-medium flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Add New User
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+          <div className="flex items-center gap-4">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search by name, email, or user ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Role Filter */}
+            <div className="w-48">
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">User Role: All</option>
+                <option value="admin">Admin</option>
+                <option value="member">Member</option>
+                <option value="guest">Guest</option>
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div className="w-52">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">Account Status: All</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+                <option value="pending">Pending</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Search */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
-            <input
-              type="text"
-              placeholder="Search by name or email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
-          {/* Role Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Role</label>
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">All Roles</option>
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-
-          {/* Status Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-              <option value="pending">Pending</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Users Table */}
-      {loading ? (
-        <div className="bg-white rounded-xl shadow-lg p-12 text-center border border-gray-100">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading users...</p>
-        </div>
-      ) : users.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-lg p-12 text-center border border-gray-100">
-          <p className="text-gray-600 text-lg">No users found</p>
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user) => (
-                  <tr key={user._id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg">
-                          {user.name?.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="font-medium text-gray-900">{user.name}</span>
+        {/* Users Table */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-white border-b border-gray-200">
+                <th className="w-8 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-gray-300"
+                  />
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
+                  User
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
+                  User ID
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
+                  Role
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
+                  Date Joined
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
+                  Last Active
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
+                  Status
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr
+                  key={user.id}
+                  className="border-b border-gray-100 hover:bg-gray-50"
+                >
+                  <td className="px-4 py-4">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded border-gray-300"
+                    />
+                  </td>
+                  <td className="px-4 py-4">
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900">
+                        {user.name}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <select
-                        value={user.role}
-                        onChange={(e) => handleRoleChange(user, e.target.value)}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      >
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <select
-                        value={user.accountStatus}
-                        onChange={(e) => handleStatusChange(user, e.target.value)}
-                        className={`px-3 py-1 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                          user.accountStatus === "active"
-                            ? "bg-green-100 text-green-800 border border-green-300"
-                            : user.accountStatus === "suspended"
-                            ? "bg-red-100 text-red-800 border border-red-300"
-                            : "bg-yellow-100 text-yellow-800 border border-yellow-300"
-                        }`}
-                      >
-                        <option value="active">Active</option>
-                        <option value="suspended">Suspended</option>
-                        <option value="pending">Pending</option>
-                      </select>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleDeleteUser(user)}
-                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
-                      >
-                        🗑️ Delete
+                      <div className="text-xs text-gray-500">{user.email}</div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-700">
+                    {user.userId}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-700">
+                    {user.role}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-700">
+                    {user.dateJoined}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-gray-700">
+                    {user.lastActive}
+                  </td>
+                  <td className="px-4 py-4">
+                    <span
+                      className={`inline-block px-3 py-1 rounded text-xs font-semibold ${
+                        user.status === "Active"
+                          ? "bg-green-100 text-green-700"
+                          : user.status === "Suspended"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {user.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-2">
+                      <button className="p-1.5 hover:bg-gray-100 rounded text-gray-600">
+                        <Edit className="w-4 h-4" />
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <button className="p-1.5 hover:bg-gray-100 rounded text-gray-600">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button className="p-1.5 hover:bg-gray-100 rounded text-red-600">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
           {/* Pagination */}
-          {pagination.pages > 1 && (
-            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-              <div className="flex items-center justify-center gap-2">
-                {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => loadUsers(page)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      pagination.currentPage === page
-                        ? "bg-indigo-600 text-white shadow-lg"
-                        : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+          <div className="bg-white px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Showing <span className="font-semibold">1-5</span> of{" "}
+                <span className="font-semibold">100</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button className="p-2 border border-gray-300 rounded hover:bg-gray-50">
+                  <ChevronLeft className="w-4 h-4 text-gray-600" />
+                </button>
+                <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm text-gray-700">
+                  1
+                </button>
+                <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm text-gray-700">
+                  2
+                </button>
+                <button className="px-3 py-1 bg-blue-500 text-white rounded text-sm">
+                  3
+                </button>
+                <span className="px-2 text-gray-500">...</span>
+                <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm text-gray-700">
+                  20
+                </button>
+                <button className="p-2 border border-gray-300 rounded hover:bg-gray-50">
+                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                </button>
               </div>
             </div>
-          )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
-
-export default UserManagement;

@@ -33,6 +33,7 @@ export interface Course {
   ratingCount: number;
   isPublished: boolean;
   isArchived: boolean;
+  certificateTemplate: 'standard' | 'distinguished' | 'excellence';
   tags: string[];
   prerequisites: string[];
   createdAt: string;
@@ -45,6 +46,9 @@ export interface CourseSection {
   description: string;
   order: number;
   lessons: CourseLesson[];
+  sectionQuiz?: {
+    _id: string;
+  };
 }
 
 export interface CourseLesson {
@@ -60,24 +64,61 @@ export interface CourseLesson {
 export interface Quiz {
   _id: string;
   title: string;
+  description?: string;
+  type: 'section-quiz' | 'final-quiz';
+  passingScore: number;
+  timeLimit?: number;
   questions: QuizQuestion[];
 }
 
 export interface QuizQuestion {
   _id: string;
   question: string;
-  options: string[];
-  correctAnswer: number;
+  type: 'multiple-choice' | 'true-false' | 'short-answer' | 'coding';
+  options: Array<{
+    text: string;
+    isCorrect: boolean;
+  }>;
+  correctAnswer?: number;
+  acceptableAnswers?: string[];
+  caseSensitive?: boolean;
   explanation?: string;
+  points: number;
 }
 
 export interface CourseEnrollment {
   _id: string;
-  course: string;
+  course: string | Course;
   user: string;
-  enrolledAt: string;
-  completedLessons: string[];
-  progress: number;
+  enrollmentDate: string;
+  status: 'active' | 'completed' | 'dropped' | 'on-hold';
+  completionDate?: string;
+  certificateIssued: boolean;
+  certificate?: string;
+  sectionProgress?: Array<{
+    section: string;
+    isCompleted: boolean;
+    completedAt?: string;
+    lessons: Array<{
+      lesson: string;
+      isCompleted: boolean;
+      completedAt?: string;
+    }>;
+    sectionQuizScore?: {
+      score: number;
+      passed: boolean;
+      attemptCount: number;
+    };
+  }>;
+  overallProgress: number;
+  finalQuizScore?: {
+    quizId: string;
+    score: number;
+    maxScore: number;
+    attemptCount: number;
+    lastAttemptAt: string;
+    passed: boolean;
+  };
   lastAccessedAt: string;
 }
 
@@ -151,7 +192,7 @@ export const getCourseById = async (id: string): Promise<{
   enrollment?: CourseEnrollment;
 }> => {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
     };
@@ -213,7 +254,7 @@ export const getUserEnrolledCourses = async (): Promise<{
   data: CourseEnrollment[];
 }> => {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (!token) {
       throw new Error('Authentication required');
     }
@@ -241,7 +282,7 @@ export const getEnrollmentDetails = async (courseId: string): Promise<{
   data: CourseEnrollment;
 }> => {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (!token) {
       throw new Error('Authentication required');
     }
@@ -266,14 +307,15 @@ export const getEnrollmentDetails = async (courseId: string): Promise<{
 // Complete a lesson (update progress)
 export const completeLessonProgress = async (
   courseId: string,
+  sectionId: string,
   lessonId: string
 ): Promise<{
   success: boolean;
   message: string;
-  enrollment: CourseEnrollment;
+  data: CourseEnrollment;
 }> => {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     if (!token) {
       throw new Error('Authentication required');
     }
@@ -284,7 +326,7 @@ export const completeLessonProgress = async (
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ lessonId }),
+      body: JSON.stringify({ courseId, sectionId, lessonId }),
     });
     
     if (!response.ok) {
@@ -294,6 +336,143 @@ export const completeLessonProgress = async (
     return await response.json();
   } catch (error) {
     console.error('Error updating lesson progress:', error);
+    throw error;
+  }
+};
+
+// Submit quiz answers
+export const submitQuizAnswers = async (
+  quizId: string,
+  courseId: string,
+  sectionId: string | null,
+  answers: Record<string, string>
+): Promise<{
+  success: boolean;
+  message: string;
+  data: {
+    enrollmentId: string;
+    score: number;
+    maxScore: number;
+    passed: boolean;
+    attemptCount: number;
+    results: Array<{
+      questionId: string;
+      question: string;
+      userAnswer: string;
+      isCorrect: boolean;
+      explanation?: string;
+      points: number;
+    }>;
+    certificate: string | null;
+  };
+}> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/admin/courses/quizzes/${quizId}/submit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ quizId, courseId, sectionId, answers }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error submitting quiz:', error);
+    throw error;
+  }
+};
+
+// Get quiz details
+export const getQuizDetails = async (quizId: string): Promise<{
+  success: boolean;
+  data: Quiz;
+}> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/admin/courses/quizzes/${quizId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching quiz details:', error);
+    throw error;
+  }
+};
+
+// Get user certificates
+export const getUserCertificates = async (): Promise<{
+  success: boolean;
+  data: unknown[];
+}> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/admin/courses/user/certificates`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching certificates:', error);
+    throw error;
+  }
+};
+
+// Get certificate by ID
+export const getCertificateById = async (certificateId: string): Promise<{
+  success: boolean;
+  data: unknown;
+}> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/admin/courses/certificates/${certificateId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching certificate:', error);
     throw error;
   }
 };

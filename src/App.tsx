@@ -14,6 +14,7 @@ import TutorialsPage from "./pages/TutorialsPage/TutorialsPage";
 import TutorialsDetailPage from "./pages/TutorialsPage/Components/TutorialsDetailPage";
 import CourseDetailPage from "./pages/TutorialsPage/Components/CourseDetailPage";
 import CoursePage from "./pages/CoursePage";
+import CourseLearningPage from "./pages/CourseLearningPage/CourseLearningPage";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import DemoAdminPortal from "./pages/DemoAdminPortal/DemoAdminPortal";
 import AboutPage from "./pages/AboutPage/AboutPage";
@@ -65,6 +66,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CourseDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/courses/:courseId/learn"
+              element={
+                <ProtectedRoute>
+                  <CourseLearningPage />
                 </ProtectedRoute>
               }
             />

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchTutorials, removeTutorial, createNewTutorial } from "../../../functions";
 import { PAGINATION, LANGUAGES, DIFFICULTY_LEVELS } from "../../../constants";
-import "./DemoTutorialManagement.css";
 
 interface Tutorial {
   _id: string;
@@ -18,7 +17,7 @@ interface Pagination {
   currentPage: number;
 }
 
-function DemoTutorialManagement({ onError }: { onError: (msg: string) => void }) {
+function TutorialManagement({ onError }: { onError: (msg: string) => void }) {
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -232,7 +231,7 @@ function DemoTutorialManagement({ onError }: { onError: (msg: string) => void })
   };
 
   return (
-    <div className="demo-tutorial-management">
+    <div className="">
       <div className="management-header">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
@@ -286,9 +285,9 @@ function DemoTutorialManagement({ onError }: { onError: (msg: string) => void })
 
       {/* Tutorials Grid */}
       {loading ? (
-        <div className="demo-loading">Loading tutorials...</div>
+        <div className="flex items-center justify-center h-64">Loading tutorials...</div>
       ) : !tutorials || tutorials.length === 0 ? (
-        <div className="no-data">No tutorials found</div>
+        <div className="bg-white rounded-xl shadow-lg p-12 text-center border border-gray-100">No tutorials found</div>
       ) : (
         <div className="tutorials-grid">
           {tutorials.map((tutorial) => (
@@ -917,4 +916,5 @@ function DemoTutorialManagement({ onError }: { onError: (msg: string) => void })
   );
 }
 
-export default DemoTutorialManagement;
+export default TutorialManagement;
+

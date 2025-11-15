@@ -52,7 +52,7 @@ const CourseLearningPage: React.FC = () => {
           const enrollmentResponse = await getEnrollmentDetails(courseId);
           setEnrollment(enrollmentResponse.data);
         } catch (err) {
-          console.log("Using basic enrollment data");
+          // Using basic enrollment data from course response
         }
       }
     } catch (err: any) {

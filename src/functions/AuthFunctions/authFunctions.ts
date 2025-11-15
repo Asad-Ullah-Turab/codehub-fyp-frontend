@@ -179,18 +179,12 @@ export const handleSignup = async (
     );
 
     if (result.needsVerification) {
-      // Show success message and redirect to email verification page
-      const message = result.isResend
-        ? "New verification code sent! Please check your email."
-        : "Account created! Please check your email for verification.";
-
-      alert(message); // You can replace with toast notification
-
-      // Redirect to email verification page
+      // Redirect to email verification page with message
+      const autoResent = result.isResend ? "true" : "false";
       navigate(
         `${ROUTES.EMAIL_VERIFICATION}?email=${encodeURIComponent(
           result.email || formData.email
-        )}`
+        )}&autoResent=${autoResent}`
       );
     } else {
       // No verification needed, go to editor
@@ -203,13 +197,10 @@ export const handleSignup = async (
       authError.message &&
       authError.message.includes("already exists but not verified")
     ) {
-      alert(
-        "Account exists but not verified. New verification code sent to your email!"
-      );
       navigate(
         `${ROUTES.EMAIL_VERIFICATION}?email=${encodeURIComponent(
           formData.email
-        )}`
+        )}&autoResent=true`
       );
     }
     // Other errors are handled by the context

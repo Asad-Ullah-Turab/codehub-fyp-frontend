@@ -40,10 +40,31 @@ export const adminAPI = {
     }
   },
 
-  updateUserStatus: async (userId: string, accountStatus: string) => {
+  getUserDetails: async (userId: string) => {
+    try {
+      const response = await api.get(`/admin/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+      throw error;
+    }
+  },
+
+  updateUserDetails: async (userId: string, userData: Record<string, unknown>) => {
+    try {
+      const response = await api.put(`/admin/users/${userId}`, userData);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating user details:", error);
+      throw error;
+    }
+  },
+
+  updateUserStatus: async (userId: string, accountStatus: string, reason?: string) => {
     try {
       const response = await api.put(`/admin/users/${userId}/status`, {
         accountStatus,
+        reason,
       });
       return response.data;
     } catch (error) {
@@ -60,6 +81,19 @@ export const adminAPI = {
       return response.data;
     } catch (error) {
       console.error("Error changing user role:", error);
+      throw error;
+    }
+  },
+
+  sendEmailToUser: async (userId: string, subject: string, message: string) => {
+    try {
+      const response = await api.post(`/admin/users/${userId}/send-email`, {
+        subject,
+        message,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error sending email:", error);
       throw error;
     }
   },

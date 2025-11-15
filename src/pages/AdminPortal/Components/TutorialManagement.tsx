@@ -433,7 +433,7 @@ export default function TutorialManagement() {
 
       {/* Add Tutorial Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -851,16 +851,15 @@ export default function TutorialManagement() {
       )}
 
       {/* Delete Confirmation Modal */}
-      {deleteConfirm.show && (
-        <ConfirmModal
-          title="Delete Tutorial"
-          message="Are you sure you want to delete this tutorial? This action cannot be undone."
-          onConfirm={handleDeleteTutorial}
-          onCancel={() => setDeleteConfirm({ show: false, tutorialId: null })}
-          confirmText="Delete"
-          confirmButtonClass="bg-red-500 hover:bg-red-600"
-        />
-      )}
+      <ConfirmModal
+        isOpen={deleteConfirm.show}
+        title="Delete Tutorial"
+        message="Are you sure you want to delete this tutorial? This action cannot be undone."
+        onConfirm={handleDeleteTutorial}
+        onCancel={() => setDeleteConfirm({ show: false, tutorialId: null })}
+        confirmText="Delete"
+        confirmButtonClass="bg-red-500 hover:bg-red-600"
+      />
     </div>
   );
 }

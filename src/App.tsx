@@ -75,15 +75,16 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute requireAdmin={true}>
-                  <DemoAdminPortal />
-                </ProtectedRoute>
-              }
-            />
           </Route>
+          {/* Admin routes without Layout (no navbar) */}
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <DemoAdminPortal />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/signin" element={<SigninPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/verify-email" element={<EmailVerificationPage />} />

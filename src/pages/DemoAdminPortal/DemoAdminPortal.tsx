@@ -34,6 +34,19 @@ function DemoAdminPortal() {
 
         <nav className="demo-admin-nav">
           <button
+            className="nav-item view-website-btn"
+            onClick={() => navigate("/")}
+            style={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              color: "white",
+              marginBottom: "16px",
+              fontWeight: "600",
+            }}
+          >
+            <span className="icon">🌐</span>
+            <span>View Website</span>
+          </button>
+          <button
             className={`nav-item ${activeTab === "dashboard" ? "active" : ""}`}
             onClick={() => setActiveTab("dashboard")}
           >

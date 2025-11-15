@@ -68,10 +68,27 @@ export interface User {
   profilePicture?: string;
   role: 'user' | 'admin';
   accountStatus: 'pending' | 'active' | 'suspended';
+  
+  // Profile Information
+  dateOfBirth?: string;
+  bio?: string;
+  location?: string;
+  github?: string;
+  linkedin?: string;
+  website?: string;
+  
+  // Skills and Interests
+  programmingLanguages?: string[];
+  skills?: string[];
+  interests?: string[];
+  experience?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  
+  // Profile Completion
+  isProfileComplete?: boolean;
+  profileCompletionPromptShown?: boolean;
+  
   preferences: {
-    theme: 'light' | 'dark';
-    fontSize: 'small' | 'medium' | 'large';
-    notifications: boolean;
+    emailNotifications: boolean;
   };
   enrolledTutorials: string[];
   enrolledCourses: string[];
@@ -197,6 +214,16 @@ export const getProfile = async (): Promise<{
 export const updateProfile = async (profileData: {
   name?: string;
   profilePicture?: string;
+  dateOfBirth?: string;
+  bio?: string;
+  location?: string;
+  github?: string;
+  linkedin?: string;
+  website?: string;
+  programmingLanguages?: string[];
+  skills?: string[];
+  interests?: string[];
+  experience?: 'beginner' | 'intermediate' | 'advanced' | 'expert' | '';
   preferences?: Partial<User['preferences']>;
 }): Promise<{
   success: boolean;
@@ -226,6 +253,78 @@ export const updateProfile = async (profileData: {
     return await response.json();
   } catch (error) {
     console.error('Error updating profile:', error);
+    throw error;
+  }
+};
+
+/**
+ * Upload profile picture
+ */
+export const uploadProfilePicture = async (file: File): Promise<{
+  success: boolean;
+  data: {
+    user: User;
+    fileUrl: string;
+  };
+}> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+
+    const response = await fetch(`${API_BASE_URL}/profile/upload-picture`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error uploading profile picture:', error);
+    throw error;
+  }
+};
+
+/**
+ * Mark profile completion prompt as shown
+ */
+export const markPromptShown = async (): Promise<{
+  success: boolean;
+  data: User;
+}> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/profile/prompt-shown`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error marking prompt as shown:', error);
     throw error;
   }
 };

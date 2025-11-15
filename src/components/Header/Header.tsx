@@ -87,7 +87,9 @@ export default function Header() {
             >
               {user?.profilePicture ? (
                 <img
-                  src={user.profilePicture}
+                  src={user.profilePicture.startsWith('http') 
+                    ? user.profilePicture 
+                    : `http://localhost:5000${user.profilePicture}`}
                   alt={user.name}
                   className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
                 />
@@ -121,7 +123,9 @@ export default function Header() {
                   <div className="flex items-center space-x-3">
                     {user?.profilePicture ? (
                       <img
-                        src={user.profilePicture}
+                        src={user.profilePicture.startsWith('http') 
+                          ? user.profilePicture 
+                          : `http://localhost:5000${user.profilePicture}`}
                         alt={user.name}
                         className="w-12 h-12 rounded-full object-cover"
                       />
@@ -173,7 +177,7 @@ export default function Header() {
                   </Link>
 
                   <Link
-                    to="/profile"
+                    to="/profile?tab=courses"
                     onClick={() => setDropdownOpen(false)}
                     className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
                   >
@@ -330,7 +334,9 @@ export default function Header() {
           >
             {user?.profilePicture ? (
               <img
-                src={user.profilePicture}
+                src={user.profilePicture.startsWith('http') 
+                  ? user.profilePicture 
+                  : `http://localhost:5000${user.profilePicture}`}
                 alt={user.name}
                 className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
               />
@@ -366,7 +372,9 @@ export default function Header() {
             <div className="flex items-center space-x-3">
               {user?.profilePicture ? (
                 <img
-                  src={user.profilePicture}
+                  src={user.profilePicture.startsWith('http') 
+                    ? user.profilePicture 
+                    : `http://localhost:5000${user.profilePicture}`}
                   alt={user.name}
                   className="w-12 h-12 rounded-full object-cover"
                 />
@@ -419,7 +427,7 @@ export default function Header() {
             </Link>
 
             <Link
-              to="/profile"
+              to="/profile?tab=courses"
               onClick={() => {
                 setDropdownOpen(false);
                 setMobileMenuOpen(false);

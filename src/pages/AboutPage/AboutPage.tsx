@@ -4,7 +4,7 @@ import { BiBrain } from "react-icons/bi";
 import { BiBookOpen } from "react-icons/bi";
 import { AiOutlineEye } from "react-icons/ai";
 import { BsRocketTakeoff } from "react-icons/bs";
-import { BsFillRocketTakeoffFill } from "react-icons/bs";
+import Israr from "../../../public/assets/aboutPage/israr.jpg";
 import React from "react";
 import { FaTwitter, FaLinkedin } from "react-icons/fa";
 
@@ -117,7 +117,7 @@ const AboutPage: React.FC = () => {
           <div className="bg-white rounded-2xl shadow p-6">
             <img
               src="https://via.placeholder.com/120"
-              alt="Johnathan Doe"
+              alt="Muhammad Asad Ullah Turab"
               className="w-24 h-24 rounded-full mx-auto mb-4"
             />
             <h3 className="text-lg font-bold">Muhammad Asad Ullah Turab</h3>
@@ -135,11 +135,11 @@ const AboutPage: React.FC = () => {
           {/* Team Member 2 */}
           <div className="bg-white rounded-2xl shadow p-6">
             <img
-              src="https://via.placeholder.com/120"
-              alt="Jane Smith"
+              src={Israr}
+              alt="Israr Ahmad"
               className="w-24 h-24 rounded-full mx-auto mb-4"
             />
-            <h3 className="text-lg font-bold">Isrsr Ahmad</h3>
+            <h3 className="text-lg font-bold">Israr Ahmad</h3>
             <p className="text-gray-500 mb-3">CTO</p>
             <p className="text-sm mb-4">
               Leads the technical vision and architecture of our learning
@@ -155,7 +155,7 @@ const AboutPage: React.FC = () => {
           <div className="bg-white rounded-2xl shadow p-6">
             <img
               src="https://via.placeholder.com/120"
-              alt="Samuel Lee"
+              alt="Muhammad Saad"
               className="w-24 h-24 rounded-full mx-auto mb-4"
             />
             <h3 className="text-lg font-bold">Muhammad Saad</h3>

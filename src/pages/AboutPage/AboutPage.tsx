@@ -6,6 +6,7 @@ import { AiOutlineEye } from "react-icons/ai";
 import { BsRocketTakeoff } from "react-icons/bs";
 import Israr from "../../../public/assets/aboutPage/israr.jpg";
 import Saad from "../../../public/assets/aboutPage/saad.jpg";
+import Asad from "../../../public/assets/aboutPage/asad.jpg";
 import React from "react";
 import { FaTwitter, FaLinkedin } from "react-icons/fa";
 
@@ -117,7 +118,7 @@ const AboutPage: React.FC = () => {
           {/* Team Member 1 */}
           <div className="bg-white rounded-2xl shadow p-6">
             <img
-              src="https://via.placeholder.com/120"
+              src={Asad}
               alt="Muhammad Asad Ullah Turab"
               className="w-24 h-24 rounded-full mx-auto mb-4"
             />

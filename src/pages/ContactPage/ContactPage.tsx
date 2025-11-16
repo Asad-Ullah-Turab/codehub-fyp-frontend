@@ -1,24 +1,125 @@
 import React, { useState } from "react";
-import { Mail, MapPin } from "lucide-react";
+import { Mail, MapPin, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  submitContactForm,
+  validateField,
+  getInitialFormData,
+  type ContactFormData,
+} from "../../functions/FormFunctions/contactFunctions";
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
+  const [formData, setFormData] = useState<ContactFormData>(getInitialFormData());
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
 
-  const handleChange = (e) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
+    });
+
+    // Clear submit status when user starts typing again
+    if (submitStatus.type) {
+      setSubmitStatus({ type: null, message: "" });
+    }
+
+    // Validate field if it has been touched
+    if (touched[name]) {
+      const error = validateField(name as keyof ContactFormData, value);
+      setErrors({
+        ...errors,
+        [name]: error || "",
+      });
+    }
+  };
+
+  const handleBlur = (
+    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setTouched({
+      ...touched,
+      [name]: true,
+    });
+
+    const error = validateField(name as keyof ContactFormData, value);
+    setErrors({
+      ...errors,
+      [name]: error || "",
     });
   };
 
-  const handleSubmit = () => {
-    console.log("Form submitted:", formData);
-    alert("Message sent successfully!");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Mark all fields as touched
+    setTouched({
+      fullName: true,
+      email: true,
+      subject: true,
+      message: true,
+    });
+
+    // Validate all fields
+    const newErrors: { [key: string]: string } = {};
+    (Object.keys(formData) as Array<keyof ContactFormData>).forEach((field) => {
+      const error = validateField(field, formData[field]);
+      if (error) {
+        newErrors[field] = error;
+      }
+    });
+
+    setErrors(newErrors);
+
+    // If there are errors, don't submit
+    if (Object.keys(newErrors).length > 0) {
+      setSubmitStatus({
+        type: "error",
+        message: "Please fix the errors before submitting",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: "" });
+
+    try {
+      const response = await submitContactForm(formData);
+
+      if (response.status === "success") {
+        setSubmitStatus({
+          type: "success",
+          message:
+            response.message ||
+            "Message sent successfully! We'll get back to you soon.",
+        });
+        // Reset form
+        setFormData(getInitialFormData());
+        setTouched({});
+        setErrors({});
+      } else {
+        setSubmitStatus({
+          type: "error",
+          message: response.message || "Failed to send message. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setSubmitStatus({
+        type: "error",
+        message: "An unexpected error occurred. Please try again later.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -110,13 +211,39 @@ export default function ContactPage() {
 
             {/* Right Column - Form */}
             <div>
-              <div className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Success/Error Message */}
+                {submitStatus.type && (
+                  <div
+                    className={`p-4 rounded-md flex items-start gap-3 ${
+                      submitStatus.type === "success"
+                        ? "bg-green-50 border border-green-200"
+                        : "bg-red-50 border border-red-200"
+                    }`}
+                  >
+                    {submitStatus.type === "success" ? (
+                      <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    )}
+                    <p
+                      className={`text-sm ${
+                        submitStatus.type === "success"
+                          ? "text-green-800"
+                          : "text-red-800"
+                      }`}
+                    >
+                      {submitStatus.message}
+                    </p>
+                  </div>
+                )}
+
                 <div>
                   <label
                     htmlFor="fullName"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Full Name
+                    Full Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -124,9 +251,17 @@ export default function ContactPage() {
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     placeholder="e.g. John Doe"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                    className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
+                      touched.fullName && errors.fullName
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   />
+                  {touched.fullName && errors.fullName && (
+                    <p className="text-red-600 text-sm mt-1">{errors.fullName}</p>
+                  )}
                 </div>
 
                 <div>
@@ -134,7 +269,7 @@ export default function ContactPage() {
                     htmlFor="email"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Email Address
+                    Email Address <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -142,9 +277,17 @@ export default function ContactPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     placeholder="e.g. john@example.com"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                    className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
+                      touched.email && errors.email
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   />
+                  {touched.email && errors.email && (
+                    <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+                  )}
                 </div>
 
                 <div>
@@ -152,7 +295,7 @@ export default function ContactPage() {
                     htmlFor="subject"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Subject
+                    Subject <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -160,9 +303,17 @@ export default function ContactPage() {
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     placeholder="Question about algorithms"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                    className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${
+                      touched.subject && errors.subject
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   />
+                  {touched.subject && errors.subject && (
+                    <p className="text-red-600 text-sm mt-1">{errors.subject}</p>
+                  )}
                 </div>
 
                 <div>
@@ -170,30 +321,50 @@ export default function ContactPage() {
                     htmlFor="message"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Message
+                    Message <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     id="message"
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     placeholder="Your message here..."
-                    rows="4"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none"
+                    rows={4}
+                    className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition resize-none ${
+                      touched.message && errors.message
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
                   />
+                  {touched.message && errors.message && (
+                    <p className="text-red-600 text-sm mt-1">{errors.message}</p>
+                  )}
                 </div>
 
                 <button
-                  onClick={handleSubmit}
-                  className="w-full bg-blue-600 text-white font-medium py-3 px-4 rounded-md hover:bg-blue-700 transition duration-200"
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`w-full font-medium py-3 px-4 rounded-md transition duration-200 flex items-center justify-center gap-2 ${
+                    isSubmitting
+                      ? "bg-blue-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  } text-white`}
                 >
-                  Send Message
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Message"
+                  )}
                 </button>
 
                 <p className="text-center text-sm text-gray-500 mt-2">
-                  We'll send you an email with support link
+                  We'll get back to you as soon as possible
                 </p>
-              </div>
+              </form>
             </div>
           </div>
         </div>

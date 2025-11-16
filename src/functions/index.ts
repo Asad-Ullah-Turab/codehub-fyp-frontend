@@ -1,10 +1,10 @@
 // Export all function modules for easy importing
 
 // Authentication functions
-export * from './AuthFunctions/authFunctions';
+export * from "./AuthFunctions/authFunctions";
 
 // Admin functions
-export * from './AdminFunctions/adminFunctions';
+export * from "./AdminFunctions/adminFunctions";
 
 // Tutorial functions (user-facing) - selective export to avoid naming conflict
 export {
@@ -17,25 +17,24 @@ export {
   formatTutorialDate,
   getTutorialStatusText,
   type MainConcepts,
-} from './TutorialFunctions/tutorialFunctions';
+} from "./TutorialFunctions/tutorialFunctions";
 
 // Course functions
-export * from './CourseFunctions/courseFunctions';
-export type { Tutorial as TutorialItem } from './TutorialFunctions/tutorialFunctions';
-
-
+export * from "./CourseFunctions/courseFunctions";
+export type { Tutorial as TutorialItem } from "./TutorialFunctions/tutorialFunctions";
 
 // Code execution functions
-export * from './CodeExecution/codeExecutionFunctions';
+export * from "./CodeExecution/codeExecutionFunctions";
 
 // Form handling functions
-export * from './FormFunctions/formFunctions';
+export * from "./FormFunctions/formFunctions";
+export * from "./FormFunctions/contactFunctions";
 
 // Navigation functions
-export * from './NavigationFunctions/navigationFunctions';
+export * from "./NavigationFunctions/navigationFunctions";
 
 // Utility functions
-export * from './UtilityFunctions/utilityFunctions';
+export * from "./UtilityFunctions/utilityFunctions";
 
 // Re-export commonly used functions with aliases for convenience
 export {
@@ -43,23 +42,23 @@ export {
   handleSignup as signup,
   handleLogout as logout,
   handleOAuthLogin as oauthLogin,
-} from './AuthFunctions/authFunctions';
+} from "./AuthFunctions/authFunctions";
 
 export {
   handleCodeExecution as executeCode,
   handleLanguageChange as changeLanguage,
-} from './CodeExecution/codeExecutionFunctions';
+} from "./CodeExecution/codeExecutionFunctions";
 
 export {
   handleNavigation as navigate,
   redirectWithParams as redirect,
-} from './NavigationFunctions/navigationFunctions';
+} from "./NavigationFunctions/navigationFunctions";
 
 export {
   validateEmail,
   validatePassword,
   validateName,
-} from './AuthFunctions/authFunctions';
+} from "./AuthFunctions/authFunctions";
 
 export {
   debounce,
@@ -67,7 +66,7 @@ export {
   formatDate,
   copyToClipboard,
   getErrorMessage,
-} from './UtilityFunctions/utilityFunctions';
+} from "./UtilityFunctions/utilityFunctions";
 
 // Admin function aliases for convenience
 export {
@@ -82,4 +81,4 @@ export {
   updateTutorialContent as editTutorial,
   removeTutorial as deleteTutorial,
   fetchAnalyticsData as getAnalytics,
-} from './AdminFunctions/adminFunctions';
+} from "./AdminFunctions/adminFunctions";

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useToast } from "../../contexts/ToastContext";
 import {
   getCourseById,
   getEnrollmentDetails,
@@ -17,6 +18,7 @@ import AIChatAssistant from "../../components/AIChatAssistant/AIChatAssistant";
 const CourseLearningPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [course, setCourse] = useState<Course | null>(null);
   const [enrollment, setEnrollment] = useState<CourseEnrollment | null>(null);
@@ -91,7 +93,7 @@ const CourseLearningPage: React.FC = () => {
     const lessonIndex = section.lessons.findIndex(l => l._id === lesson._id);
     
     if (!isContentUnlocked(section, lessonIndex)) {
-      alert("Please complete the previous content before accessing this lesson.");
+      showToast("Please complete the previous content before accessing this lesson.", "warning");
       return;
     }
     
@@ -104,7 +106,7 @@ const CourseLearningPage: React.FC = () => {
 
   const handleQuizSelect = (section: CourseSection) => {
     if (!isContentUnlocked(section)) {
-      alert("Please complete all lessons in this section before taking the quiz.");
+      showToast("Please complete all lessons in this section before taking the quiz.", "warning");
       return;
     }
     
@@ -120,7 +122,7 @@ const CourseLearningPage: React.FC = () => {
       // Mark lesson as complete via API
       const token = localStorage.getItem("authToken");
       if (!token) {
-        alert("Authentication required. Please log in again.");
+        showToast("Authentication required. Please log in again.", "error");
         return;
       }
 
@@ -149,10 +151,10 @@ const CourseLearningPage: React.FC = () => {
       setEnrollment(data.data);
       
       // Show success message
-      alert("Lesson completed successfully!");
+      showToast("Lesson completed successfully!", "success");
     } catch (err: any) {
       console.error("Error completing lesson:", err);
-      alert(err.message || "Failed to complete lesson. Please try again.");
+      showToast(err.message || "Failed to complete lesson. Please try again.", "error");
     }
   };
 
@@ -239,7 +241,7 @@ const CourseLearningPage: React.FC = () => {
       if (enrollment?.certificateIssued) {
         setViewMode("certificate");
       } else {
-        alert("Course completed! Your certificate will be issued after admin approval.");
+        showToast("Course completed! Your certificate will be issued after admin approval.", "success");
       }
     }
   };
@@ -255,7 +257,7 @@ const CourseLearningPage: React.FC = () => {
       await enrollInCourse(courseId);
       window.location.reload();
     } catch (err: any) {
-      alert(err.message || "Failed to enroll in course");
+      showToast(err.message || "Failed to enroll in course", "error");
     }
   };
 

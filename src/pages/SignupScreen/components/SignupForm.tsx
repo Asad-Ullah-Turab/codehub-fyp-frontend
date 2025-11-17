@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 interface SignupFormProps {
   formData: {
     name: string;
@@ -22,6 +24,20 @@ export default function SignupForm({
   onTermsClick,
   onPrivacyClick,
 }: SignupFormProps) {
+  const [passwordStrength, setPasswordStrength] = useState<"weak" | "medium" | "strong" | null>(null);
+
+  const calculatePasswordStrength = (pwd: string): "weak" | "medium" | "strong" | null => {
+    if (pwd.length === 0) return null;
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (/[a-z]/.test(pwd)) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    if (score <= 2) return "weak";
+    if (score <= 4) return "medium";
+    return "strong";
+  };
   return (
     <>
       {/* Error Message */}
@@ -83,11 +99,46 @@ export default function SignupForm({
             name="password"
             type="password"
             value={formData.password}
-            onChange={onChange}
+            onChange={(e) => {
+              onChange(e);
+              setPasswordStrength(calculatePasswordStrength(e.target.value));
+            }}
             className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             placeholder="••••••••"
             required
           />
+          {passwordStrength && (
+            <div className="mt-2">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      passwordStrength === "weak"
+                        ? "bg-red-500 w-1/3"
+                        : passwordStrength === "medium"
+                        ? "bg-yellow-500 w-2/3"
+                        : "bg-green-500 w-full"
+                    }`}
+                  ></div>
+                </div>
+                <span
+                  className={`text-sm font-medium ${
+                    passwordStrength === "weak"
+                      ? "text-red-600"
+                      : passwordStrength === "medium"
+                      ? "text-yellow-600"
+                      : "text-green-600"
+                  }`}
+                >
+                  {passwordStrength === "weak"
+                    ? "Weak"
+                    : passwordStrength === "medium"
+                    ? "Medium"
+                    : "Strong"}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div>

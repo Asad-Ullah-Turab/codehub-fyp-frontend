@@ -47,14 +47,19 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
   useEffect(() => {
     const loadCertificate = async () => {
       if (!enrollment.certificate) {
+        console.log("No certificate ID available");
         setLoading(false);
         return;
       }
 
       try {
-        const response = await getCertificateById(
-          enrollment.certificate.toString()
-        );
+        const certificateId = typeof enrollment.certificate === 'string' 
+          ? enrollment.certificate 
+          : enrollment.certificate._id || JSON.stringify(enrollment.certificate);
+        
+        console.log("Loading certificate with ID:", certificateId, "Type:", typeof certificateId);
+        
+        const response = await getCertificateById(certificateId);
         setCertificate(response.data as Certificate);
       } catch (err) {
         console.error("Error loading certificate:", err);
@@ -78,7 +83,7 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
       };
     }
 
-    if (certificate?.status === "approved") {
+    if (certificate?.approvalStatus === "approved") {
       return {
         status: "approved",
         color: "green",
@@ -89,7 +94,7 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
       };
     }
 
-    if (certificate?.status === "rejected") {
+    if (certificate?.approvalStatus === "rejected") {
       return {
         status: "rejected",
         color: "red",

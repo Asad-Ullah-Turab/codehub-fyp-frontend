@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
-import { storageSafeUser } from "../../utils/storageUtils";
 import {
   getProfile,
   updateProfile,
@@ -20,6 +19,7 @@ import {
   type SavedTutorial,
 } from "../../functions/ProfileFunctions/profileFunctions";
 import ProfileCompletionModal from "../../components/ProfileCompletionModal/ProfileCompletionModal";
+import UserCertificates from "../../components/Certificates/UserCertificates";
 import {
   BookOpen,
   CheckCircle,
@@ -52,7 +52,7 @@ const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "courses" | "tutorials" | "settings"
+    "overview" | "courses" | "tutorials" | "certificates" | "settings"
   >("overview");
   const [editingProfile, setEditingProfile] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -326,6 +326,7 @@ const ProfilePage: React.FC = () => {
             { key: "overview", label: "Dashboard", icon: TrendingUp },
             { key: "courses", label: "My Courses", icon: BookOpen },
             { key: "tutorials", label: "Saved", icon: Heart },
+            { key: "certificates", label: "Certificates", icon: Award },
             { key: "settings", label: "Settings", icon: Settings },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -688,6 +689,21 @@ const ProfilePage: React.FC = () => {
                 </button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Certificates Tab */}
+        {activeTab === "certificates" && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                My Certificates
+              </h2>
+              <p className="text-gray-600">
+                View and download your earned certificates
+              </p>
+            </div>
+            <UserCertificates />
           </div>
         )}
 

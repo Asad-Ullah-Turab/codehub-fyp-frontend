@@ -486,17 +486,30 @@ export const getCertificateById = async (certificateId: string): Promise<{
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/admin/courses/certificates/${certificateId}`, {
+    console.log('Fetching certificate with ID:', certificateId);
+    const url = `${API_BASE_URL}/admin/courses/certificates/${certificateId}`;
+    console.log('Certificate fetch URL:', url);
+
+    const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
     
+    console.log('Certificate response status:', response.status);
+    console.log('Certificate response headers:', {
+      contentType: response.headers.get('Content-Type'),
+    });
+
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+      console.error('Certificate fetch error response:', errorData);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    console.log('Certificate data received:', data);
+    return data;
   } catch (error) {
     console.error('Error fetching certificate:', error);
     throw error;

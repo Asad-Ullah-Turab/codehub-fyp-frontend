@@ -47,7 +47,6 @@ export default function CertificateApproval() {
       setLoading(true);
       setError("");
       const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-      console.log("Loading certificates with token:", token ? "present" : "missing");
       
       const response = await fetch(
         `${API_BASE_URL}/admin/certificates/pending?page=${page}&limit=${LIMIT}`,
@@ -59,20 +58,14 @@ export default function CertificateApproval() {
         }
       );
 
-      console.log("Response status:", response.status);
-      console.log("Response headers:", response.headers.get("content-type"));
-
       if (!response.ok) {
         const text = await response.text();
-        console.log("Response text:", text.substring(0, 200));
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const text = await response.text();
-      console.log("Raw response:", text.substring(0, 500));
       
       const data = JSON.parse(text);
-      console.log("Certificates loaded:", data);
 
       if (data.success) {
         setCertificates(data.data);
@@ -82,7 +75,6 @@ export default function CertificateApproval() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
-      console.error("Certificate loading error:", err);
     } finally {
       setLoading(false);
     }
@@ -121,7 +113,6 @@ export default function CertificateApproval() {
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : "An error occurred");
-      console.error("Approval error:", err);
     } finally {
       setApprovingId(null);
     }
@@ -165,7 +156,6 @@ export default function CertificateApproval() {
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : "An error occurred");
-      console.error("Rejection error:", err);
     } finally {
       setRejectingId(null);
     }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Download, Award, CheckCircle } from "lucide-react";
+import { Printer, Award, CheckCircle } from "lucide-react";
 import { STORAGE_KEYS } from "../../constants";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -30,7 +30,7 @@ export default function UserCertificates() {
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [printingId, setPrintingId] = useState<string | null>(null);
 
   const LIMIT = 6;
 
@@ -61,7 +61,6 @@ export default function UserCertificates() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
-      console.error("Certificate loading error:", err);
     } finally {
       setLoading(false);
     }
@@ -73,30 +72,20 @@ export default function UserCertificates() {
 
   const downloadCertificate = async (certificateId: string) => {
     try {
-      setDownloadingId(certificateId);
-      console.log('Starting certificate download for:', certificateId);
+      setPrintingId(certificateId);
       
-      // Use direct link download instead of fetch to avoid ad blocker issues
-      const downloadUrl = `${API_BASE_URL}/profile/certificates/${certificateId}/download?token=${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`;
-      console.log('Download URL:', downloadUrl);
+      // Open print dialog with PDF URL
+      const printUrl = `${API_BASE_URL}/profile/certificates/${certificateId}/download?token=${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`;
       
-      // Create a link and trigger download
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `certificate_${certificateId}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      
-      // Cleanup
-      setTimeout(() => {
-        document.body.removeChild(link);
-      }, 100);
-      
-      console.log('Download initiated successfully');
+      const printWindow = window.open(printUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
     } catch (err) {
-      console.error("Download error details:", err);
     } finally {
-      setDownloadingId(null);
+      setPrintingId(null);
     }
   };
 
@@ -176,16 +165,16 @@ export default function UserCertificates() {
                   </div>
                 </div>
 
-                {/* Download Button */}
+                {/* Print Button */}
                 <button
                   onClick={() => downloadCertificate(cert._id)}
-                  disabled={downloadingId === cert._id}
+                  disabled={printingId === cert._id}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
                 >
-                  <Download className="w-4 h-4" />
-                  {downloadingId === cert._id
-                    ? "Downloading..."
-                    : "Download PDF"}
+                  <Printer className="w-4 h-4" />
+                  {printingId === cert._id
+                    ? "Opening Print..."
+                    : "Print Certificate"}
                 </button>
               </div>
             ))}

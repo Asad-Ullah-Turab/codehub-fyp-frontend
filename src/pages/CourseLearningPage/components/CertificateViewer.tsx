@@ -29,25 +29,9 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);
 
-  console.log("=== CertificateViewer Render ===");
-  console.log("Enrollment ID:", enrollment._id);
-  console.log("Status:", enrollment.status);
-  console.log("Completion Date:", enrollment.completionDate);
-  console.log("Certificate Issued:", enrollment.certificateIssued);
-  console.log("Certificate ID:", enrollment.certificate);
-  console.log("Final Quiz Score:", enrollment.finalQuizScore);
-  console.log("Final Quiz Score Details:", {
-    score: enrollment.finalQuizScore?.score,
-    passed: enrollment.finalQuizScore?.passed,
-    attemptCount: enrollment.finalQuizScore?.attemptCount,
-  });
-  console.log("Overall Progress:", enrollment.overallProgress);
-  console.log("================================");
-
   useEffect(() => {
     const loadCertificate = async () => {
       if (!enrollment.certificate) {
-        console.log("No certificate ID available");
         setLoading(false);
         return;
       }
@@ -57,12 +41,9 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
           ? enrollment.certificate 
           : enrollment.certificate._id || JSON.stringify(enrollment.certificate);
         
-        console.log("Loading certificate with ID:", certificateId, "Type:", typeof certificateId);
-        
         const response = await getCertificateById(certificateId);
         setCertificate(response.data as Certificate);
       } catch (err) {
-        console.error("Error loading certificate:", err);
       } finally {
         setLoading(false);
       }
@@ -116,7 +97,12 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
 
   const handleDownloadCertificate = () => {
     if (certificate?.pdfUrl) {
-      window.open(certificate.pdfUrl, "_blank");
+      const printWindow = window.open(certificate.pdfUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
     }
   };
 
@@ -298,7 +284,7 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
               onClick={handleDownloadCertificate}
               className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-lg transition-colors"
             >
-              Download Certificate
+              🖨️ Print Certificate
             </button>
             <button
               onClick={handleShareCertificate}

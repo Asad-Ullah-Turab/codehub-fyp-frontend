@@ -44,10 +44,7 @@ const HomePage = () => {
     try {
       const result = await markPromptShown();
       console.log("Prompt marked as shown");
-      // Update localStorage with the new user data
-      if (result.data) {
-        localStorage.setItem("user", JSON.stringify(result.data));
-      }
+      // User data will be fetched on next auth check
     } catch (err) {
       console.error("Error marking prompt as shown:", err);
     }
@@ -58,10 +55,7 @@ const HomePage = () => {
     try {
       const result = await markPromptShown();
       console.log("Prompt marked as shown, navigating...");
-      // Update localStorage with the new user data
-      if (result.data) {
-        localStorage.setItem("user", JSON.stringify(result.data));
-      }
+      // User data will be fetched on next auth check
       navigate("/profile?tab=settings");
       setShowProfileModal(false);
     } catch (err) {

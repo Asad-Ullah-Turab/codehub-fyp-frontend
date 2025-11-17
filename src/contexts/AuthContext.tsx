@@ -52,20 +52,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       const storedToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-      const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
 
-      if (storedToken && storedUser) {
+      if (storedToken) {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
         
-        // Verify token is still valid
+        // Fetch user data from server to verify token and get fresh data
         try {
           const response = await authAPI.getProfile();
           setUser(response.data.user);
         } catch {
           // Token invalid, clear stored data
           localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-          localStorage.removeItem(STORAGE_KEYS.USER);
           setToken(null);
           setUser(null);
         }
@@ -87,9 +84,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(newToken);
       setUser(data.user);
       
-      // Store in localStorage
+      // Store only token in localStorage (user data is in memory)
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
       
       setIsLoading(false);
       
@@ -122,9 +118,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(newToken);
       setUser(data.user);
       
-      // Store in localStorage
+      // Store only token in localStorage (user data is in memory)
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
       
       return { needsVerification: false };
       
@@ -147,7 +142,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setToken(null);
       localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.USER);
     }
   };
 
@@ -160,7 +154,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(newUser);
     setToken(newToken);
     localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, newToken);
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(newUser));
   };
 
   const value: AuthContextType & { setUserAndToken: typeof setUserAndToken } = {

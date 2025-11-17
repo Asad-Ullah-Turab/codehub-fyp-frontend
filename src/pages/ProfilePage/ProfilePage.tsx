@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { storageSafeUser } from "../../utils/storageUtils";
 import {
   getProfile,
   updateProfile,
@@ -176,9 +177,8 @@ const ProfilePage: React.FC = () => {
     try {
       const result = await markPromptShown();
       console.log("Prompt marked as shown");
-      // Update localStorage and local state with the new user data
+      // Update local state with the new user data
       if (result.data) {
-        localStorage.setItem("user", JSON.stringify(result.data));
         setUser(result.data);
       }
     } catch (err) {
@@ -193,9 +193,8 @@ const ProfilePage: React.FC = () => {
     try {
       const result = await markPromptShown();
       console.log("Prompt marked as shown, settings tab activated");
-      // Update localStorage and local state with the new user data
+      // Update local state with the new user data
       if (result.data) {
-        localStorage.setItem("user", JSON.stringify(result.data));
         setUser(result.data);
       }
     } catch (err) {

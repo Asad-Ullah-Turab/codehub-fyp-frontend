@@ -42,9 +42,8 @@ export default function EmailVerificationPage() {
       const response = await authAPI.verifyEmail(email, otp);
 
       if (response.data.status === "success") {
-        // Store token and user data
+        // Store only token (user will be fetched on app load)
         localStorage.setItem("authToken", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.data.user));
 
         // Redirect to editor or intended page
         const redirectTo = searchParams.get("redirect") || ROUTES.HOME;

@@ -25,10 +25,6 @@ export default function OAuthSuccessPage() {
         .getProfile()
         .then((data) => {
           if (data.status === "success") {
-            localStorage.setItem(
-              STORAGE_KEYS.USER,
-              JSON.stringify(data.data.user)
-            );
             setUserAndToken(data.data.user, token);
             // Check for redirect parameter in the original OAuth request
             const redirectTo =

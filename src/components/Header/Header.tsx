@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 
 import { useAuth } from "../../hooks/useAuth";
-import { BiCodeAlt } from "react-icons/bi";
+import { getProfileImageUrl } from "../../utils/imageUtils";
 
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -85,11 +85,9 @@ export default function Header() {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
             >
-              {user?.profilePicture ? (
+              {user?.profilePicture && getProfileImageUrl(user.profilePicture) ? (
                 <img
-                  src={user.profilePicture.startsWith('http') 
-                    ? user.profilePicture 
-                    : `http://localhost:5000${user.profilePicture}`}
+                  src={getProfileImageUrl(user.profilePicture) || ''}
                   alt={user.name}
                   className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
                 />
@@ -121,11 +119,9 @@ export default function Header() {
                 {/* User Info */}
                 <div className="px-4 py-3 border-b border-gray-100">
                   <div className="flex items-center space-x-3">
-                    {user?.profilePicture ? (
+                    {user?.profilePicture && getProfileImageUrl(user.profilePicture) ? (
                       <img
-                        src={user.profilePicture.startsWith('http') 
-                          ? user.profilePicture 
-                          : `http://localhost:5000${user.profilePicture}`}
+                        src={getProfileImageUrl(user.profilePicture) || ''}
                         alt={user.name}
                         className="w-12 h-12 rounded-full object-cover"
                       />
@@ -332,11 +328,9 @@ export default function Header() {
             }}
             className="flex items-center gap-1 relative"
           >
-            {user?.profilePicture ? (
+            {user?.profilePicture && getProfileImageUrl(user.profilePicture) ? (
               <img
-                src={user.profilePicture.startsWith('http') 
-                  ? user.profilePicture 
-                  : `http://localhost:5000${user.profilePicture}`}
+                src={getProfileImageUrl(user.profilePicture) || ''}
                 alt={user.name}
                 className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
               />
@@ -370,11 +364,9 @@ export default function Header() {
           {/* User Info */}
           <div className="px-4 py-3 border-b border-gray-100">
             <div className="flex items-center space-x-3">
-              {user?.profilePicture ? (
+              {user?.profilePicture && getProfileImageUrl(user.profilePicture) ? (
                 <img
-                  src={user.profilePicture.startsWith('http') 
-                    ? user.profilePicture 
-                    : `http://localhost:5000${user.profilePicture}`}
+                  src={getProfileImageUrl(user.profilePicture) || ''}
                   alt={user.name}
                   className="w-12 h-12 rounded-full object-cover"
                 />

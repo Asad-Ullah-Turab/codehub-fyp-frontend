@@ -74,17 +74,27 @@ export default function UserCertificates() {
     try {
       setPrintingId(certificateId);
       
-      // Open print dialog with PDF URL
-      const printUrl = `${API_BASE_URL}/profile/certificates/${certificateId}/download?token=${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`;
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       
-      const printWindow = window.open(printUrl, '_blank');
+      // Create URL with token as query parameter - backend supports this
+      const downloadUrl = `${API_BASE_URL}/profile/certificates/${certificateId}/download?token=${token || ''}`;
+      
+      // Open certificate HTML page in new window for printing
+      const printWindow = window.open(downloadUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+      
       if (printWindow) {
-        printWindow.onload = () => {
-          printWindow.print();
-        };
+        // Focus the new window
+        printWindow.focus();
+      } else {
+        // Fallback: direct link
+        window.location.href = downloadUrl;
       }
-    } catch (err) {
-    } finally {
+      
+      setPrintingId(null);
+      
+    } catch (error) {
+      console.error('Error opening certificate:', error);
+      alert('Failed to open certificate for printing. Please try again.');
       setPrintingId(null);
     }
   };

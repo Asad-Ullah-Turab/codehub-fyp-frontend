@@ -4,6 +4,7 @@ import {
   type Course,
   type CourseEnrollment,
 } from "../../../functions/CourseFunctions/courseFunctions";
+import { STORAGE_KEYS } from "../../../constants";
 
 interface Certificate {
   _id: string;
@@ -97,11 +98,53 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
 
   const handleDownloadCertificate = () => {
     if (certificate?.pdfUrl) {
-      const printWindow = window.open(certificate.pdfUrl, '_blank');
-      if (printWindow) {
-        printWindow.onload = () => {
-          printWindow.print();
-        };
+      try {
+        // Fetch the PDF as a blob to avoid ad blocker issues
+        fetch(certificate.pdfUrl, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) || ""}`,
+          },
+        })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to fetch certificate');
+            }
+            return response.blob();
+          })
+          .then(pdfBlob => {
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            
+            // Create and open print window with embedded PDF
+            const printWindow = window.open('', '_blank');
+            if (printWindow) {
+              printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <title>Certificate</title>
+                  <style>
+                    body { margin: 0; padding: 0; }
+                    iframe { display: block; width: 100%; height: 100vh; border: none; }
+                  </style>
+                </head>
+                <body>
+                  <iframe src="${pdfUrl}"></iframe>
+                  <script>
+                    setTimeout(function() {
+                      window.print();
+                    }, 500);
+                  </script>
+                </body>
+                </html>
+              `);
+              printWindow.document.close();
+            }
+          })
+          .catch(() => {
+            alert('Failed to open certificate for printing');
+          });
+      } catch {
+        alert('Failed to open certificate for printing');
       }
     }
   };

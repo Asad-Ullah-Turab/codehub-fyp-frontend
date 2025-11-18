@@ -76,21 +76,18 @@ export const handleSignin = async (
   onSuspended?: (message: string) => void
 ) => {
   try {
-    // Validate inputs
-    const emailError = validateEmail(email);
-    const passwordError = validatePassword(password);
-
-    if (emailError) {
-      setError(emailError);
+    // Basic validation - only check if fields are provided
+    if (!email) {
+      setError("Email is required");
       return;
     }
 
-    if (passwordError) {
-      setError(passwordError);
+    if (!password) {
+      setError("Password is required");
       return;
     }
 
-    // Use AuthContext signin
+    // Use AuthContext signin - no password strength validation for login
     await signin(email, password);
 
     // Get user and token from localStorage (since context doesn't return them)

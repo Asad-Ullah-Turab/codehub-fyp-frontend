@@ -25,6 +25,14 @@ export default function SignupForm({
   onPrivacyClick,
 }: SignupFormProps) {
   const [passwordStrength, setPasswordStrength] = useState<"weak" | "medium" | "strong" | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  const validateEmailFormat = (email: string): string | null => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) return null;
+    if (!emailRegex.test(email)) return "Invalid email, please enter a valid email";
+    return null;
+  };
 
   const calculatePasswordStrength = (pwd: string): "weak" | "medium" | "strong" | null => {
     if (pwd.length === 0) return null;
@@ -99,11 +107,21 @@ export default function SignupForm({
             name="email"
             type="email"
             value={formData.email}
-            onChange={onChange}
-            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            onChange={(e) => {
+              onChange(e);
+              setEmailError(validateEmailFormat(e.target.value));
+            }}
+            className={`w-full px-4 py-3 bg-white border rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+              emailError ? 'border-red-300' : 'border-gray-300'
+            }`}
             placeholder="you@example.com"
             required
           />
+          {emailError && (
+            <div className="mt-1">
+              <p className="text-sm text-red-600">{emailError}</p>
+            </div>
+          )}
         </div>
 
         <div>
@@ -237,7 +255,7 @@ export default function SignupForm({
 
         <button
           type="submit"
-          disabled={isLoading || (formData.password && !isPasswordStrong(formData.password))}
+          disabled={isLoading || (formData.password ? !isPasswordStrong(formData.password) : false) || (formData.email ? !!emailError : false)}
           className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-blue-400 disabled:to-blue-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-lg"
         >
           {isLoading ? (
@@ -268,10 +286,10 @@ export default function SignupForm({
           )}
         </button>
         
-        {formData.password && !isPasswordStrong(formData.password) && (
+        {((formData.password && !isPasswordStrong(formData.password)) || (formData.email && emailError)) && (
           <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-lg">
             <p className="text-sm text-orange-700 text-center">
-              Please create a strong password to continue
+              {emailError ? "Please enter a valid email address" : "Please create a strong password to continue"}
             </p>
           </div>
         )}

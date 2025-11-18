@@ -33,10 +33,29 @@ export default function SignupForm({
     if (/[a-z]/.test(pwd)) score++;
     if (/[A-Z]/.test(pwd)) score++;
     if (/[0-9]/.test(pwd)) score++;
-    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+    if (/[@$!%*?&]/.test(pwd)) score++;
     if (score <= 2) return "weak";
     if (score <= 4) return "medium";
     return "strong";
+  };
+
+  const isPasswordStrong = (pwd: string): boolean => {
+    return pwd.length >= 8 &&
+           /[a-z]/.test(pwd) &&
+           /[A-Z]/.test(pwd) &&
+           /[0-9]/.test(pwd) &&
+           /[@$!%*?&]/.test(pwd);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Check password strength before submission
+    if (formData.password && !isPasswordStrong(formData.password)) {
+      return; // Prevent submission, error will be shown by validation
+    }
+    
+    onSubmit(e);
   };
   return (
     <>
@@ -48,7 +67,7 @@ export default function SignupForm({
       )}
 
       {/* Registration Form */}
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={handleFormSubmit} className="space-y-4">
         <div>
           <label
             htmlFor="name"
@@ -108,7 +127,7 @@ export default function SignupForm({
             required
           />
           {passwordStrength && (
-            <div className="mt-2">
+            <div className="mt-2 space-y-2">
               <div className="flex items-center gap-2">
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div
@@ -137,6 +156,34 @@ export default function SignupForm({
                     : "Strong"}
                 </span>
               </div>
+              
+              {passwordStrength === "weak" && (
+                <div className="text-xs text-gray-600 mt-1">
+                  <p className="mb-1 font-medium">Password must contain:</p>
+                  <ul className="space-y-0.5">
+                    <li className={`flex items-center gap-1 ${formData.password.length >= 8 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span>{formData.password.length >= 8 ? '✓' : '×'}</span>
+                      At least 8 characters
+                    </li>
+                    <li className={`flex items-center gap-1 ${/[a-z]/.test(formData.password) ? 'text-green-600' : 'text-red-600'}`}>
+                      <span>{/[a-z]/.test(formData.password) ? '✓' : '×'}</span>
+                      One lowercase letter
+                    </li>
+                    <li className={`flex items-center gap-1 ${/[A-Z]/.test(formData.password) ? 'text-green-600' : 'text-red-600'}`}>
+                      <span>{/[A-Z]/.test(formData.password) ? '✓' : '×'}</span>
+                      One uppercase letter
+                    </li>
+                    <li className={`flex items-center gap-1 ${/[0-9]/.test(formData.password) ? 'text-green-600' : 'text-red-600'}`}>
+                      <span>{/[0-9]/.test(formData.password) ? '✓' : '×'}</span>
+                      One number
+                    </li>
+                    <li className={`flex items-center gap-1 ${/[@$!%*?&]/.test(formData.password) ? 'text-green-600' : 'text-red-600'}`}>
+                      <span>{/[@$!%*?&]/.test(formData.password) ? '✓' : '×'}</span>
+                      One special character (@$!%*?&)
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -190,7 +237,7 @@ export default function SignupForm({
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || (formData.password && !isPasswordStrong(formData.password))}
           className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-blue-400 disabled:to-blue-300 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-lg"
         >
           {isLoading ? (
@@ -220,6 +267,14 @@ export default function SignupForm({
             "Create Account"
           )}
         </button>
+        
+        {formData.password && !isPasswordStrong(formData.password) && (
+          <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-lg">
+            <p className="text-sm text-orange-700 text-center">
+              Please create a strong password to continue
+            </p>
+          </div>
+        )}
       </form>
     </>
   );

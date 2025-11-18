@@ -27,13 +27,25 @@ interface SignupResult {
 export const validateEmail = (email: string): string | null => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email) return "Email is required";
-  if (!emailRegex.test(email)) return "Please enter a valid email address";
+  if (!emailRegex.test(email)) return "Invalid email, please enter a valid email";
   return null;
 };
 
 export const validatePassword = (password: string): string | null => {
   if (!password) return "Password is required";
-  if (password.length < 6) return "Password must be at least 6 characters long";
+  if (password.length < 8) return "Password must be at least 8 characters long";
+  
+  // Check for strong password requirements
+  const hasLowercase = /[a-z]/.test(password);
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSpecialChar = /[@$!%*?&]/.test(password);
+  
+  if (!hasLowercase) return "Password must contain at least one lowercase letter";
+  if (!hasUppercase) return "Password must contain at least one uppercase letter";
+  if (!hasNumber) return "Password must contain at least one number";
+  if (!hasSpecialChar) return "Password must contain at least one special character (@$!%*?&)";
+  
   return null;
 };
 

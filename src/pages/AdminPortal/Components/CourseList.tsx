@@ -1,5 +1,5 @@
 import { type Course } from "../../../services/adminCourseAPI";
-import { Edit, Trash2, Layers } from "lucide-react";
+import { Edit, Trash2, Layers, Eye, EyeOff } from "lucide-react";
 
 interface CourseListProps {
   courses: Course[];
@@ -7,9 +7,10 @@ interface CourseListProps {
   onEdit: (course: Course) => void;
   onDelete: (courseId: string) => void;
   onManageSections: (course: Course) => void;
+  onTogglePublish: (courseId: string) => void;
 }
 
-export default function CourseList({ courses, loading, onEdit, onDelete, onManageSections }: CourseListProps) {
+export default function CourseList({ courses, loading, onEdit, onDelete, onManageSections, onTogglePublish }: CourseListProps) {
   if (loading) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-8">
@@ -66,6 +67,21 @@ export default function CourseList({ courses, loading, onEdit, onDelete, onManag
                   </div>
                 </div>
                 <div className="flex items-center gap-2 ml-4">
+                  <button
+                    onClick={() => onTogglePublish(course._id)}
+                    className={`p-2 rounded-md text-sm font-medium ${
+                      course.isPublished
+                        ? "text-orange-600 hover:text-orange-900 hover:bg-orange-50"
+                        : "text-green-600 hover:text-green-900 hover:bg-green-50"
+                    }`}
+                    title={course.isPublished ? "Unpublish course" : "Publish course"}
+                  >
+                    {course.isPublished ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
                   <button
                     onClick={() => onManageSections(course)}
                     className="px-3 py-1 text-blue-600 hover:text-blue-900 text-sm font-medium"

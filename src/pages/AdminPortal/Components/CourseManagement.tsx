@@ -166,6 +166,21 @@ export default function CourseManagement() {
     }
   };
 
+  const handleTogglePublish = async (courseId: string) => {
+    try {
+      setLoading(true);
+      const response = await adminCourseAPI.togglePublishCourse(courseId);
+      showToast(response.message || "Course publish status updated successfully", "success");
+      fetchCourses();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to toggle course publish status";
+      showToast(message, "error");
+      console.error("Error toggling course publish status:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const openSectionModal = (course: Course) => {
     setSelectedCourseForSections(course);
   };
@@ -261,6 +276,7 @@ export default function CourseManagement() {
         onEdit={openEditModal}
         onDelete={(courseId) => setDeleteConfirm({ show: true, courseId })}
         onManageSections={openSectionModal}
+        onTogglePublish={handleTogglePublish}
       />
 
       {/* Course Form Modal */}

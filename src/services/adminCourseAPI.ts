@@ -8,9 +8,9 @@ export interface Course {
   shortDescription: string;
   language: string;
   category: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty: "beginner" | "intermediate" | "advanced";
   estimatedHours: number;
-  certificateTemplate: 'standard' | 'distinguished' | 'excellence';
+  certificateTemplate: "standard" | "distinguished" | "excellence";
   tags: string[];
   prerequisites: string[];
   instructor: {
@@ -48,7 +48,7 @@ export interface Quiz {
   _id: string;
   title: string;
   description?: string;
-  type: 'section-quiz' | 'final-quiz' | 'practice-quiz';
+  type: "section-quiz" | "final-quiz" | "practice-quiz";
   course?: string;
   section?: string;
   questions: QuizQuestion[];
@@ -66,7 +66,7 @@ export interface Quiz {
 
 export interface QuizQuestion {
   _id?: string;
-  type: 'multiple-choice' | 'true-false' | 'short-answer' | 'coding';
+  type: "multiple-choice" | "true-false" | "short-answer" | "coding";
   question: string;
   description?: string;
   order: number;
@@ -158,18 +158,21 @@ export const adminCourseAPI = {
   },
 
   // Update course
-  updateCourse: async (courseId: string, courseData: {
-    title?: string;
-    description?: string;
-    shortDescription?: string;
-    language?: string;
-    category?: string;
-    difficulty?: string;
-    estimatedHours?: number;
-    certificateTemplate?: string;
-    tags?: string[];
-    prerequisites?: string[];
-  }) => {
+  updateCourse: async (
+    courseId: string,
+    courseData: {
+      title?: string;
+      description?: string;
+      shortDescription?: string;
+      language?: string;
+      category?: string;
+      difficulty?: string;
+      estimatedHours?: number;
+      certificateTemplate?: string;
+      tags?: string[];
+      prerequisites?: string[];
+    }
+  ) => {
     const response = await api.put(`/admin/courses/${courseId}`, courseData);
     return response.data.data;
   },
@@ -187,24 +190,36 @@ export const adminCourseAPI = {
   },
 
   // Create section
-  createSection: async (courseId: string, sectionData: {
-    title: string;
-    description?: string;
-    order: number;
-    estimatedHours?: number;
-  }) => {
-    const response = await api.post(`/admin/courses/${courseId}/sections`, sectionData);
+  createSection: async (
+    courseId: string,
+    sectionData: {
+      title: string;
+      description?: string;
+      order: number;
+      estimatedHours?: number;
+    }
+  ) => {
+    const response = await api.post(
+      `/admin/courses/${courseId}/sections`,
+      sectionData
+    );
     return response.data.data;
   },
 
   // Update section
-  updateSection: async (sectionId: string, sectionData: {
-    title?: string;
-    description?: string;
-    order?: number;
-    estimatedHours?: number;
-  }) => {
-    const response = await api.put(`/admin/courses/sections/${sectionId}`, sectionData);
+  updateSection: async (
+    sectionId: string,
+    sectionData: {
+      title?: string;
+      description?: string;
+      order?: number;
+      estimatedHours?: number;
+    }
+  ) => {
+    const response = await api.put(
+      `/admin/courses/sections/${sectionId}`,
+      sectionData
+    );
     return response.data.data;
   },
 
@@ -215,42 +230,54 @@ export const adminCourseAPI = {
   },
 
   // Create lesson
-  createLesson: async (sectionId: string, lessonData: {
-    title: string;
-    description?: string;
-    content: string;
-    order: number;
-    videoUrl?: string;
-    duration?: number;
-    codeExamples?: CodeExample[];
-    practiceProblems?: string[];
-    notes?: string[];
-    tips?: string[];
-    resources?: Resource[];
-    difficulty?: string;
-    estimatedHours?: number;
-  }) => {
-    const response = await api.post(`/admin/courses/sections/${sectionId}/lessons`, lessonData);
+  createLesson: async (
+    sectionId: string,
+    lessonData: {
+      title: string;
+      description?: string;
+      content: string;
+      order: number;
+      videoUrl?: string;
+      duration?: number;
+      codeExamples?: CodeExample[];
+      practiceProblems?: string[];
+      notes?: string[];
+      tips?: string[];
+      resources?: Resource[];
+      difficulty?: string;
+      estimatedHours?: number;
+    }
+  ) => {
+    const response = await api.post(
+      `/admin/courses/sections/${sectionId}/lessons`,
+      lessonData
+    );
     return response.data.data;
   },
 
   // Update lesson
-  updateLesson: async (lessonId: string, lessonData: {
-    title?: string;
-    description?: string;
-    content?: string;
-    order?: number;
-    videoUrl?: string;
-    duration?: number;
-    codeExamples?: CodeExample[];
-    practiceProblems?: string[];
-    notes?: string[];
-    tips?: string[];
-    resources?: Resource[];
-    difficulty?: string;
-    estimatedHours?: number;
-  }) => {
-    const response = await api.put(`/admin/courses/lessons/${lessonId}`, lessonData);
+  updateLesson: async (
+    lessonId: string,
+    lessonData: {
+      title?: string;
+      description?: string;
+      content?: string;
+      order?: number;
+      videoUrl?: string;
+      duration?: number;
+      codeExamples?: CodeExample[];
+      practiceProblems?: string[];
+      notes?: string[];
+      tips?: string[];
+      resources?: Resource[];
+      difficulty?: string;
+      estimatedHours?: number;
+    }
+  ) => {
+    const response = await api.put(
+      `/admin/courses/lessons/${lessonId}`,
+      lessonData
+    );
     return response.data.data;
   },
 
@@ -262,7 +289,9 @@ export const adminCourseAPI = {
 
   // Get section lessons
   getSectionLessons: async (sectionId: string) => {
-    const response = await api.get(`/admin/courses/sections/${sectionId}/lessons`);
+    const response = await api.get(
+      `/admin/courses/sections/${sectionId}/lessons`
+    );
     return response.data.data;
   },
 
@@ -272,7 +301,7 @@ export const adminCourseAPI = {
     sectionId?: string;
     title: string;
     description?: string;
-    type: 'section-quiz' | 'final-quiz' | 'practice-quiz';
+    type: "section-quiz" | "final-quiz" | "practice-quiz";
     questions: QuizQuestion[];
     passingScore?: number;
     timeLimit?: number;
@@ -283,8 +312,8 @@ export const adminCourseAPI = {
     maxRetakes?: number;
   }) => {
     const { courseId, sectionId, ...quizPayload } = quizData;
-    let url = '/admin/courses';
-    
+    let url = "/admin/courses";
+
     if (courseId) {
       url += `/${courseId}/quizzes`;
     } else if (sectionId) {
@@ -295,18 +324,21 @@ export const adminCourseAPI = {
     return response.data.data;
   },
 
-  updateQuiz: async (quizId: string, quizData: {
-    title?: string;
-    description?: string;
-    questions?: QuizQuestion[];
-    passingScore?: number;
-    timeLimit?: number;
-    shuffleQuestions?: boolean;
-    shuffleOptions?: boolean;
-    showAnswerExplanation?: boolean;
-    retakeAllowed?: boolean;
-    maxRetakes?: number;
-  }) => {
+  updateQuiz: async (
+    quizId: string,
+    quizData: {
+      title?: string;
+      description?: string;
+      questions?: QuizQuestion[];
+      passingScore?: number;
+      timeLimit?: number;
+      shuffleQuestions?: boolean;
+      shuffleOptions?: boolean;
+      showAnswerExplanation?: boolean;
+      retakeAllowed?: boolean;
+      maxRetakes?: number;
+    }
+  ) => {
     const response = await api.put(`/admin/quizzes/${quizId}`, quizData);
     return response.data.data;
   },
@@ -319,6 +351,12 @@ export const adminCourseAPI = {
   getQuiz: async (quizId: string) => {
     const response = await api.get(`/admin/quizzes/${quizId}`);
     return response.data.data;
+  },
+
+  // Publish/Unpublish course
+  togglePublishCourse: async (courseId: string) => {
+    const response = await api.patch(`/admin/courses/${courseId}/publish`);
+    return response.data;
   },
 };
 

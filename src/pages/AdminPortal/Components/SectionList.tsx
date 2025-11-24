@@ -1,5 +1,5 @@
 import { type CourseSection } from "../../../services/adminCourseAPI";
-import { Edit, Trash2, Layers } from "lucide-react";
+import { Edit, Trash2, Layers, FileQuestion } from "lucide-react";
 
 interface SectionListProps {
   sections: CourseSection[];
@@ -7,9 +7,10 @@ interface SectionListProps {
   onEdit: (section: CourseSection) => void;
   onDelete: (sectionId: string) => void;
   onManageLessons: (section: CourseSection) => void;
+  onManageQuiz: (section: CourseSection) => void;
 }
 
-export default function SectionList({ sections, loading, onEdit, onDelete, onManageLessons }: SectionListProps) {
+export default function SectionList({ sections, loading, onEdit, onDelete, onManageLessons, onManageQuiz }: SectionListProps) {
   if (loading) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-8">
@@ -67,6 +68,13 @@ export default function SectionList({ sections, loading, onEdit, onDelete, onMan
                     className="px-3 py-1 text-green-600 hover:text-green-900 text-sm font-medium"
                   >
                     Manage Lessons
+                  </button>
+                  <button
+                    onClick={() => onManageQuiz(section)}
+                    className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-md"
+                    title="Manage section quiz"
+                  >
+                    <FileQuestion className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => onEdit(section)}

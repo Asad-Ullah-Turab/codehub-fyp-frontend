@@ -311,16 +311,9 @@ export const adminCourseAPI = {
     retakeAllowed?: boolean;
     maxRetakes?: number;
   }) => {
-    const { courseId, sectionId, ...quizPayload } = quizData;
-    let url = "/admin/courses";
-
-    if (courseId) {
-      url += `/${courseId}/quizzes`;
-    } else if (sectionId) {
-      url += `/sections/${sectionId}/quizzes`;
-    }
-
-    const response = await api.post(url, quizPayload);
+    // Use the course route for creating quizzes
+    const url = `/admin/courses/${quizData.courseId}/quizzes`;
+    const response = await api.post(url, quizData);
     return response.data.data;
   },
 
@@ -339,17 +332,17 @@ export const adminCourseAPI = {
       maxRetakes?: number;
     }
   ) => {
-    const response = await api.put(`/admin/quizzes/${quizId}`, quizData);
+    const response = await api.put(`/admin/courses/quizzes/${quizId}`, quizData);
     return response.data.data;
   },
 
   deleteQuiz: async (quizId: string) => {
-    const response = await api.delete(`/admin/quizzes/${quizId}`);
+    const response = await api.delete(`/admin/courses/quizzes/${quizId}`);
     return response.data;
   },
 
   getQuiz: async (quizId: string) => {
-    const response = await api.get(`/admin/quizzes/${quizId}`);
+    const response = await api.get(`/admin/courses/quizzes/${quizId}`);
     return response.data.data;
   },
 

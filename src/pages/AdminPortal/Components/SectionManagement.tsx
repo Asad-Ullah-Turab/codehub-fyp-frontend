@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { Plus } from "lucide-react";
-import { adminCourseAPI, type Course, type CourseSection } from "../../../services/adminCourseAPI";
+import { adminCourseAPI, type Course, type CourseSection, type Quiz } from "../../../services/adminCourseAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
 import SectionList from "./SectionList";
 import SectionForm from "./SectionForm";
 import LessonManagement from "./LessonManagement";
+import QuizForm from "./QuizForm";
 
 interface SectionManagementProps {
   course: Course;
@@ -25,6 +26,8 @@ export default function SectionManagement({ course, onClose }: SectionManagement
   const [loading, setLoading] = useState(false);
   const [selectedSection, setSelectedSection] = useState<CourseSection | null>(null);
   const [showLessonModal, setShowLessonModal] = useState(false);
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState({
     show: false,
     sectionId: null as string | null,
@@ -128,6 +131,55 @@ export default function SectionManagement({ course, onClose }: SectionManagement
     setShowLessonModal(true);
   };
 
+  const openQuizModal = async (section: CourseSection) => {
+    setSelectedSection(section);
+    
+    // If section has a quiz, fetch the full quiz data
+    if (section.sectionQuiz) {
+      try {
+        setLoading(true);
+        // Handle both string ID and object cases
+        const quizId = typeof section.sectionQuiz === 'string' ? section.sectionQuiz : section.sectionQuiz._id;
+        
+        if (quizId) {
+          const quizData = await adminCourseAPI.getQuiz(quizId);
+          setEditingQuiz(quizData);
+        } else {
+          // If we already have the full quiz object, use it directly
+          setEditingQuiz(typeof section.sectionQuiz === 'object' ? section.sectionQuiz : null);
+        }
+      } catch (error) {
+        console.error('Error fetching quiz:', error);
+        showToast('Failed to load quiz data', 'error');
+        // If fetching fails but we have the quiz object, use it
+        if (typeof section.sectionQuiz === 'object') {
+          setEditingQuiz(section.sectionQuiz);
+        } else {
+          setEditingQuiz(null);
+        }
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setEditingQuiz(null);
+    }
+    
+    setShowQuizModal(true);
+  };
+
+  const handleQuizSave = async () => {
+    setShowQuizModal(false);
+    setEditingQuiz(null);
+    setSelectedSection(null);
+    fetchCourseSections();
+  };
+
+  const handleQuizCancel = () => {
+    setShowQuizModal(false);
+    setEditingQuiz(null);
+    setSelectedSection(null);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -160,6 +212,7 @@ export default function SectionManagement({ course, onClose }: SectionManagement
         onEdit={openSectionForm}
         onDelete={(sectionId) => setDeleteConfirm({ show: true, sectionId })}
         onManageLessons={openLessonModal}
+        onManageQuiz={openQuizModal}
       />
 
       {/* Section Form Modal */}
@@ -175,6 +228,17 @@ export default function SectionManagement({ course, onClose }: SectionManagement
           resetSectionForm();
         }}
       />
+
+      {/* Quiz Form Modal */}
+      {showQuizModal && selectedSection && (
+        <QuizForm
+          show={showQuizModal}
+          section={selectedSection}
+          editingQuiz={editingQuiz}
+          onSave={handleQuizSave}
+          onCancel={handleQuizCancel}
+        />
+      )}
 
       {/* Lesson Management Modal */}
       {selectedSection && (

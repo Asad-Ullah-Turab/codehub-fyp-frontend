@@ -43,11 +43,13 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
         const response = await getQuizDetails(quizId);
         console.log('Quiz response:', response);
         console.log('Quiz data:', response.data);
-        // Backend returns { data: { quiz, previousScore, canRetake } }
-        const quizData = response.data.quiz;
-        console.log('Quiz object:', quizData);
-        console.log('Quiz questions:', quizData?.questions);
-        setQuiz(quizData);
+        // Support both shapes:
+        // 1) { success: true, data: { quiz: {...} } }
+        // 2) { success: true, data: {...} } (quiz object directly in data)
+        const quizData = response.data?.quiz ?? response.data;
+        console.log('Resolved quiz object:', quizData);
+        console.log('Resolved quiz questions:', quizData?.questions);
+        setQuiz(quizData || null);
       } catch (err: any) {
         console.error("Error loading quiz:", err);
         setError(err.message || "Failed to load quiz");

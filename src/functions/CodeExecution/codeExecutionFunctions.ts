@@ -21,48 +21,77 @@ export const languageOptions: LanguageOption[] = [
   {
     id: "javascript",
     name: "JavaScript",
-    defaultCode: `// JavaScript with Input Example
-process.stdin.on('data', (data) => {
-    const name = data.toString().trim();
-    console.log('Hello, ' + name + '!');
-    process.exit(0);
-});
+    defaultCode: `// Recursive function example
+function factorial(n) {
+    if (n <= 1) return 1;
+    return n * factorial(n - 1);
+}
 
-// Leave input empty to be prompted, or provide input above`,
+console.log("Factorial of 5:", factorial(5));
+
+// While loop example
+let count = 1;
+while (count <= 5) {
+    console.log("Count:", count);
+    count++;
+}
+
+// Object example
+let person = { name: "Alice", age: 30 };
+console.log("Name:", person.name, "Age:", person.age);`,
   },
   {
     id: "python",
     name: "Python",
-    defaultCode: `# Python with Input Example
-name = input("What's your name? ")
-age = input("What's your age? ")
-print(f"Hello {name}, you are {age} years old!")
+    defaultCode: `# Recursive function example
+def factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
 
-# Leave input empty to be prompted interactively!`,
+print("Factorial of 5:", factorial(5))
+
+# While loop example
+count = 1
+while count <= 5:
+    print("Count:", count)
+    count += 1
+
+# Dictionary example
+person = {"name": "Alice", "age": 30}
+print("Name:", person["name"], "Age:", person["age"])`,
   },
   {
     id: "cpp",
     name: "C++",
     defaultCode: `#include <iostream>
+#include <map>
 #include <string>
 using namespace std;
 
-int main() {
-    string name;
-    int age;
-    
-    cout << "What's your name? ";
-    cin >> name;
-    
-    cout << "What's your age? ";
-    cin >> age;
-    
-    cout << "Hello " << name << ", you are " << age << " years old!" << endl;
-    
-    return 0;
+// Recursive function example
+int factorial(int n) {
+    if (n <= 1) return 1;
+    return n * factorial(n - 1);
 }
 
-// Leave input empty to be prompted interactively!`,
+int main() {
+    cout << "Factorial of 5: " << factorial(5) << endl;
+
+    // Do-while loop example
+    int count = 1;
+    do {
+        cout << "Count: " << count << endl;
+        count++;
+    } while (count <= 5);
+
+    // Map example
+    map<string, int> person;
+    person["age"] = 30;
+    cout << "Age: " << person["age"] << endl;
+
+    return 0;
+}`,
   },
 ];
 

@@ -393,7 +393,7 @@ export const submitQuizAnswers = async (
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/admin/courses/quizzes/${quizId}/submit`, {
+    const response = await fetch(`${API_BASE_URL}/courses/quizzes/${quizId}/submit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -430,7 +430,7 @@ export const getQuizDetails = async (quizId: string): Promise<{
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/admin/courses/quizzes/${quizId}`, {
+    const response = await fetch(`${API_BASE_URL}/courses/quizzes/${quizId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

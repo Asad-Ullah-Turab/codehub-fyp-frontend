@@ -33,6 +33,7 @@ const CourseLearningPage: React.FC = () => {
   const [showAIChat, setShowAIChat] = useState(true);
   const [searchFilter, setSearchFilter] = useState("");
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
+  const [lessonStartTime, setLessonStartTime] = useState<Date | null>(null);
 
   // Load course data
   useEffect(() => {
@@ -100,6 +101,7 @@ const CourseLearningPage: React.FC = () => {
     setLessonLoading(true);
     setSelectedSection(section);
     setSelectedLesson(lesson);
+    setLessonStartTime(new Date());
     setViewMode("lesson");
     setLessonLoading(false);
   };
@@ -126,6 +128,10 @@ const CourseLearningPage: React.FC = () => {
         return;
       }
 
+      const timeSpentMinutes = lessonStartTime 
+        ? Math.floor((new Date().getTime() - lessonStartTime.getTime()) / 60000) 
+        : 0;
+
       const response = await fetch(
         `http://localhost:5000/api/courses/${courseId}/progress/lesson`,
         {
@@ -138,6 +144,7 @@ const CourseLearningPage: React.FC = () => {
             courseId,
             sectionId: selectedSection._id,
             lessonId: selectedLesson._id,
+            timeSpentMinutes,
           }),
         }
       );

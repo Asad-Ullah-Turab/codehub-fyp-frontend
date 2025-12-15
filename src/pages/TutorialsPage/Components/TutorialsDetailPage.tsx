@@ -9,6 +9,8 @@ import {
 } from "../../../functions/TutorialFunctions/tutorialFunctions";
 import { useAuth } from "../../../hooks/useAuth";
 import AIChatAssistant from "../../../components/AIChatAssistant/AIChatAssistant";
+import { tutorialAPI } from "../../../services/tutorialAPI";
+import { useToast } from "../../../contexts/ToastContext";
 
 const TutorialsDetailPage: React.FC = () => {
   const { language } = useParams<{ language: string }>();
@@ -27,6 +29,10 @@ const TutorialsDetailPage: React.FC = () => {
   const [savingTutorial, setSavingTutorial] = useState(false);
   const [showAIChat, setShowAIChat] = useState(true);
   const [searchFilter, setSearchFilter] = useState("");
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [aiTopicInput, setAiTopicInput] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const { showToast } = useToast();
 
   const handleTutorialSelect = async (tutorial: Tutorial) => {
     console.log("Tutorial selected:", tutorial.title, tutorial._id);
@@ -84,19 +90,36 @@ const TutorialsDetailPage: React.FC = () => {
           language,
           "all"
         );
-        console.log("Tutorials loaded:", tutorialsData.length, tutorialsData);
+        
+        // If authenticated, also load user's created tutorials for this language
+        let userCreatedTutorials: Tutorial[] = [];
+        if (isAuthenticated) {
+          try {
+            const createdRes = await tutorialAPI.getUserCreatedTutorials();
+            userCreatedTutorials = (createdRes.data || []).filter(
+              (t: Tutorial) => t.language === language.toLowerCase()
+            );
+          } catch (err) {
+            console.log("Could not load user created tutorials:", err);
+          }
+        }
+        
+        // Combine pre-generated and user's created tutorials
+        const allTutorials = [...userCreatedTutorials, ...tutorialsData];
+        
+        console.log("Tutorials loaded:", allTutorials.length, allTutorials);
         console.log(
           "First tutorial full data:",
-          JSON.stringify(tutorialsData[0], null, 2)
+          JSON.stringify(allTutorials[0], null, 2)
         );
-        setTutorials(tutorialsData);
+        setTutorials(allTutorials);
 
         // Check if there's a specific tutorial to select from URL params
         const tutorialIdFromUrl = searchParams.get('tutorialId');
-        let tutorialToSelect = tutorialsData[0]; // Default to first
+        let tutorialToSelect = allTutorials[0]; // Default to first
         
         if (tutorialIdFromUrl) {
-          const foundTutorial = tutorialsData.find(t => t._id === tutorialIdFromUrl);
+          const foundTutorial = allTutorials.find(t => t._id === tutorialIdFromUrl);
           if (foundTutorial) {
             tutorialToSelect = foundTutorial;
             console.log("Auto-selecting tutorial from URL:", foundTutorial.title);
@@ -104,7 +127,7 @@ const TutorialsDetailPage: React.FC = () => {
         }
 
         // Auto-select tutorial (either from URL or first one)
-        if (tutorialsData.length > 0 && tutorialToSelect) {
+        if (allTutorials.length > 0 && tutorialToSelect) {
           setTutorialLoading(true);
           setSelectedTutorial(tutorialToSelect);
 
@@ -147,6 +170,73 @@ const TutorialsDetailPage: React.FC = () => {
       tutorial.concept?.toLowerCase().includes(searchFilter.toLowerCase()) ||
       tutorial.difficulty?.toLowerCase().includes(searchFilter.toLowerCase())
   );
+
+  const handleGenerateAITutorial = () => {
+    if (!isAuthenticated) {
+      showToast("Please login to generate tutorials", "error");
+      return;
+    }
+    setShowAIModal(true);
+  };
+
+  const handleGenerateTutorial = async () => {
+    if (!aiTopicInput.trim()) {
+      showToast("Please enter a topic name", "error");
+      return;
+    }
+
+    if (!language) {
+      showToast("Language not specified", "error");
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+      showToast("Generating tutorial with AI... This may take 10-20 seconds.", "info");
+
+      // Create the tutorial data - AI will generate the content on backend
+      const tutorialData = {
+        language: language.toLowerCase(),
+        concept: aiTopicInput.trim(),
+        difficulty: "beginner",
+        tags: ["AI-generated", "personal", language],
+      };
+
+      // Call the API to create the tutorial - backend will use OpenAI to generate content
+      const response = await tutorialAPI.createTutorial(tutorialData);
+      
+      if (response.success) {
+        const newTutorial = response.data;
+        showToast("Personal tutorial created successfully!", "success");
+        
+        // Add the new tutorial to the list
+        setTutorials(prev => [newTutorial, ...prev]);
+        
+        // Select and display the new tutorial
+        setSelectedTutorial(newTutorial);
+        setIsSaved(false);
+        
+        // Close modal and reset
+        setShowAIModal(false);
+        setAiTopicInput("");
+      } else {
+        showToast("Failed to generate tutorial", "error");
+      }
+    } catch (error: unknown) {
+      console.error("Error generating tutorial:", error);
+      const errorMessage = error && typeof error === 'object' && 'response' in error 
+        ? ((error as {response?: {data?: {message?: string}}}).response?.data?.message || "Failed to generate tutorial")
+        : "Failed to generate tutorial";
+      showToast(errorMessage, "error");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleCloseAIModal = () => {
+    setShowAIModal(false);
+    setAiTopicInput("");
+  };
 
   // Map tutorial language to editor language ID
   const mapLanguageToEditorId = (language: string): string => {
@@ -343,19 +433,29 @@ const TutorialsDetailPage: React.FC = () => {
           <div className="flex-1 overflow-y-auto p-4 hide-scrollbar">
             <div className="space-y-2">
               {filteredTutorials.length > 0 ? (
-                filteredTutorials.map((tutorial) => (
-                  <div
-                    key={tutorial._id}
-                    onClick={() => handleTutorialSelect(tutorial)}
-                    className={`p-3 rounded-lg cursor-pointer transition-all text-sm ${
-                      selectedTutorial?._id === tutorial._id
-                        ? "bg-blue-50 border border-blue-200 text-blue-800"
-                        : "hover:bg-gray-50 text-gray-700"
-                    }`}
-                  >
-                    <div className="font-medium mb-1">• {tutorial.title}</div>
-                  </div>
-                ))
+                filteredTutorials.map((tutorial) => {
+                  const isPersonal = tutorial.tags?.includes('personal') || tutorial.tags?.includes('AI-generated');
+                  return (
+                    <div
+                      key={tutorial._id}
+                      onClick={() => handleTutorialSelect(tutorial)}
+                      className={`p-3 rounded-lg cursor-pointer transition-all text-sm ${
+                        selectedTutorial?._id === tutorial._id
+                          ? "bg-blue-50 border border-blue-200 text-blue-800"
+                          : "hover:bg-gray-50 text-gray-700"
+                      }`}
+                    >
+                      <div className="font-medium mb-1 flex items-center gap-2">
+                        <span>• {tutorial.title}</span>
+                        {isPersonal && (
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
+                            My
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
               ) : (
                 <div className="text-center py-8 text-gray-500 text-sm">
                   <svg
@@ -379,21 +479,34 @@ const TutorialsDetailPage: React.FC = () => {
 
           {/* Generate with AI Button */}
           <div className="p-4 border-t border-gray-200">
-            <button className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                />
-              </svg>
-              Generate with AI
+            <button 
+              onClick={handleGenerateAITutorial}
+              disabled={isGenerating}
+              className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isGenerating ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                    />
+                  </svg>
+                  Generate with AI
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -968,6 +1081,101 @@ const TutorialsDetailPage: React.FC = () => {
           )}
         </button>
       </div>
+
+      {/* AI Tutorial Generation Modal */}
+      {showAIModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <svg
+                  className="w-6 h-6 text-purple-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                  />
+                </svg>
+                Generate Tutorial
+              </h2>
+              <button
+                onClick={handleCloseAIModal}
+                disabled={isGenerating}
+                className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-600 mb-1">
+                Creating <span className="font-semibold text-purple-600">personal tutorial</span> for: <span className="font-semibold text-gray-900">{language?.toUpperCase()}</span>
+              </p>
+              <p className="text-sm text-gray-500">
+                This tutorial will be created for you and saved to your account.
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Topic / Concept Name
+              </label>
+              <input
+                type="text"
+                value={aiTopicInput}
+                onChange={(e) => setAiTopicInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && !isGenerating && handleGenerateTutorial()}
+                placeholder={`e.g., ${language === 'python' ? 'List Comprehensions' : language === 'javascript' ? 'Arrow Functions' : 'Pointers and References'}`}
+                disabled={isGenerating}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleCloseAIModal}
+                disabled={isGenerating}
+                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGenerateTutorial}
+                disabled={isGenerating || !aiTopicInput.trim()}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isGenerating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Generate
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="mt-4 p-3 bg-purple-50 rounded-lg">
+              <p className="text-xs text-purple-800">
+                <span className="font-semibold">💡 Tip:</span> The AI will generate a personal tutorial with examples and code snippets. This tutorial will be saved to your account and you can edit it anytime.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import Editor from "@monaco-editor/react";
+import Editor, { type Monaco } from "@monaco-editor/react";
+import type * as monacoType from "monaco-editor";
+import { AlertCircle, AlertTriangle, Info, CheckCircle2, XCircle } from "lucide-react";
 import {
   handleLanguageChange,
   languageOptions,
@@ -10,6 +12,7 @@ import { snippetAPI, type CodeSnippet } from "../../../services/snippetAPI";
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
+import { checkPythonSyntax, checkJavaScriptSyntax, checkCppSyntax, type ValidationError } from "../../../utils/codeValidation";
 
 export interface CodeEditorProps {
   initialCode?: string;
@@ -31,9 +34,19 @@ export default function CodeEditor({
   const outputEndRef = useRef<HTMLDivElement>(null);
 
   // --- New State for Tabs ---
-  const [activeTab, setActiveTab] = useState<"output" | "input">("output");
+  const [activeTab, setActiveTab] = useState<"output" | "input" | "problems">("output");
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFileName, setExportFileName] = useState("code");
+  
+  // --- State for Error Detection ---
+  const [problems, setProblems] = useState<Array<{
+    severity: 'error' | 'warning' | 'info';
+    message: string;
+    line: number;
+    column: number;
+  }>>([]);
+  const editorRef = useRef<monacoType.editor.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<Monaco | null>(null);
   
   // --- State for Saved Snippets ---
   const { isAuthenticated } = useAuth();
@@ -157,7 +170,71 @@ export default function CodeEditor({
   const changeLanguage = (newLanguage: string) => {
     handleLanguageChange(newLanguage, setLanguage, setCode);
     setOutput("");
+    setProblems([]);
   };
+
+  // Handle Monaco Editor mount
+  const handleEditorDidMount = (editor: monacoType.editor.IStandaloneCodeEditor, monaco: Monaco) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+    
+    // Validate on initial mount
+    validateCode(code, language, monaco, editor);
+  };
+
+  // Validate code and update markers
+  const validateCode = (code: string, lang: string, monaco: Monaco, editor: monacoType.editor.IStandaloneCodeEditor) => {
+    const model = editor.getModel();
+    if (!model) return;
+
+    const markers: monacoType.editor.IMarkerData[] = [];
+    const newProblems: typeof problems = [];
+
+    try {
+      let errors: ValidationError[] = [];
+      
+      if (lang === 'python') {
+        errors = checkPythonSyntax(code);
+      } else if (lang === 'javascript') {
+        errors = checkJavaScriptSyntax(code);
+      } else if (lang === 'cpp') {
+        errors = checkCppSyntax(code);
+      }
+
+      errors.forEach(error => {
+        markers.push({
+          severity: monaco.MarkerSeverity.Error,
+          message: error.message,
+          startLineNumber: error.line,
+          startColumn: error.column,
+          endLineNumber: error.line,
+          endColumn: error.column + 10,
+        });
+        newProblems.push({
+          severity: 'error',
+          message: error.message,
+          line: error.line,
+          column: error.column,
+        });
+      });
+    } catch (e) {
+      console.error('Validation error:', e);
+    }
+
+    monaco.editor.setModelMarkers(model, 'owner', markers);
+    setProblems(newProblems);
+  };
+
+  // Re-validate when code or language changes
+  useEffect(() => {
+    if (editorRef.current && monacoRef.current) {
+      const timeoutId = setTimeout(() => {
+        validateCode(code, language, monacoRef.current!, editorRef.current!);
+      }, 500); // Debounce validation
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [code, language]);
 
   const handleImportCode = () => {
     const input = document.createElement('input');
@@ -313,7 +390,15 @@ export default function CodeEditor({
           language={language === "cpp" ? "cpp" : language}
           value={code}
           onChange={(value) => setCode(value || "")}
-          options={{ minimap: { enabled: false } }}
+          onMount={handleEditorDidMount}
+          options={{ 
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            fontSize: 14,
+            lineNumbers: 'on',
+            renderLineHighlight: 'all',
+            automaticLayout: true,
+          }}
         />
       </div>
 
@@ -341,6 +426,21 @@ export default function CodeEditor({
               }`}
             >
               Input
+            </button>
+            <button
+              onClick={() => setActiveTab("problems")}
+              className={`px-4 py-2 text-sm flex items-center gap-1 ${
+                activeTab === "problems"
+                  ? "text-gray-900 border-b-2 border-blue-500"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Problems
+              {problems.length > 0 && (
+                <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                  {problems.length}
+                </span>
+              )}
             </button>
           </div>
           {activeTab === "output" && (
@@ -377,19 +477,120 @@ export default function CodeEditor({
           )}
         </div>
         {/* Tab Content */}
-        <div className="flex-1 p-3 overflow-auto bg-white">
+        <div className="flex-1 p-3 overflow-auto bg-white max-h-[300px]">
           {activeTab === "output" ? (
             <pre className="text-sm whitespace-pre-wrap font-mono text-gray-800">
               {output || "Your code's output will be displayed here."}
               <div ref={outputEndRef} />
             </pre>
-          ) : (
+          ) : activeTab === "input" ? (
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="w-full h-full p-2 rounded bg-white text-gray-900 border border-gray-300 resize-none text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Provide all inputs here (one per line)..."
             />
+          ) : (
+            <div className="h-full">
+              {/* Header Section */}
+              <div className="mb-4 pb-3 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-gray-700" />
+                    <h3 className="text-base font-semibold text-gray-900">Problems</h3>
+                  </div>
+                  <div className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                    problems.length === 0 
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {problems.length === 0 
+                      ? "No issues" 
+                      : `${problems.length} ${problems.length === 1 ? 'issue' : 'issues'}`}
+                  </div>
+                </div>
+              </div>
+
+              {/* Problems List */}
+              {problems.length > 0 ? (
+                <div className="space-y-2">
+                  {problems.map((problem, index) => (
+                    <div
+                      key={index}
+                      className={`group flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.01] ${
+                        problem.severity === 'error'
+                          ? 'bg-red-50 border-red-200 hover:bg-red-100'
+                          : problem.severity === 'warning'
+                          ? 'bg-amber-50 border-amber-200 hover:bg-amber-100'
+                          : 'bg-blue-50 border-blue-200 hover:bg-blue-100'
+                      }`}
+                      onClick={() => {
+                        if (editorRef.current) {
+                          editorRef.current.revealLineInCenter(problem.line);
+                          editorRef.current.setPosition({ lineNumber: problem.line, column: problem.column });
+                          editorRef.current.focus();
+                        }
+                      }}
+                    >
+                      {/* Icon */}
+                      <div className={`flex-shrink-0 mt-0.5 ${
+                        problem.severity === 'error'
+                          ? 'text-red-600'
+                          : problem.severity === 'warning'
+                          ? 'text-amber-600'
+                          : 'text-blue-600'
+                      }`}>
+                        {problem.severity === 'error' ? (
+                          <XCircle className="w-5 h-5" />
+                        ) : problem.severity === 'warning' ? (
+                          <AlertTriangle className="w-5 h-5" />
+                        ) : (
+                          <Info className="w-5 h-5" />
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-sm font-medium text-gray-900 leading-snug">
+                            {problem.message}
+                          </p>
+                          <span className={`flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded ${
+                            problem.severity === 'error'
+                              ? 'bg-red-200 text-red-800'
+                              : problem.severity === 'warning'
+                              ? 'bg-amber-200 text-amber-800'
+                              : 'bg-blue-200 text-blue-800'
+                          }`}>
+                            {problem.severity.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <span className="text-xs text-gray-600 font-mono">
+                            Ln {problem.line}, Col {problem.column}
+                          </span>
+                          <span className="text-xs text-gray-400 group-hover:text-gray-600 transition-colors">
+                            Click to jump →
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="bg-green-100 rounded-full p-4 mb-4">
+                    <CheckCircle2 className="w-12 h-12 text-green-600" />
+                  </div>
+                  <h4 className="text-base font-semibold text-gray-900 mb-1">
+                    No Problems Found
+                  </h4>
+                  <p className="text-sm text-gray-500 max-w-xs">
+                    Your code looks good! No syntax errors detected.
+                  </p>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

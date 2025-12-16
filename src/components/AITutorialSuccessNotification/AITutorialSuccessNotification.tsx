@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Tutorial } from "../functions/TutorialFunctions/tutorialFunctions";
+import type { Tutorial } from "../../functions/TutorialFunctions/tutorialFunctions";
 
 /**
  * Global notification component that appears on any page

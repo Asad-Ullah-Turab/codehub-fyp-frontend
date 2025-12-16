@@ -17,7 +17,7 @@ import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import AdminPortal from "./pages/AdminPortal/AdminPortal";
 import AboutPage from "./pages/AboutPage/AboutPage";
 import ContactPage from "./pages/ContactPage/ContactPage";
-import AITutorialSuccessNotification from "./components/AITutorialSuccessNotification";
+import AITutorialSuccessNotification from "./components/AITutorialSuccessNotification/AITutorialSuccessNotification";
 
 function App() {
   return (

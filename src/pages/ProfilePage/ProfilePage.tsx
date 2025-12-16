@@ -64,7 +64,14 @@ const ProfilePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
     "overview" | "courses" | "tutorials" | "certificates" | "settings"
-  >("overview");
+  >(() => {
+    // Try to load from localStorage first
+    const stored = localStorage.getItem("profileActiveTab");
+    if (stored && ["overview", "courses", "tutorials", "certificates", "settings"].includes(stored)) {
+      return stored as typeof activeTab;
+    }
+    return "overview";
+  });
   const [editingProfile, setEditingProfile] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -159,13 +166,19 @@ const ProfilePage: React.FC = () => {
     const tabParam = searchParams.get("tab");
     if (
       tabParam &&
-      ["overview", "courses", "tutorials", "settings"].includes(tabParam)
+      ["overview", "courses", "tutorials", "settings", "certificates"].includes(tabParam)
     ) {
-      setActiveTab(
-        tabParam as "overview" | "courses" | "tutorials" | "settings"
-      );
+      setActiveTab(tabParam as typeof activeTab);
+      localStorage.setItem("profileActiveTab", tabParam);
     }
   }, [searchParams]);
+
+  // Persist activeTab to localStorage
+  useEffect(() => {
+    if (activeTab) {
+      localStorage.setItem("profileActiveTab", activeTab);
+    }
+  }, [activeTab]);
 
   const handleUpdateProfile = async () => {
     try {
@@ -371,7 +384,10 @@ const ProfilePage: React.FC = () => {
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key as typeof activeTab)}
+                onClick={() => {
+                  setActiveTab(tab.key as typeof activeTab);
+                  localStorage.setItem("profileActiveTab", tab.key);
+                }}
                 className={`px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all whitespace-nowrap ${
                   activeTab === tab.key
                     ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105"

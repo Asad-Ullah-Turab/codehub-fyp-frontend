@@ -11,6 +11,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import AIChatAssistant from "../../../components/AIChatAssistant/AIChatAssistant";
 import { tutorialAPI } from "../../../services/tutorialAPI";
 import { useToast } from "../../../contexts/ToastContext";
+import { exportTutorialToPDF } from "../../../utils/pdfExport";
 
 const TutorialsDetailPage: React.FC = () => {
   const { language } = useParams<{ language: string }>();
@@ -35,21 +36,11 @@ const TutorialsDetailPage: React.FC = () => {
   const { showToast } = useToast();
 
   const handleTutorialSelect = async (tutorial: Tutorial) => {
-    console.log("Tutorial selected:", tutorial.title, tutorial._id);
-    console.log("Full tutorial object:", tutorial);
-    console.log(
-      "Tutorial has content:",
-      !!tutorial.content,
-      "Content length:",
-      tutorial.content?.length
-    );
-
     try {
       setTutorialLoading(true);
 
       // Always use the tutorial data we have since backend API is failing
       // The tutorials list should have all the data we need
-      console.log("Using tutorial data directly (API may be unavailable)");
       setSelectedTutorial(tutorial);
 
       // Check if tutorial is saved
@@ -61,7 +52,6 @@ const TutorialsDetailPage: React.FC = () => {
           );
           setIsSaved(!!isCurrentTutorialSaved);
         } catch (saveCheckError) {
-          console.log("Could not check save status:", saveCheckError);
           setIsSaved(false);
         }
       } else {
@@ -85,7 +75,6 @@ const TutorialsDetailPage: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        console.log("Loading tutorials for language:", language);
         const tutorialsData = await fetchTutorialsByLanguageAndConcept(
           language,
           "all"
@@ -100,29 +89,31 @@ const TutorialsDetailPage: React.FC = () => {
               (t: Tutorial) => t.language === language.toLowerCase()
             );
           } catch (err) {
-            console.log("Could not load user created tutorials:", err);
+            // Silently fail if user created tutorials can't be loaded
           }
         }
         
         // Combine pre-generated and user's created tutorials
         const allTutorials = [...userCreatedTutorials, ...tutorialsData];
         
-        console.log("Tutorials loaded:", allTutorials.length, allTutorials);
-        console.log(
-          "First tutorial full data:",
-          JSON.stringify(allTutorials[0], null, 2)
-        );
         setTutorials(allTutorials);
 
         // Check if there's a specific tutorial to select from URL params
         const tutorialIdFromUrl = searchParams.get('tutorialId');
+        const autoSelectId = localStorage.getItem('auto_select_tutorial');
         let tutorialToSelect = allTutorials[0]; // Default to first
         
-        if (tutorialIdFromUrl) {
+        // Check for auto-select from localStorage (from global notification)
+        if (autoSelectId) {
+          const foundTutorial = allTutorials.find(t => t._id === autoSelectId);
+          if (foundTutorial) {
+            tutorialToSelect = foundTutorial;
+            localStorage.removeItem('auto_select_tutorial');
+          }
+        } else if (tutorialIdFromUrl) {
           const foundTutorial = allTutorials.find(t => t._id === tutorialIdFromUrl);
           if (foundTutorial) {
             tutorialToSelect = foundTutorial;
-            console.log("Auto-selecting tutorial from URL:", foundTutorial.title);
           }
         }
 
@@ -140,7 +131,6 @@ const TutorialsDetailPage: React.FC = () => {
               );
               setIsSaved(!!isCurrentTutorialSaved);
             } catch (saveCheckError) {
-              console.log("Could not check save status:", saveCheckError);
               setIsSaved(false);
             }
           } else {
@@ -190,14 +180,19 @@ const TutorialsDetailPage: React.FC = () => {
       return;
     }
 
-    try {
-      setIsGenerating(true);
-      showToast("Generating tutorial with AI... This may take 10-20 seconds.", "info");
+    // Close modal immediately and start generation
+    setShowAIModal(false);
+    const topic = aiTopicInput.trim();
+    setAiTopicInput("");
+    
+    setIsGenerating(true);
+    showToast(`Generating tutorial about "${topic}"... This may take 10-20 seconds.`, "info");
 
+    try {
       // Create the tutorial data - AI will generate the content on backend
       const tutorialData = {
         language: language.toLowerCase(),
-        concept: aiTopicInput.trim(),
+        concept: topic,
         difficulty: "beginner",
         tags: ["AI-generated", "personal", language],
       };
@@ -207,18 +202,14 @@ const TutorialsDetailPage: React.FC = () => {
       
       if (response.success) {
         const newTutorial = response.data;
-        showToast("Personal tutorial created successfully!", "success");
         
         // Add the new tutorial to the list
         setTutorials(prev => [newTutorial, ...prev]);
         
-        // Select and display the new tutorial
-        setSelectedTutorial(newTutorial);
-        setIsSaved(false);
+        // Store in localStorage for global notification
+        localStorage.setItem('ai_tutorial_success', JSON.stringify(newTutorial));
         
-        // Close modal and reset
-        setShowAIModal(false);
-        setAiTopicInput("");
+        showToast("Tutorial generated successfully!", "success");
       } else {
         showToast("Failed to generate tutorial", "error");
       }
@@ -237,6 +228,8 @@ const TutorialsDetailPage: React.FC = () => {
     setShowAIModal(false);
     setAiTopicInput("");
   };
+
+
 
   // Map tutorial language to editor language ID
   const mapLanguageToEditorId = (language: string): string => {
@@ -570,17 +563,38 @@ const TutorialsDetailPage: React.FC = () => {
                             </span>
                           </div>
 
-                          <button
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                              isSaved
-                                ? "bg-red-50 text-red-600 border border-red-200"
-                                : "bg-blue-50 text-blue-600 border border-blue-200"
-                            } ${
-                              savingTutorial ? "opacity-60" : "hover:shadow-md"
-                            }`}
-                            onClick={handleSaveTutorial}
-                            disabled={savingTutorial}
-                          >
+                          <div className="flex gap-3">
+                            <button
+                              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-purple-50 text-purple-600 border border-purple-200 hover:shadow-md hover:bg-purple-100"
+                              onClick={() => exportTutorialToPDF(selectedTutorial)}
+                              title="Export as PDF"
+                            >
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                              </svg>
+                              PDF
+                            </button>
+                            <button
+                              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                                isSaved
+                                  ? "bg-red-50 text-red-600 border border-red-200"
+                                  : "bg-blue-50 text-blue-600 border border-blue-200"
+                              } ${
+                                savingTutorial ? "opacity-60" : "hover:shadow-md"
+                              }`}
+                              onClick={handleSaveTutorial}
+                              disabled={savingTutorial}
+                            >
                             {isSaved ? (
                               <>
                                 <svg
@@ -615,6 +629,7 @@ const TutorialsDetailPage: React.FC = () => {
                               </>
                             )}
                           </button>
+                          </div>
                         </div>
                       </div>
                       {/* Tutorial Content */}
@@ -1084,7 +1099,7 @@ const TutorialsDetailPage: React.FC = () => {
 
       {/* AI Tutorial Generation Modal */}
       {showAIModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 backdrop-blur-md bg-opacity-20 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">

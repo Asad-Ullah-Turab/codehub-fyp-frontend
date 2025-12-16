@@ -17,11 +17,13 @@ import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import AdminPortal from "./pages/AdminPortal/AdminPortal";
 import AboutPage from "./pages/AboutPage/AboutPage";
 import ContactPage from "./pages/ContactPage/ContactPage";
+import AITutorialSuccessNotification from "./components/AITutorialSuccessNotification";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <AITutorialSuccessNotification />
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />

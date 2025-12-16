@@ -1050,6 +1050,8 @@ const TutorialsDetailPage: React.FC = () => {
               <AIChatAssistant
                 context="tutorial"
                 contextTitle={selectedTutorial?.title}
+                contextId={selectedTutorial?._id}
+                contentScope={selectedTutorial?.content}
               />
             </div>
           )}

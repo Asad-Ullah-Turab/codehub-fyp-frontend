@@ -715,7 +715,13 @@ const CourseLearningPage: React.FC = () => {
           {/* AI Chat Assistant */}
           {showAIChat && (
             <div className="w-96 border-l border-gray-200 bg-white overflow-hidden flex flex-col relative">
-              <AIChatAssistant context="course-learning" contextTitle={course.title} />
+              <AIChatAssistant 
+                context="course" 
+                contextTitle={selectedSection?.title || course.title}
+                contextId={selectedSection?._id || courseId}
+                contentScope={selectedLesson?.content}
+                disabled={viewMode === "quiz"}
+              />
             </div>
           )}
         </div>

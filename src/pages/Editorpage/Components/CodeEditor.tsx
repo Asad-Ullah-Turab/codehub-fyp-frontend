@@ -293,7 +293,7 @@ export default function CodeEditor({
 
   return (
     <div className="flex flex-3 flex-col h-screen">
-      <div className="flex flex-col flex-2 bg-gray-50 overflow-hidden">
+      <div className="flex flex-col flex-2 bg-gray-50 overflow-hidden" style={{ minHeight: 0 }}>
         {/* Editor Header */}
         <div className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300">
           <select
@@ -385,21 +385,23 @@ export default function CodeEditor({
             </button>
           </div>
         </div>
-        <Editor
-          height="100%"
-          language={language === "cpp" ? "cpp" : language}
-          value={code}
-          onChange={(value) => setCode(value || "")}
-          onMount={handleEditorDidMount}
-          options={{ 
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false,
-            fontSize: 14,
-            lineNumbers: 'on',
-            renderLineHighlight: 'all',
-            automaticLayout: true,
-          }}
-        />
+        <div style={{ flexGrow: 1, minHeight: 0 }}>
+          <Editor
+            height="100%"
+            language={language === "cpp" ? "cpp" : language}
+            value={code}
+            onChange={(value) => setCode(value || "")}
+            onMount={handleEditorDidMount}
+            options={{ 
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              fontSize: 14,
+              lineNumbers: 'on',
+              renderLineHighlight: 'all',
+              automaticLayout: true,
+            }}
+          />
+        </div>
       </div>
 
       {/* Bottom: Output/Input Panel */}

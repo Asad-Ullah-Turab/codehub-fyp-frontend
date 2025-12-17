@@ -17,11 +17,13 @@ import { checkPythonSyntax, checkJavaScriptSyntax, checkCppSyntax, type Validati
 export interface CodeEditorProps {
   initialCode?: string;
   initialLanguage?: string;
+  onStateChange?: (state: { code: string; language: string; error: string; problems: any[] }) => void;
 }
 
 export default function CodeEditor({
   initialCode,
   initialLanguage,
+  onStateChange,
 }: CodeEditorProps) {
   // --- Your Existing State and Refs ---
   const [code, setCode] = useState(
@@ -67,6 +69,12 @@ export default function CodeEditor({
       loadSnippets();
     }
   }, [isAuthenticated]);
+
+  // --- Update parent component with code changes in real-time ---
+  useEffect(() => {
+    // Notify parent of code changes immediately
+    onStateChange?.({ code, language, error: "", problems });
+  }, [code, language, problems, onStateChange]);
 
   const loadSnippets = async () => {
     try {
@@ -151,17 +159,24 @@ export default function CodeEditor({
 
       if (result.success) {
         setOutput(result.data?.output || "No output");
+        // Notify parent of state
+        onStateChange?.({ code, language, error: "", problems });
       } else {
-        setOutput(result.error || "Execution failed");
+        const errorMsg = result.error || "Execution failed";
+        setOutput(errorMsg);
+        // Notify parent of error
+        onStateChange?.({ code, language, error: errorMsg, problems });
       }
     } catch (error: unknown) {
       const executionError = error as {
         response?: { data?: { message?: string } };
       };
-      setOutput(
+      const errorMsg =
         executionError?.response?.data?.message ||
-          "Error: Failed to execute code. Please try again.",
-      );
+          "Error: Failed to execute code. Please try again.";
+      setOutput(errorMsg);
+      // Notify parent of error
+      onStateChange?.({ code, language, error: errorMsg, problems });
     } finally {
       setLoading(false);
     }

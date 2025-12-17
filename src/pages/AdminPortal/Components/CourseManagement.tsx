@@ -190,6 +190,9 @@ export default function CourseManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
+          <div className="text-sm text-gray-500 mb-1">
+            Admin Panel / Courses
+          </div>
           <h1 className="text-2xl font-bold text-gray-900">Course Management</h1>
           <p className="text-gray-600">Create and manage your courses, sections, and lessons</p>
         </div>

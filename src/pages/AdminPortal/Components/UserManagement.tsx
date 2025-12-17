@@ -174,6 +174,9 @@ export default function UserManagement() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
+            <div className="text-sm text-gray-500 mb-1">
+              Admin Panel / Users
+            </div>
             <h1 className="text-3xl font-bold text-gray-900">
               User Management
             </h1>

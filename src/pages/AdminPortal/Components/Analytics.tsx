@@ -72,9 +72,14 @@ export default function AnalyticsDashboard() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Analytics Dashboard
-            </h1>
+            <div>
+              <div className="text-sm text-gray-500 mb-1">
+                Admin Panel / Analytics
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Analytics Dashboard
+              </h1>
+            </div>
             <div className="flex items-center gap-3">
               <button className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
                 Last 30 Days

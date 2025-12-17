@@ -453,6 +453,9 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       <main className="px-6 py-6">
         {/* Welcome Section */}
         <div className="mb-6">
+          <div className="text-sm text-gray-500 mb-1">
+            Admin Panel / Dashboard
+          </div>
           <h1 className="text-2xl font-bold text-gray-900">
             Dashboard Overview
           </h1>

@@ -163,6 +163,9 @@ export default function CertificateApproval() {
 
   return (
     <div className="p-6 bg-white rounded-lg shadow">
+      <div className="text-sm text-gray-500 mb-1">
+        Admin Panel / Certificates
+      </div>
       <h2 className="text-2xl font-bold mb-6 text-gray-900">
         Certificate Approvals
       </h2>

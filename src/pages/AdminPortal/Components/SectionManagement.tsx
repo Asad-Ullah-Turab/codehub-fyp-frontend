@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus } from "lucide-react";
 import { adminCourseAPI, type Course, type CourseSection, type Quiz } from "../../../services/adminCourseAPI";
 import { useToast } from "../../../contexts/ToastContext";
@@ -14,6 +14,7 @@ interface SectionManagementProps {
 }
 
 export default function SectionManagement({ course, onClose }: SectionManagementProps) {
+  const sectionContainerRef = useRef<HTMLDivElement>(null);
   const [showSectionFormModal, setShowSectionFormModal] = useState(false);
   const [editingSection, setEditingSection] = useState<CourseSection | null>(null);
   const [sectionFormData, setSectionFormData] = useState({
@@ -54,6 +55,18 @@ export default function SectionManagement({ course, onClose }: SectionManagement
   useEffect(() => {
     fetchCourseSections();
   }, [fetchCourseSections]);
+
+  // Scroll to sections when component mounts
+  useEffect(() => {
+    if (sectionContainerRef.current) {
+      setTimeout(() => {
+        sectionContainerRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 100);
+    }
+  }, []);
 
   const resetSectionForm = () => {
     setSectionFormData({
@@ -206,14 +219,16 @@ export default function SectionManagement({ course, onClose }: SectionManagement
       </div>
 
       {/* Section List */}
-      <SectionList
-        sections={courseSections}
-        loading={loading}
-        onEdit={openSectionForm}
-        onDelete={(sectionId) => setDeleteConfirm({ show: true, sectionId })}
-        onManageLessons={openLessonModal}
-        onManageQuiz={openQuizModal}
-      />
+      <div ref={sectionContainerRef}>
+        <SectionList
+          sections={courseSections}
+          loading={loading}
+          onEdit={openSectionForm}
+          onDelete={(sectionId) => setDeleteConfirm({ show: true, sectionId })}
+          onManageLessons={openLessonModal}
+          onManageQuiz={openQuizModal}
+        />
+      </div>
 
       {/* Section Form Modal */}
       <SectionForm

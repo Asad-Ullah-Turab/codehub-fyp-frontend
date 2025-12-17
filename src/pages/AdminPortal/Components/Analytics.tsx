@@ -22,7 +22,7 @@ export default function AnalyticsDashboard() {
     },
   ];
 
-  const tutorials = [
+  const courses = [
     {
       name: "Intro to Python",
       category: "Python",
@@ -224,22 +224,22 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
-        {/* Top Performing Tutorials */}
+        {/* Top Performing Courses */}
         <div className="bg-gray-900 rounded-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-white font-semibold text-base">
-                Top Performing Tutorials
+                Top Performing Courses
               </h3>
               <p className="text-gray-400 text-xs">
-                Detailed view of tutorial engagement metrics.
+                Detailed view of course engagement metrics.
               </p>
             </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search tutorials..."
+                placeholder="Search courses..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -253,7 +253,7 @@ export default function AnalyticsDashboard() {
               <thead>
                 <tr className="border-b border-gray-800">
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
-                    Tutorial Name
+                    Course Name
                   </th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">
                     Category
@@ -270,25 +270,25 @@ export default function AnalyticsDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {tutorials.map((tutorial, index) => (
+                {courses.map((course, index) => (
                   <tr
                     key={index}
                     className="border-b border-gray-800 hover:bg-gray-800"
                   >
                     <td className="px-4 py-4 text-sm text-white">
-                      {tutorial.name}
+                      {course.name}
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-400">
-                      {tutorial.category}
+                      {course.category}
                     </td>
                     <td className="px-4 py-4 text-sm text-white">
-                      {tutorial.views.toLocaleString()}
+                      {course.views.toLocaleString()}
                     </td>
                     <td className="px-4 py-4 text-sm text-white">
-                      {tutorial.completion}%
+                      {course.completion}%
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-400">
-                      {tutorial.avgTime}
+                      {course.avgTime}
                     </td>
                   </tr>
                 ))}

@@ -12,6 +12,7 @@ import AIChatAssistant from "../../../components/AIChatAssistant/AIChatAssistant
 import { tutorialAPI } from "../../../services/tutorialAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import { exportTutorialToPDF } from "../../../utils/pdfExport";
+import viewTrackingAPI from "../../../services/viewTrackingAPI";
 
 const TutorialsDetailPage: React.FC = () => {
   const { language } = useParams<{ language: string }>();
@@ -38,6 +39,13 @@ const TutorialsDetailPage: React.FC = () => {
   const handleTutorialSelect = async (tutorial: Tutorial) => {
     try {
       setTutorialLoading(true);
+
+      // Track view
+      if (tutorial._id) {
+        viewTrackingAPI.trackTutorialView(tutorial._id).catch(err => 
+          console.error("Failed to track view:", err)
+        );
+      }
 
       // Always use the tutorial data we have since backend API is failing
       // The tutorials list should have all the data we need

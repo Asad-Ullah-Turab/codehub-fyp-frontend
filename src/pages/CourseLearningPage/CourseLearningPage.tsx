@@ -14,6 +14,7 @@ import CourseLessonViewer from "./components/CourseLessonViewer";
 import QuizViewer from "./components/QuizViewer";
 import CertificateViewer from "./components/CertificateViewer";
 import AIChatAssistant from "../../components/AIChatAssistant/AIChatAssistant";
+import viewTrackingAPI from "../../services/viewTrackingAPI";
 
 const CourseLearningPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -47,6 +48,11 @@ const CourseLearningPage: React.FC = () => {
         const courseResponse = await getCourseById(courseId);
         setCourse(courseResponse.data);
         setEnrollment(courseResponse.enrollment || null);
+
+        // Track course view
+        viewTrackingAPI.trackCourseView(courseId).catch(err => 
+          console.error("Failed to track view:", err)
+        );
 
         // Expand first section by default
         if (courseResponse.data.sections?.length > 0) {

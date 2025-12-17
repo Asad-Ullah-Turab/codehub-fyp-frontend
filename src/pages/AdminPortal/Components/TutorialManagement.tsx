@@ -16,6 +16,7 @@ export default function TutorialManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
+  const [activeTab, setActiveTab] = useState("all");
   const [tutorials, setTutorials] = useState<any[]>([]);
   const [languages, setLanguages] = useState<string[]>([]);
   const [concepts, setConcepts] = useState<string[]>([]);
@@ -48,14 +49,14 @@ export default function TutorialManagement() {
   useEffect(() => {
     fetchTutorials();
     fetchLanguages();
-  }, [selectedLanguage, selectedDifficulty, searchTerm]);
+  }, [selectedLanguage, selectedDifficulty, searchTerm, activeTab]);
 
   const fetchTutorials = async () => {
     try {
       setLoading(true);
       const params: any = {};
       
-      if (selectedLanguage !== "all") params.language = selectedLanguage;
+      if (activeTab !== "all") params.language = activeTab;
       if (selectedDifficulty !== "all") params.difficulty = selectedDifficulty;
       if (searchTerm) params.search = searchTerm;
       
@@ -284,41 +285,60 @@ export default function TutorialManagement() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="px-6 py-4 bg-white border-b border-gray-200">
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search tutorials..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-          <select
-            value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
-            className="px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="all">All Languages</option>
+      {/* Language Tabs and Filters */}
+      <div className="bg-white border-b border-gray-200">
+        {/* Tabs */}
+        <div className="px-6 border-b border-gray-200">
+          <div className="flex items-center gap-1 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab("all")}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === "all"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              All Languages
+            </button>
             {languages.map((lang) => (
-              <option key={lang} value={lang}>
+              <button
+                key={lang}
+                onClick={() => setActiveTab(lang)}
+                className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === lang
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
                 {lang.charAt(0).toUpperCase() + lang.slice(1)}
-              </option>
+              </button>
             ))}
-          </select>
-          <select
-            value={selectedDifficulty}
-            onChange={(e) => setSelectedDifficulty(e.target.value)}
-            className="px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="all">All Difficulties</option>
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
-          </select>
+          </div>
+        </div>
+        {/* Filters */}
+        <div className="px-6 py-4">
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search tutorials..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+            <select
+              value={selectedDifficulty}
+              onChange={(e) => setSelectedDifficulty(e.target.value)}
+              className="px-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="all">All Difficulties</option>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </div>
         </div>
       </div>
 

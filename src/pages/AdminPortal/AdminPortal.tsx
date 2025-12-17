@@ -247,6 +247,7 @@ function AdminPortal() {
         <div className="border-t border-gray-200 p-4">
           <button
             onClick={() => navigate("/")}
+            onClick={() => navigate("/")}
             className="w-full flex items-center gap-3 px-4 py-2.5 mb-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-left"
           >
             <svg
@@ -265,7 +266,10 @@ function AdminPortal() {
             <span className="font-medium">Back to Website</span>
           </button>
 
-          <button className="w-full flex items-center gap-3 px-4 py-2.5 mb-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-left">
+          <button 
+            onClick={() => navigate("/profile/settings")}
+            className="w-full flex items-center gap-3 px-4 py-2.5 mb-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-left"
+          >
             <svg
               className="w-5 h-5"
               fill="none"
@@ -314,7 +318,7 @@ function AdminPortal() {
       <main className="flex-1 flex flex-col overflow-hidden bg-gray-50">
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === "dashboard" && <AdminDashboard />}
+          {activeTab === "dashboard" && <AdminDashboard onNavigate={setActiveTab} />}
           {activeTab === "users" && (
             <UserManagement onError={(msg: string) => console.error(msg)} />
           )}

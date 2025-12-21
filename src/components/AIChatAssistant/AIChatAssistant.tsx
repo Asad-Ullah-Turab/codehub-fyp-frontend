@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { sendMessage as sendChatMessage, clearChats, getChatHistory } from "../../services/chatAPI";
+import { formatMarkdownText } from "../../utils/markdownFormatterHTML";
 
 interface Message {
   id: string;
@@ -242,7 +243,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
                   </svg>
                 </div>
                 <div className="flex-1 bg-gray-100 rounded-lg px-4 py-3 text-sm text-gray-800 break-words overflow-hidden">
-                  {message.text}
+                  {formatMarkdownText(message.text)}
                 </div>
               </div>
             )}

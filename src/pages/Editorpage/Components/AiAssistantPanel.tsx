@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { getErrorExplanation, getProblemHint, askCodeQuestion } from "../../../services/codeHelpAPI";
+import { formatMarkdownText } from "../../../utils/markdownFormatterHTML";
 
 interface Message {
   id: string;
@@ -169,7 +170,7 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
                   : "bg-gray-100 text-gray-800"
               }`}
             >
-              {message.text}
+              {message.isUser ? message.text : formatMarkdownText(message.text)}
             </div>
           </div>
         ))}

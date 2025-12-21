@@ -115,6 +115,13 @@ export default function CodeEditor({
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFileName, setExportFileName] = useState("code");
 
+  // --- Monaco Editor Enhanced Features ---
+  const [editorTheme, setEditorTheme] = useState("vs-dark");
+  const [wordWrap, setWordWrap] = useState(false);
+  const [fontSize, setFontSize] = useState(14);
+  const [showMinimap, setShowMinimap] = useState(true);
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
+
   // --- State for Error Detection ---
   const [problems, setProblems] = useState<
     Array<{
@@ -312,7 +319,7 @@ export default function CodeEditor({
     monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: false,
       noSyntaxValidation: false,
-      noSuggestionDiagnostics: false
+      noSuggestionDiagnostics: false,
     });
 
     monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
@@ -324,8 +331,11 @@ export default function CodeEditor({
       esModuleInterop: true,
       allowJs: true,
       checkJs: true,
-      strict: false // Less strict for code playground
+      strict: false, // Less strict for code playground
     });
+
+    // Add custom actions and keyboard shortcuts
+    addCustomActions(editor, monaco);
 
     // Validate on initial mount
     validateCode(code, language, monaco, editor);
@@ -413,22 +423,21 @@ export default function CodeEditor({
     if (!editorRef.current || !monacoRef.current) return;
 
     const editor = editorRef.current;
-    const monaco = monacoRef.current;
     const model = editor.getModel();
     if (!model) return;
 
     try {
-      if (language === 'javascript') {
+      if (language === "javascript") {
         // Use Monaco's built-in JavaScript formatter
-        await editor.getAction('editor.action.formatDocument')?.run();
-      } else if (language === 'python') {
+        await editor.getAction("editor.action.formatDocument")?.run();
+      } else if (language === "python") {
         // Custom Python formatting
         const currentCode = editor.getValue();
         const formattedCode = formatPythonCode(currentCode);
         if (formattedCode !== currentCode) {
           editor.setValue(formattedCode);
         }
-      } else if (language === 'cpp') {
+      } else if (language === "cpp") {
         // Custom C++ formatting
         const currentCode = editor.getValue();
         const formattedCode = formatCppCode(currentCode);
@@ -437,27 +446,27 @@ export default function CodeEditor({
         }
       }
     } catch (error) {
-      console.error('Error formatting code:', error);
+      console.error("Error formatting code:", error);
     }
   };
 
   // Python code formatter
   const formatPythonCode = (code: string): string => {
-    const lines = code.split('\n');
+    const lines = code.split("\n");
     const formattedLines: string[] = [];
     let indentLevel = 0;
     const indentSize = 4; // 4 spaces per indent level
     let consecutiveEmptyLines = 0;
     const maxConsecutiveEmptyLines = 2; // Allow max 2 consecutive empty lines
 
-    lines.forEach((line, index) => {
+    lines.forEach((line) => {
       const trimmed = line.trim();
-      
+
       // Handle empty lines - limit consecutive empty lines
       if (!trimmed) {
         consecutiveEmptyLines++;
         if (consecutiveEmptyLines <= maxConsecutiveEmptyLines) {
-          formattedLines.push('');
+          formattedLines.push("");
         }
         return;
       }
@@ -471,49 +480,58 @@ export default function CodeEditor({
       }
 
       // Apply current indent
-      const indent = ' '.repeat(indentLevel * indentSize);
+      const indent = " ".repeat(indentLevel * indentSize);
       formattedLines.push(indent + trimmed);
 
       // Handle indent changes for next line
-      if (trimmed.endsWith(':')) {
+      if (trimmed.endsWith(":")) {
         // Increase indent for next line after colon
         indentLevel += 1;
-      } else if (trimmed.match(/^(return|break|continue|pass)\b/) && indentLevel > 0) {
+      } else if (
+        trimmed.match(/^(return|break|continue|pass)\b/) &&
+        indentLevel > 0
+      ) {
         // Decrease indent after control flow statements
         indentLevel = Math.max(0, indentLevel - 1);
       }
     });
 
     // Remove trailing empty lines but keep one
-    while (formattedLines.length > 1 && formattedLines[formattedLines.length - 1] === '') {
+    while (
+      formattedLines.length > 1 &&
+      formattedLines[formattedLines.length - 1] === ""
+    ) {
       formattedLines.pop();
     }
-    
+
     // Ensure file ends with single newline
-    if (formattedLines.length > 0 && formattedLines[formattedLines.length - 1] !== '') {
-      formattedLines.push('');
+    if (
+      formattedLines.length > 0 &&
+      formattedLines[formattedLines.length - 1] !== ""
+    ) {
+      formattedLines.push("");
     }
 
-    return formattedLines.join('\n');
+    return formattedLines.join("\n");
   };
 
   // C++ code formatter
   const formatCppCode = (code: string): string => {
-    const lines = code.split('\n');
+    const lines = code.split("\n");
     const formattedLines: string[] = [];
     let indentLevel = 0;
     const indentSize = 4; // 4 spaces per indent level
     let consecutiveEmptyLines = 0;
     const maxConsecutiveEmptyLines = 1; // Allow max 1 consecutive empty line for C++
 
-    lines.forEach(line => {
+    lines.forEach((line) => {
       const trimmed = line.trim();
-      
+
       // Handle empty lines - limit consecutive empty lines
       if (!trimmed) {
         consecutiveEmptyLines++;
         if (consecutiveEmptyLines <= maxConsecutiveEmptyLines) {
-          formattedLines.push('');
+          formattedLines.push("");
         }
         return;
       }
@@ -522,23 +540,25 @@ export default function CodeEditor({
       consecutiveEmptyLines = 0;
 
       // Preserve preprocessor directives without modification
-      if (trimmed.startsWith('#')) {
+      if (trimmed.startsWith("#")) {
         formattedLines.push(trimmed);
         return;
       }
 
       // Decrease indent for closing braces
-      if (trimmed.startsWith('}')) {
+      if (trimmed.startsWith("}")) {
         indentLevel = Math.max(0, indentLevel - 1);
       }
 
       // Apply current indent
-      const indent = ' '.repeat(indentLevel * indentSize);
+      const indent = " ".repeat(indentLevel * indentSize);
       formattedLines.push(indent + trimmed);
 
       // Increase indent for opening braces and certain keywords
-      if (trimmed.endsWith('{') || 
-          trimmed.match(/^(if|else|for|while|do|switch)\b.*[^{]$/)) {
+      if (
+        trimmed.endsWith("{") ||
+        trimmed.match(/^(if|else|for|while|do|switch)\b.*[^{]$/)
+      ) {
         indentLevel += 1;
       }
 
@@ -549,16 +569,85 @@ export default function CodeEditor({
     });
 
     // Remove trailing empty lines but keep one
-    while (formattedLines.length > 1 && formattedLines[formattedLines.length - 1] === '') {
+    while (
+      formattedLines.length > 1 &&
+      formattedLines[formattedLines.length - 1] === ""
+    ) {
       formattedLines.pop();
     }
-    
+
     // Ensure file ends with single newline
-    if (formattedLines.length > 0 && formattedLines[formattedLines.length - 1] !== '') {
-      formattedLines.push('');
+    if (
+      formattedLines.length > 0 &&
+      formattedLines[formattedLines.length - 1] !== ""
+    ) {
+      formattedLines.push("");
     }
 
-    return formattedLines.join('\n');
+    return formattedLines.join("\n");
+  };
+
+  // Monaco Editor feature handlers
+  const changeTheme = (newTheme: string) => {
+    setEditorTheme(newTheme);
+    if (monacoRef.current) {
+      monacoRef.current.editor.setTheme(newTheme);
+    }
+  };
+
+  const toggleWordWrap = () => {
+    const newWrap = !wordWrap;
+    setWordWrap(newWrap);
+    if (editorRef.current) {
+      editorRef.current.updateOptions({
+        wordWrap: newWrap ? "on" : "off",
+      });
+    }
+  };
+
+  const changeFontSize = (delta: number) => {
+    const newSize = Math.max(8, Math.min(32, fontSize + delta));
+    setFontSize(newSize);
+    if (editorRef.current) {
+      editorRef.current.updateOptions({
+        fontSize: newSize,
+      });
+    }
+  };
+
+  const toggleMinimap = () => {
+    const newMinimap = !showMinimap;
+    setShowMinimap(newMinimap);
+    if (editorRef.current) {
+      editorRef.current.updateOptions({
+        minimap: { enabled: newMinimap },
+      });
+    }
+  };
+
+  // Add custom keyboard shortcuts
+  const addCustomActions = (editor: monacoType.editor.IStandaloneCodeEditor, monaco: Monaco) => {
+    // Add custom keyboard shortcuts
+    editor.addAction({
+      id: "increase-font-size",
+      label: "Increase Font Size",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Equal],
+      run: () => changeFontSize(2),
+    });
+
+    editor.addAction({
+      id: "decrease-font-size",
+      label: "Decrease Font Size",
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Minus],
+      run: () => changeFontSize(-2),
+    });
+
+    editor.addAction({
+      id: "toggle-word-wrap",
+      label: "Toggle Word Wrap",
+      keybindings: [monaco.KeyMod.Alt | monaco.KeyCode.KeyZ],
+      run: () => toggleWordWrap(),
+    });
   };
 
   const handleImportCode = () => {
@@ -628,6 +717,7 @@ export default function CodeEditor({
       >
         {/* Editor Header */}
         <div className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300">
+          {/* Language Selector */}
           <select
             value={language}
             onChange={(e) => changeLanguage(e.target.value)}
@@ -639,7 +729,39 @@ export default function CodeEditor({
               </option>
             ))}
           </select>
+
+          {/* Action Buttons */}
           <div className="flex items-center gap-2">
+            {/* More Options Button */}
+            <button
+              onClick={() => setShowOptionsModal(true)}
+              title="Editor Options"
+              className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center gap-1"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                />
+              </svg>
+              More Options
+            </button>
+
+            {/* Format Button */}
+            <button
+              onClick={formatCode}
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              title="Format Code (Ctrl+Shift+F)"
+            >
+              Format
+            </button>
             {isAuthenticated && (
               <>
                 <button
@@ -725,26 +847,6 @@ export default function CodeEditor({
               Export
             </button>
             <button
-              onClick={formatCode}
-              title="Format Code"
-              className="px-3 py-1 rounded bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 flex items-center gap-1"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-                />
-              </svg>
-              Format
-            </button>
-            <button
               onClick={runCode}
               disabled={loading}
               className="px-3 py-1 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
@@ -797,15 +899,34 @@ export default function CodeEditor({
             height="100%"
             language={language === "cpp" ? "cpp" : language}
             value={code}
+            theme={editorTheme}
             onChange={(value) => setCode(value || "")}
             onMount={handleEditorDidMount}
             options={{
-              minimap: { enabled: false },
+              fontSize: fontSize,
+              wordWrap: wordWrap ? "on" : "off",
+              minimap: { enabled: showMinimap },
               scrollBeyondLastLine: false,
-              fontSize: 14,
+              automaticLayout: true,
+              suggestOnTriggerCharacters: true,
+              acceptSuggestionOnEnter: "on",
+              tabCompletion: "on",
+              wordBasedSuggestions: "off",
+              parameterHints: { enabled: true },
+              folding: true,
+              showFoldingControls: "always",
+              matchBrackets: "always",
+              renderWhitespace: "boundary",
+              renderControlCharacters: false,
+              cursorBlinking: "blink",
+              cursorSmoothCaretAnimation: "on",
+              smoothScrolling: true,
+              find: {
+                addExtraSpaceOnTop: false,
+                autoFindInSelection: "never",
+              },
               lineNumbers: "on",
               renderLineHighlight: "all",
-              automaticLayout: true,
             }}
           />
         </div>
@@ -1036,6 +1157,137 @@ export default function CodeEditor({
           )}
         </div>
       </div>
+
+      {/* More Options Modal */}
+      {showOptionsModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-96">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Editor Options
+            </h3>
+
+            {/* Theme Selector */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Theme
+              </label>
+              <select
+                value={editorTheme}
+                onChange={(e) => changeTheme(e.target.value)}
+                className="w-full px-3 py-2 rounded bg-white text-gray-900 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="vs-light">Light</option>
+                <option value="vs-dark">Dark</option>
+                <option value="hc-black">High Contrast</option>
+              </select>
+            </div>
+
+            {/* Font Size Controls */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Font Size
+              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => changeFontSize(-2)}
+                  title="Decrease Font Size (Ctrl+-)"
+                  className="px-3 py-2 rounded bg-gray-200 text-gray-800 font-medium hover:bg-gray-300 flex items-center"
+                >
+                  A-
+                </button>
+                <span className="text-sm text-gray-700 min-w-[3rem] text-center font-medium">
+                  {fontSize}px
+                </span>
+                <button
+                  onClick={() => changeFontSize(2)}
+                  title="Increase Font Size (Ctrl+=)"
+                  className="px-3 py-2 rounded bg-gray-200 text-gray-800 font-medium hover:bg-gray-300 flex items-center"
+                >
+                  A+
+                </button>
+              </div>
+            </div>
+
+            {/* Word Wrap Toggle */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Word Wrap
+              </label>
+              <button
+                onClick={toggleWordWrap}
+                className={`w-full px-4 py-2 rounded font-medium flex items-center justify-center gap-2 ${
+                  wordWrap
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                }`}
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h8m-8 6h16"
+                  />
+                </svg>
+                {wordWrap ? "Enabled" : "Disabled"}
+              </button>
+              <p className="text-xs text-gray-500 mt-1">
+                Word wrap breaks long lines to fit within the editor width
+                instead of scrolling horizontally. This makes reading code
+                easier without horizontal scrolling. Press Alt+Z to toggle.
+              </p>
+            </div>
+
+            {/* Minimap Toggle */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Minimap
+              </label>
+              <button
+                onClick={toggleMinimap}
+                className={`w-full px-4 py-2 rounded font-medium flex items-center justify-center gap-2 ${
+                  showMinimap
+                    ? "bg-green-600 text-white hover:bg-green-700"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                }`}
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 19V6l6-6v13l-6 6z"
+                  />
+                </svg>
+                {showMinimap ? "Visible" : "Hidden"}
+              </button>
+              <p className="text-xs text-gray-500 mt-1">
+                The minimap shows a small overview of your code on the right
+                side, helping you navigate large files quickly.
+              </p>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowOptionsModal(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Save Modal */}
       {showSaveModal && (

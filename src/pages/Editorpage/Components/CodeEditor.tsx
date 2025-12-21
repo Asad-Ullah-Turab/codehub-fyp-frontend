@@ -338,7 +338,6 @@ export default function CodeEditor({
     monaco: Monaco,
     editor: monacoType.editor.IStandaloneCodeEditor
   ) => {
-    console.log('Validating code for language:', lang, 'Code length:', code.length);
     const model = editor.getModel();
     if (!model) return;
 
@@ -350,7 +349,6 @@ export default function CodeEditor({
 
       if (lang === "python") {
         errors = checkPythonSyntax(code);
-        console.log('Python validation found', errors.length, 'errors:', errors);
         // For Python/C++, we set our own markers
         errors.forEach((error) => {
           markers.push({
@@ -366,11 +364,9 @@ export default function CodeEditor({
       } else if (lang === "javascript") {
         // For JavaScript, get Monaco's built-in validation results
         errors = await checkJavaScriptSyntax(code, editor);
-        console.log('JavaScript validation found', errors.length, 'errors:', errors);
         // Don't set markers manually - Monaco handles this automatically
       } else if (lang === "cpp") {
         errors = checkCppSyntax(code);
-        console.log('C++ validation found', errors.length, 'errors:', errors);
         // For Python/C++, we set our own markers
         errors.forEach((error) => {
           markers.push({
@@ -394,8 +390,6 @@ export default function CodeEditor({
           column: error.column,
         });
       });
-      
-      console.log('Setting problems:', newProblems);
     } catch (e) {
       console.error("Validation error:", e);
     }
@@ -413,6 +407,159 @@ export default function CodeEditor({
       return () => clearTimeout(timeoutId);
     }
   }, [code, language]);
+
+  // Format code based on language
+  const formatCode = async () => {
+    if (!editorRef.current || !monacoRef.current) return;
+
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+    const model = editor.getModel();
+    if (!model) return;
+
+    try {
+      if (language === 'javascript') {
+        // Use Monaco's built-in JavaScript formatter
+        await editor.getAction('editor.action.formatDocument')?.run();
+      } else if (language === 'python') {
+        // Custom Python formatting
+        const currentCode = editor.getValue();
+        const formattedCode = formatPythonCode(currentCode);
+        if (formattedCode !== currentCode) {
+          editor.setValue(formattedCode);
+        }
+      } else if (language === 'cpp') {
+        // Custom C++ formatting
+        const currentCode = editor.getValue();
+        const formattedCode = formatCppCode(currentCode);
+        if (formattedCode !== currentCode) {
+          editor.setValue(formattedCode);
+        }
+      }
+    } catch (error) {
+      console.error('Error formatting code:', error);
+    }
+  };
+
+  // Python code formatter
+  const formatPythonCode = (code: string): string => {
+    const lines = code.split('\n');
+    const formattedLines: string[] = [];
+    let indentLevel = 0;
+    const indentSize = 4; // 4 spaces per indent level
+    let consecutiveEmptyLines = 0;
+    const maxConsecutiveEmptyLines = 2; // Allow max 2 consecutive empty lines
+
+    lines.forEach((line, index) => {
+      const trimmed = line.trim();
+      
+      // Handle empty lines - limit consecutive empty lines
+      if (!trimmed) {
+        consecutiveEmptyLines++;
+        if (consecutiveEmptyLines <= maxConsecutiveEmptyLines) {
+          formattedLines.push('');
+        }
+        return;
+      }
+
+      // Reset empty line counter when we hit content
+      consecutiveEmptyLines = 0;
+
+      // Handle dedent keywords first (before applying indent)
+      if (trimmed.match(/^(elif|else|except|finally)\b/)) {
+        indentLevel = Math.max(0, indentLevel - 1);
+      }
+
+      // Apply current indent
+      const indent = ' '.repeat(indentLevel * indentSize);
+      formattedLines.push(indent + trimmed);
+
+      // Handle indent changes for next line
+      if (trimmed.endsWith(':')) {
+        // Increase indent for next line after colon
+        indentLevel += 1;
+      } else if (trimmed.match(/^(return|break|continue|pass)\b/) && indentLevel > 0) {
+        // Decrease indent after control flow statements
+        indentLevel = Math.max(0, indentLevel - 1);
+      }
+    });
+
+    // Remove trailing empty lines but keep one
+    while (formattedLines.length > 1 && formattedLines[formattedLines.length - 1] === '') {
+      formattedLines.pop();
+    }
+    
+    // Ensure file ends with single newline
+    if (formattedLines.length > 0 && formattedLines[formattedLines.length - 1] !== '') {
+      formattedLines.push('');
+    }
+
+    return formattedLines.join('\n');
+  };
+
+  // C++ code formatter
+  const formatCppCode = (code: string): string => {
+    const lines = code.split('\n');
+    const formattedLines: string[] = [];
+    let indentLevel = 0;
+    const indentSize = 4; // 4 spaces per indent level
+    let consecutiveEmptyLines = 0;
+    const maxConsecutiveEmptyLines = 1; // Allow max 1 consecutive empty line for C++
+
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      
+      // Handle empty lines - limit consecutive empty lines
+      if (!trimmed) {
+        consecutiveEmptyLines++;
+        if (consecutiveEmptyLines <= maxConsecutiveEmptyLines) {
+          formattedLines.push('');
+        }
+        return;
+      }
+
+      // Reset empty line counter when we hit content
+      consecutiveEmptyLines = 0;
+
+      // Preserve preprocessor directives without modification
+      if (trimmed.startsWith('#')) {
+        formattedLines.push(trimmed);
+        return;
+      }
+
+      // Decrease indent for closing braces
+      if (trimmed.startsWith('}')) {
+        indentLevel = Math.max(0, indentLevel - 1);
+      }
+
+      // Apply current indent
+      const indent = ' '.repeat(indentLevel * indentSize);
+      formattedLines.push(indent + trimmed);
+
+      // Increase indent for opening braces and certain keywords
+      if (trimmed.endsWith('{') || 
+          trimmed.match(/^(if|else|for|while|do|switch)\b.*[^{]$/)) {
+        indentLevel += 1;
+      }
+
+      // Handle special cases
+      if (trimmed.match(/^(case|default)\b/)) {
+        // Case statements might need special handling
+      }
+    });
+
+    // Remove trailing empty lines but keep one
+    while (formattedLines.length > 1 && formattedLines[formattedLines.length - 1] === '') {
+      formattedLines.pop();
+    }
+    
+    // Ensure file ends with single newline
+    if (formattedLines.length > 0 && formattedLines[formattedLines.length - 1] !== '') {
+      formattedLines.push('');
+    }
+
+    return formattedLines.join('\n');
+  };
 
   const handleImportCode = () => {
     const input = document.createElement("input");
@@ -576,6 +723,26 @@ export default function CodeEditor({
                 />
               </svg>
               Export
+            </button>
+            <button
+              onClick={formatCode}
+              title="Format Code"
+              className="px-3 py-1 rounded bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 flex items-center gap-1"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                />
+              </svg>
+              Format
             </button>
             <button
               onClick={runCode}

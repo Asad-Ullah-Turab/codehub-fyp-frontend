@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { getErrorExplanation, getProblemHint, askCodeQuestion } from "../../../services/codeHelpAPI";
+import { sendCodeChatMessage, getCodeChatHistory, clearCodeChats } from "../../../services/codeChatAPI";
 import { formatMarkdownText } from "../../../utils/markdownFormatterHTML";
 
 interface Message {
@@ -23,17 +24,10 @@ interface AiAssistantPanelProps {
 }
 
 function AiAssistantPanel({ code, language = "python", error, problems }: AiAssistantPanelProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "👋 Hi! I'm your AI coding tutor. I'll help you understand errors and guide you through problems. Ask me anything!",
-      isUser: false,
-      timestamp: new Date(),
-      type: "regular",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -44,6 +38,63 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
     scrollToBottom();
   }, [messages]);
 
+  // Load chat history on component mount
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        setIsLoadingHistory(true);
+        const history = await getCodeChatHistory();
+        
+        if (history && history.length > 0) {
+          // Convert saved chats to message format
+          const loadedMessages: Message[] = [];
+          history.forEach((chat) => {
+            // Add user message
+            loadedMessages.push({
+              id: `user-${chat._id}`,
+              text: chat.message,
+              isUser: true,
+              timestamp: new Date(chat.createdAt),
+              type: chat.messageType as any,
+            });
+            // Add AI response
+            loadedMessages.push({
+              id: `ai-${chat._id}`,
+              text: chat.response,
+              isUser: false,
+              timestamp: new Date(chat.createdAt),
+              type: chat.messageType as any,
+            });
+          });
+          setMessages(loadedMessages);
+        } else {
+          // Set initial greeting message if no history
+          setMessages([{
+            id: "1",
+            text: "👋 Hi! I'm your AI coding tutor. I'll help you understand errors and guide you through problems. Ask me anything!",
+            isUser: false,
+            timestamp: new Date(),
+            type: "regular",
+          }]);
+        }
+      } catch (err) {
+        console.error("Error loading code chat history:", err);
+        // Fallback to initial greeting
+        setMessages([{
+          id: "1",
+          text: "👋 Hi! I'm your AI coding tutor. I'll help you understand errors and guide you through problems. Ask me anything!",
+          isUser: false,
+          timestamp: new Date(),
+          type: "regular",
+        }]);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+
+    loadChatHistory();
+  }, []);
+
   const addMessage = (text: string, isUser: boolean, type?: string) => {
     const newMessage: Message = {
       id: `msg-${Date.now()}`,
@@ -53,6 +104,24 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
       type: type as any,
     };
     setMessages((prev) => [...prev, newMessage]);
+  };
+
+  const handleClearHistory = async () => {
+    try {
+      await clearCodeChats();
+      setMessages([
+        {
+          id: "1",
+          text: "Hi! I'm your coding assistant. I can help you understand your code, explain errors, and provide debugging hints. What can I help you with?",
+          isUser: false,
+          timestamp: new Date(),
+          type: "regular",
+        },
+      ]);
+    } catch (err) {
+      console.error("Error clearing chat history:", err);
+      // Optional: show error message to user
+    }
   };
 
   const handleSendMessage = async () => {
@@ -75,7 +144,13 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
     setIsLoading(true);
 
     try {
-      const answer = await askCodeQuestion(userMessage, code, language);
+      const answer = await sendCodeChatMessage({
+        message: userMessage,
+        code,
+        language,
+        error,
+        problems
+      }, "question");
       addMessage(answer, false, "question");
     } catch (err) {
       addMessage(
@@ -95,7 +170,13 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
     setIsLoading(true);
 
     try {
-      const explanation = await getErrorExplanation(error, code, language);
+      const explanation = await sendCodeChatMessage({
+        message: `Please explain this error: ${error}`,
+        code,
+        language,
+        error,
+        problems
+      }, "error-help");
       addMessage(explanation, false, "error-help");
     } catch (err) {
       addMessage(
@@ -119,7 +200,13 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
     setIsLoading(true);
 
     try {
-      const hint = await getProblemHint(problemText, code, language);
+      const hint = await sendCodeChatMessage({
+        message: `I need help with these problems: ${problemText}`,
+        code,
+        language,
+        error,
+        problems
+      }, "problem-help");
       addMessage(hint, false, "problem-help");
     } catch (err) {
       addMessage(
@@ -218,6 +305,20 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
           </button>
         </div>
       ) : null}
+
+      {/* Clear Chat History Button */}
+      {messages.length > 1 && (
+        <div className="px-3 py-2 border-t border-gray-200 bg-gray-50 flex justify-center">
+          <button
+            onClick={handleClearHistory}
+            disabled={isLoading}
+            className="text-xs text-gray-500 hover:text-red-500 disabled:text-gray-300 transition-colors flex items-center gap-1"
+            title="Clear chat history"
+          >
+            🗑️ Clear History
+          </button>
+        </div>
+      )}
 
       {/* Input Box */}
       <div className="p-3 border-t border-gray-300 bg-gray-50 flex-shrink-0">

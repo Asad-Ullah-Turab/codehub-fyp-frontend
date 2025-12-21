@@ -710,9 +710,9 @@ export default function CodeEditor({
   };
 
   return (
-    <div className="flex flex-3 flex-col h-screen">
+    <div className="flex flex-col h-full w-full">
       <div
-        className="flex flex-col flex-2 bg-gray-50 overflow-hidden"
+        className="flex flex-col flex-1 bg-gray-50 overflow-hidden"
         style={{ minHeight: 0 }}
       >
         {/* Editor Header */}

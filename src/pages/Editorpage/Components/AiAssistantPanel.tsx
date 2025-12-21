@@ -248,7 +248,7 @@ function AiAssistantPanel({
   };
 
   return (
-    <div className="flex flex-col flex-[1] bg-gray-50 overflow-hidden max-h-screen">
+    <div className="flex flex-col bg-gray-50 overflow-hidden max-h-screen h-full w-full">
       {/* Assistant Header */}
       <div className="flex items-center justify-between p-3 border-b border-gray-300 flex-shrink-0">
         <div className="flex items-center gap-2">

@@ -1,7 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import Editor, { type Monaco } from "@monaco-editor/react";
 import type * as monacoType from "monaco-editor";
-import { AlertCircle, AlertTriangle, Info, CheckCircle2, XCircle } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  Info,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import {
   handleLanguageChange,
   languageOptions,
@@ -12,13 +18,18 @@ import { snippetAPI, type CodeSnippet } from "../../../services/snippetAPI";
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
-import { checkPythonSyntax, checkJavaScriptSyntax, checkCppSyntax, type ValidationError } from "../../../utils/codeValidation";
+import {
+  checkPythonSyntax,
+  checkJavaScriptSyntax,
+  checkCppSyntax,
+  type ValidationError,
+} from "../../../utils/codeValidation";
 
 // Local Storage keys for code persistence
 const STORAGE_KEYS = {
-  CODE: 'codehub_editor_code',
-  LANGUAGE: 'codehub_editor_language',
-  INPUT: 'codehub_editor_input'
+  CODE: "codehub_editor_code",
+  LANGUAGE: "codehub_editor_language",
+  INPUT: "codehub_editor_input",
 };
 
 // Functions for localStorage persistence
@@ -28,7 +39,7 @@ const saveCodeToStorage = (code: string, language: string, input: string) => {
     localStorage.setItem(STORAGE_KEYS.LANGUAGE, language);
     localStorage.setItem(STORAGE_KEYS.INPUT, input);
   } catch (error) {
-    console.warn('Failed to save code to localStorage:', error);
+    console.warn("Failed to save code to localStorage:", error);
   }
 };
 
@@ -37,10 +48,10 @@ const loadCodeFromStorage = () => {
     return {
       code: localStorage.getItem(STORAGE_KEYS.CODE),
       language: localStorage.getItem(STORAGE_KEYS.LANGUAGE),
-      input: localStorage.getItem(STORAGE_KEYS.INPUT)
+      input: localStorage.getItem(STORAGE_KEYS.INPUT),
     };
   } catch (error) {
-    console.warn('Failed to load code from localStorage:', error);
+    console.warn("Failed to load code from localStorage:", error);
     return { code: null, language: null, input: null };
   }
 };
@@ -51,14 +62,19 @@ const clearCodeFromStorage = () => {
     localStorage.removeItem(STORAGE_KEYS.LANGUAGE);
     localStorage.removeItem(STORAGE_KEYS.INPUT);
   } catch (error) {
-    console.warn('Failed to clear code from localStorage:', error);
+    console.warn("Failed to clear code from localStorage:", error);
   }
 };
 
 export interface CodeEditorProps {
   initialCode?: string;
   initialLanguage?: string;
-  onStateChange?: (state: { code: string; language: string; error: string; problems: any[] }) => void;
+  onStateChange?: (state: {
+    code: string;
+    language: string;
+    error: string;
+    problems: any[];
+  }) => void;
 }
 
 export default function CodeEditor({
@@ -71,7 +87,9 @@ export default function CodeEditor({
   const getInitialCode = () => {
     if (initialCode) return initialCode;
     if (savedData.code) return savedData.code;
-    return getDefaultCodeForLanguage(initialLanguage || savedData.language || "python");
+    return getDefaultCodeForLanguage(
+      initialLanguage || savedData.language || "python"
+    );
   };
   const getInitialLanguage = () => {
     if (initialLanguage) return initialLanguage;
@@ -91,20 +109,26 @@ export default function CodeEditor({
   const outputEndRef = useRef<HTMLDivElement>(null);
 
   // --- New State for Tabs ---
-  const [activeTab, setActiveTab] = useState<"output" | "input" | "problems">("output");
+  const [activeTab, setActiveTab] = useState<"output" | "input" | "problems">(
+    "output"
+  );
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFileName, setExportFileName] = useState("code");
-  
+
   // --- State for Error Detection ---
-  const [problems, setProblems] = useState<Array<{
-    severity: 'error' | 'warning' | 'info';
-    message: string;
-    line: number;
-    column: number;
-  }>>([]);
-  const editorRef = useRef<monacoType.editor.IStandaloneCodeEditor | null>(null);
+  const [problems, setProblems] = useState<
+    Array<{
+      severity: "error" | "warning" | "info";
+      message: string;
+      line: number;
+      column: number;
+    }>
+  >([]);
+  const editorRef = useRef<monacoType.editor.IStandaloneCodeEditor | null>(
+    null
+  );
   const monacoRef = useRef<Monaco | null>(null);
-  
+
   // --- State for Saved Snippets ---
   const { isAuthenticated } = useAuth();
   const { showToast } = useToast();
@@ -113,7 +137,10 @@ export default function CodeEditor({
   const [saveTitle, setSaveTitle] = useState("");
   const [showSnippetsPanel, setShowSnippetsPanel] = useState(false);
   const [loadingSnippets, setLoadingSnippets] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; snippetId: string | null }>({
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    show: boolean;
+    snippetId: string | null;
+  }>({
     show: false,
     snippetId: null,
   });
@@ -128,7 +155,12 @@ export default function CodeEditor({
   // --- Show recovery notification if code was loaded from localStorage ---
   useEffect(() => {
     const savedData = loadCodeFromStorage();
-    if (!initialCode && savedData.code && savedData.code !== getDefaultCodeForLanguage(savedData.language || 'python')) {
+    if (
+      !initialCode &&
+      savedData.code &&
+      savedData.code !==
+        getDefaultCodeForLanguage(savedData.language || "python")
+    ) {
       showToast("💾 Code recovered from previous session", "info");
     }
   }, []);
@@ -176,7 +208,10 @@ export default function CodeEditor({
       showToast("Code snippet saved successfully!", "success");
     } catch (error) {
       console.error("Error saving snippet:", error);
-      showToast(error instanceof Error ? error.message : "Failed to save snippet", "error");
+      showToast(
+        error instanceof Error ? error.message : "Failed to save snippet",
+        "error"
+      );
     }
   };
 
@@ -202,7 +237,10 @@ export default function CodeEditor({
       showToast("Snippet deleted successfully", "success");
     } catch (error) {
       console.error("Error deleting snippet:", error);
-      showToast(error instanceof Error ? error.message : "Failed to delete snippet", "error");
+      showToast(
+        error instanceof Error ? error.message : "Failed to delete snippet",
+        "error"
+      );
     } finally {
       setDeleteConfirm({ show: false, snippetId: null });
     }
@@ -222,7 +260,7 @@ export default function CodeEditor({
 
       if (!input.trim() && codeNeedsInput) {
         setOutput(
-          "⚠ Your code requires input!\n\nPlease provide input in the 'Input' tab.\nEach input should be on a separate line.\n\nExample:\nAlice\n25",
+          "⚠ Your code requires input!\n\nPlease provide input in the 'Input' tab.\nEach input should be on a separate line.\n\nExample:\nAlice\n25"
         );
         setLoading(false);
         return;
@@ -246,7 +284,7 @@ export default function CodeEditor({
       };
       const errorMsg =
         executionError?.response?.data?.message ||
-          "Error: Failed to execute code. Please try again.";
+        "Error: Failed to execute code. Please try again.";
       setOutput(errorMsg);
       // Notify parent of error
       onStateChange?.({ code, language, error: errorMsg, problems });
@@ -263,16 +301,44 @@ export default function CodeEditor({
   };
 
   // Handle Monaco Editor mount
-  const handleEditorDidMount = (editor: monacoType.editor.IStandaloneCodeEditor, monaco: Monaco) => {
+  const handleEditorDidMount = (
+    editor: monacoType.editor.IStandaloneCodeEditor,
+    monaco: Monaco
+  ) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
-    
+
+    // Configure Monaco's JavaScript validation
+    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: false,
+      noSyntaxValidation: false,
+      noSuggestionDiagnostics: false
+    });
+
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+      target: monaco.languages.typescript.ScriptTarget.ES2020,
+      allowNonTsExtensions: true,
+      moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+      module: monaco.languages.typescript.ModuleKind.CommonJS,
+      noEmit: true,
+      esModuleInterop: true,
+      allowJs: true,
+      checkJs: true,
+      strict: false // Less strict for code playground
+    });
+
     // Validate on initial mount
     validateCode(code, language, monaco, editor);
   };
 
   // Validate code and update markers
-  const validateCode = (code: string, lang: string, monaco: Monaco, editor: monacoType.editor.IStandaloneCodeEditor) => {
+  const validateCode = async (
+    code: string,
+    lang: string,
+    monaco: Monaco,
+    editor: monacoType.editor.IStandaloneCodeEditor
+  ) => {
+    console.log('Validating code for language:', lang, 'Code length:', code.length);
     const model = editor.getModel();
     if (!model) return;
 
@@ -281,36 +347,59 @@ export default function CodeEditor({
 
     try {
       let errors: ValidationError[] = [];
-      
-      if (lang === 'python') {
+
+      if (lang === "python") {
         errors = checkPythonSyntax(code);
-      } else if (lang === 'javascript') {
-        errors = checkJavaScriptSyntax(code);
-      } else if (lang === 'cpp') {
+        console.log('Python validation found', errors.length, 'errors:', errors);
+        // For Python/C++, we set our own markers
+        errors.forEach((error) => {
+          markers.push({
+            severity: monaco.MarkerSeverity.Error,
+            message: error.message,
+            startLineNumber: error.line,
+            startColumn: error.column,
+            endLineNumber: error.line,
+            endColumn: error.column + 10,
+          });
+        });
+        monaco.editor.setModelMarkers(model, "owner", markers);
+      } else if (lang === "javascript") {
+        // For JavaScript, get Monaco's built-in validation results
+        errors = await checkJavaScriptSyntax(code, editor);
+        console.log('JavaScript validation found', errors.length, 'errors:', errors);
+        // Don't set markers manually - Monaco handles this automatically
+      } else if (lang === "cpp") {
         errors = checkCppSyntax(code);
+        console.log('C++ validation found', errors.length, 'errors:', errors);
+        // For Python/C++, we set our own markers
+        errors.forEach((error) => {
+          markers.push({
+            severity: monaco.MarkerSeverity.Error,
+            message: error.message,
+            startLineNumber: error.line,
+            startColumn: error.column,
+            endLineNumber: error.line,
+            endColumn: error.column + 10,
+          });
+        });
+        monaco.editor.setModelMarkers(model, "owner", markers);
       }
 
-      errors.forEach(error => {
-        markers.push({
-          severity: monaco.MarkerSeverity.Error,
-          message: error.message,
-          startLineNumber: error.line,
-          startColumn: error.column,
-          endLineNumber: error.line,
-          endColumn: error.column + 10,
-        });
+      // Update problems panel for all languages
+      errors.forEach((error) => {
         newProblems.push({
-          severity: 'error',
+          severity: "error",
           message: error.message,
           line: error.line,
           column: error.column,
         });
       });
+      
+      console.log('Setting problems:', newProblems);
     } catch (e) {
-      console.error('Validation error:', e);
+      console.error("Validation error:", e);
     }
 
-    monaco.editor.setModelMarkers(model, 'owner', markers);
     setProblems(newProblems);
   };
 
@@ -320,15 +409,15 @@ export default function CodeEditor({
       const timeoutId = setTimeout(() => {
         validateCode(code, language, monacoRef.current!, editorRef.current!);
       }, 500); // Debounce validation
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [code, language]);
 
   const handleImportCode = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.js,.py,.cpp,.c,.h,.txt';
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".js,.py,.cpp,.c,.h,.txt";
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
@@ -336,15 +425,19 @@ export default function CodeEditor({
         reader.onload = (event) => {
           const content = event.target?.result as string;
           setCode(content);
-          
+
           // Auto-select language based on file extension
           const fileName = file.name.toLowerCase();
-          if (fileName.endsWith('.js')) {
-            setLanguage('javascript');
-          } else if (fileName.endsWith('.py')) {
-            setLanguage('python');
-          } else if (fileName.endsWith('.cpp') || fileName.endsWith('.c') || fileName.endsWith('.h')) {
-            setLanguage('cpp');
+          if (fileName.endsWith(".js")) {
+            setLanguage("javascript");
+          } else if (fileName.endsWith(".py")) {
+            setLanguage("python");
+          } else if (
+            fileName.endsWith(".cpp") ||
+            fileName.endsWith(".c") ||
+            fileName.endsWith(".h")
+          ) {
+            setLanguage("cpp");
           }
         };
         reader.readAsText(file);
@@ -360,17 +453,17 @@ export default function CodeEditor({
 
   const confirmExport = () => {
     const fileExtensions: { [key: string]: string } = {
-      javascript: 'js',
-      python: 'py',
-      cpp: 'cpp'
+      javascript: "js",
+      python: "py",
+      cpp: "cpp",
     };
-    const extension = fileExtensions[language] || 'txt';
-    
+    const extension = fileExtensions[language] || "txt";
+
     if (!exportFileName.trim()) return;
-    
-    const blob = new Blob([code], { type: 'text/plain' });
+
+    const blob = new Blob([code], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `${exportFileName.trim()}.${extension}`;
     document.body.appendChild(a);
@@ -382,7 +475,10 @@ export default function CodeEditor({
 
   return (
     <div className="flex flex-3 flex-col h-screen">
-      <div className="flex flex-col flex-2 bg-gray-50 overflow-hidden" style={{ minHeight: 0 }}>
+      <div
+        className="flex flex-col flex-2 bg-gray-50 overflow-hidden"
+        style={{ minHeight: 0 }}
+      >
         {/* Editor Header */}
         <div className="flex items-center justify-between px-4 py-2 bg-white border border-gray-300">
           <select
@@ -404,8 +500,18 @@ export default function CodeEditor({
                   title="My Saved Code"
                   className="px-3 py-1 rounded bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 flex items-center gap-1 relative"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"
+                    />
                   </svg>
                   Saved ({snippets.length})
                 </button>
@@ -414,8 +520,18 @@ export default function CodeEditor({
                   title="Save Code"
                   className="px-3 py-1 rounded bg-green-600 text-white text-sm font-medium hover:bg-green-700 flex items-center gap-1"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                    />
                   </svg>
                   Save
                 </button>
@@ -426,8 +542,18 @@ export default function CodeEditor({
               title="Import Code"
               className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm font-medium hover:bg-gray-300 flex items-center gap-1"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
               </svg>
               Import
             </button>
@@ -436,8 +562,18 @@ export default function CodeEditor({
               title="Export Code"
               className="px-3 py-1 rounded bg-gray-200 text-gray-800 text-sm font-medium hover:bg-gray-300 flex items-center gap-1"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+                />
               </svg>
               Export
             </button>
@@ -448,14 +584,28 @@ export default function CodeEditor({
             >
               {loading ? (
                 <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <svg
+                    className="w-4 h-4 animate-spin"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
                   </svg>
                   Running...
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                     <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                   </svg>
                   Run
@@ -482,12 +632,12 @@ export default function CodeEditor({
             value={code}
             onChange={(value) => setCode(value || "")}
             onMount={handleEditorDidMount}
-            options={{ 
+            options={{
               minimap: { enabled: false },
               scrollBeyondLastLine: false,
               fontSize: 14,
-              lineNumbers: 'on',
-              renderLineHighlight: 'all',
+              lineNumbers: "on",
+              renderLineHighlight: "all",
               automaticLayout: true,
             }}
           />
@@ -549,8 +699,18 @@ export default function CodeEditor({
                 title="Copy Output"
                 className="text-gray-500 hover:text-gray-800 p-1 hover:bg-gray-100 rounded transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
                 </svg>
               </button>
               <button
@@ -561,8 +721,18 @@ export default function CodeEditor({
                 title="Clear Output"
                 className="text-gray-500 hover:text-red-600 p-1 hover:bg-red-50 rounded transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
               </button>
             </div>
@@ -589,16 +759,22 @@ export default function CodeEditor({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 text-gray-700" />
-                    <h3 className="text-base font-semibold text-gray-900">Problems</h3>
+                    <h3 className="text-base font-semibold text-gray-900">
+                      Problems
+                    </h3>
                   </div>
-                  <div className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                    problems.length === 0 
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}>
-                    {problems.length === 0 
-                      ? "No issues" 
-                      : `${problems.length} ${problems.length === 1 ? 'issue' : 'issues'}`}
+                  <div
+                    className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                      problems.length === 0
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {problems.length === 0
+                      ? "No issues"
+                      : `${problems.length} ${
+                          problems.length === 1 ? "issue" : "issues"
+                        }`}
                   </div>
                 </div>
               </div>
@@ -610,31 +786,36 @@ export default function CodeEditor({
                     <div
                       key={index}
                       className={`group flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.01] ${
-                        problem.severity === 'error'
-                          ? 'bg-red-50 border-red-200 hover:bg-red-100'
-                          : problem.severity === 'warning'
-                          ? 'bg-amber-50 border-amber-200 hover:bg-amber-100'
-                          : 'bg-blue-50 border-blue-200 hover:bg-blue-100'
+                        problem.severity === "error"
+                          ? "bg-red-50 border-red-200 hover:bg-red-100"
+                          : problem.severity === "warning"
+                          ? "bg-amber-50 border-amber-200 hover:bg-amber-100"
+                          : "bg-blue-50 border-blue-200 hover:bg-blue-100"
                       }`}
                       onClick={() => {
                         if (editorRef.current) {
                           editorRef.current.revealLineInCenter(problem.line);
-                          editorRef.current.setPosition({ lineNumber: problem.line, column: problem.column });
+                          editorRef.current.setPosition({
+                            lineNumber: problem.line,
+                            column: problem.column,
+                          });
                           editorRef.current.focus();
                         }
                       }}
                     >
                       {/* Icon */}
-                      <div className={`flex-shrink-0 mt-0.5 ${
-                        problem.severity === 'error'
-                          ? 'text-red-600'
-                          : problem.severity === 'warning'
-                          ? 'text-amber-600'
-                          : 'text-blue-600'
-                      }`}>
-                        {problem.severity === 'error' ? (
+                      <div
+                        className={`flex-shrink-0 mt-0.5 ${
+                          problem.severity === "error"
+                            ? "text-red-600"
+                            : problem.severity === "warning"
+                            ? "text-amber-600"
+                            : "text-blue-600"
+                        }`}
+                      >
+                        {problem.severity === "error" ? (
                           <XCircle className="w-5 h-5" />
-                        ) : problem.severity === 'warning' ? (
+                        ) : problem.severity === "warning" ? (
                           <AlertTriangle className="w-5 h-5" />
                         ) : (
                           <Info className="w-5 h-5" />
@@ -647,13 +828,15 @@ export default function CodeEditor({
                           <p className="text-sm font-medium text-gray-900 leading-snug">
                             {problem.message}
                           </p>
-                          <span className={`flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded ${
-                            problem.severity === 'error'
-                              ? 'bg-red-200 text-red-800'
-                              : problem.severity === 'warning'
-                              ? 'bg-amber-200 text-amber-800'
-                              : 'bg-blue-200 text-blue-800'
-                          }`}>
+                          <span
+                            className={`flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded ${
+                              problem.severity === "error"
+                                ? "bg-red-200 text-red-800"
+                                : problem.severity === "warning"
+                                ? "bg-amber-200 text-amber-800"
+                                : "bg-blue-200 text-blue-800"
+                            }`}
+                          >
                             {problem.severity.toUpperCase()}
                           </span>
                         </div>
@@ -691,7 +874,9 @@ export default function CodeEditor({
       {showSaveModal && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-2xl p-6 w-96">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Save Code Snippet</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Save Code Snippet
+            </h3>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Title
@@ -700,7 +885,7 @@ export default function CodeEditor({
                 type="text"
                 value={saveTitle}
                 onChange={(e) => setSaveTitle(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSaveSnippet()}
+                onKeyDown={(e) => e.key === "Enter" && handleSaveSnippet()}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                 placeholder="Enter snippet title"
                 autoFocus
@@ -736,13 +921,25 @@ export default function CodeEditor({
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">My Saved Code</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                My Saved Code
+              </h3>
               <button
                 onClick={() => setShowSnippetsPanel(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -753,11 +950,23 @@ export default function CodeEditor({
                 </div>
               ) : snippets.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <svg
+                    className="w-16 h-16 mx-auto mb-4 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                   <p className="text-lg font-medium">No saved code yet</p>
-                  <p className="text-sm mt-1">Save your code snippets to access them later</p>
+                  <p className="text-sm mt-1">
+                    Save your code snippets to access them later
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -767,12 +976,16 @@ export default function CodeEditor({
                       className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group"
                     >
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 truncate">{snippet.title}</h4>
+                        <h4 className="font-medium text-gray-900 truncate">
+                          {snippet.title}
+                        </h4>
                         <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                           <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">
                             {snippet.language.toUpperCase()}
                           </span>
-                          <span>{new Date(snippet.updatedAt).toLocaleDateString()}</span>
+                          <span>
+                            {new Date(snippet.updatedAt).toLocaleDateString()}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 ml-4">
@@ -786,8 +999,18 @@ export default function CodeEditor({
                           onClick={() => confirmDeleteSnippet(snippet._id)}
                           className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
                           </svg>
                         </button>
                       </div>
@@ -816,7 +1039,9 @@ export default function CodeEditor({
       {showExportModal && (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-96">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Code</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Export Code
+            </h3>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Filename (without extension)
@@ -825,13 +1050,18 @@ export default function CodeEditor({
                 type="text"
                 value={exportFileName}
                 onChange={(e) => setExportFileName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && confirmExport()}
+                onKeyDown={(e) => e.key === "Enter" && confirmExport()}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter filename"
                 autoFocus
               />
               <p className="text-xs text-gray-500 mt-1">
-                File will be saved as: {exportFileName || 'code'}.{language === 'javascript' ? 'js' : language === 'python' ? 'py' : 'cpp'}
+                File will be saved as: {exportFileName || "code"}.
+                {language === "javascript"
+                  ? "js"
+                  : language === "python"
+                  ? "py"
+                  : "cpp"}
               </p>
             </div>
             <div className="flex gap-2 justify-end">

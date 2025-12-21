@@ -1,7 +1,10 @@
 /**
  * Code Validation Utilities
  * Real-time syntax checking for Python, JavaScript, and C++
+ * Uses Monaco Editor's built-in validation for JavaScript
  */
+
+import * as monaco from 'monaco-editor';
 
 export interface ValidationError {
   message: string;
@@ -15,487 +18,295 @@ export interface ValidationError {
  */
 export const checkPythonSyntax = (code: string): ValidationError[] => {
   const errors: ValidationError[] = [];
-  const lines = code.split('\n');
-  
-  let inMultilineString = false;
-  let multilineStringChar = '';
-  
-  // Track defined variables, functions, and imports
-  const definedVariables = new Set<string>([
-    'print', 'input', 'len', 'range', 'str', 'int', 'float', 'bool', 'list', 'dict', 'set', 'tuple',
-    'True', 'False', 'None', 'type', 'isinstance', 'sum', 'max', 'min', 'abs', 'round', 'sorted',
-    'open', 'file', 'zip', 'map', 'filter', 'enumerate', 'any', 'all'
-  ]);
-  const definedFunctions = new Set<string>();
-  
-  // First pass: collect defined variables and functions
-  lines.forEach((line, index) => {
-    const trimmed = line.trim();
-    
-    // Skip comments and empty lines
-    if (!trimmed || trimmed.startsWith('#')) return;
-    
-    // Track function definitions
-    const funcMatch = trimmed.match(/^def\s+(\w+)/);
-    if (funcMatch) {
-      definedFunctions.add(funcMatch[1]);
-      definedVariables.add(funcMatch[1]);
-      
-      // Extract parameters
-      const paramMatch = trimmed.match(/def\s+\w+\s*\(([^)]*)\)/);
-      if (paramMatch && paramMatch[1]) {
-        const params = paramMatch[1].split(',').map(p => p.trim().split('=')[0].trim());
-        params.forEach(p => {
-          if (p && p !== '*' && p !== '**') {
-            definedVariables.add(p.replace(/^\*+/, ''));
-          }
-        });
-      }
-    }
-    
-    // Track variable assignments
-    const assignMatch = trimmed.match(/^(\w+)\s*=/);
-    if (assignMatch) {
-      definedVariables.add(assignMatch[1]);
-    }
-    
-    // Track for loop variables
-    const forMatch = trimmed.match(/^for\s+(\w+)\s+in/);
-    if (forMatch) {
-      definedVariables.add(forMatch[1]);
-    }
-    
-    // Track imports
-    const importMatch = trimmed.match(/^(?:from\s+\w+\s+)?import\s+([\w,\s]+)/);
-    if (importMatch) {
-      const imports = importMatch[1].split(',').map(i => i.trim().split(' as ')[0].trim());
-      imports.forEach(imp => definedVariables.add(imp));
-    }
-  });
-  
-  // Second pass: validate code
+  const lines = code.split("\n");
+
   lines.forEach((line, index) => {
     const lineNum = index + 1;
     const trimmed = line.trim();
-    
-    // Check for multiline strings
-    if (trimmed.startsWith('"""') || trimmed.startsWith("'''")) {
-      const char = trimmed.substring(0, 3);
-      if (inMultilineString && char === multilineStringChar) {
-        inMultilineString = false;
-      } else if (!inMultilineString) {
-        inMultilineString = true;
-        multilineStringChar = char;
-      }
-    }
-    
-    // Skip empty lines, comments, and lines inside multiline strings
-    if (!trimmed || trimmed.startsWith('#') || inMultilineString) return;
-    
-    // Check for standalone undefined variables (like "addas")
-    if (trimmed.match(/^[a-zA-Z_]\w*$/) && !definedVariables.has(trimmed)) {
-      errors.push({
-        message: `NameError: name '${trimmed}' is not defined - standalone statement has no effect`,
-        line: lineNum,
-        column: 1
-      });
-    }
-    
-    // Check for undefined variables in expressions
-    // Look for variable usage (not in strings, not assignments)
-    if (!trimmed.startsWith('def ') && 
-        !trimmed.startsWith('class ') && 
-        !trimmed.startsWith('import ') &&
-        !trimmed.startsWith('from ')) {
-      
-      // Remove all string literals from the line before checking variables
-      let lineWithoutStrings = line;
-      // Remove triple-quoted strings
-      lineWithoutStrings = lineWithoutStrings.replace(/"""[\s\S]*?"""/g, '');
-      lineWithoutStrings = lineWithoutStrings.replace(/'''[\s\S]*?'''/g, '');
-      // Remove double-quoted strings
-      lineWithoutStrings = lineWithoutStrings.replace(/"(?:[^"\\]|\\.)*"/g, '');
-      // Remove single-quoted strings
-      lineWithoutStrings = lineWithoutStrings.replace(/'(?:[^'\\]|\\.)*'/g, '');
-      
-      // Extract potential variable names from the line (without strings)
-      const words = lineWithoutStrings.match(/\b[a-zA-Z_]\w*\b/g) || [];
-      words.forEach(word => {
-        // Skip keywords and already defined
-        const keywords = ['if', 'elif', 'else', 'for', 'while', 'def', 'class', 'return', 
-                         'import', 'from', 'as', 'try', 'except', 'finally', 'with', 
-                         'lambda', 'yield', 'pass', 'break', 'continue', 'and', 'or', 
-                         'not', 'in', 'is', 'assert', 'del', 'global', 'nonlocal', 'raise'];
-        
-        if (keywords.includes(word) || definedVariables.has(word)) return;
-        
-        // Check if it's being assigned (left side of =)
-        if (trimmed.match(new RegExp(`^${word}\\s*=`)) || 
-            trimmed.match(new RegExp(`^for\\s+${word}\\s+in`))) {
-          definedVariables.add(word);
-          return;
-        }
-        
-        // Check if it looks like a typo (undefined usage)
-        if (!trimmed.startsWith(word + ' =') && !trimmed.startsWith('for ' + word)) {
-          errors.push({
-            message: `NameError: name '${word}' is not defined (possible typo?)`,
-            line: lineNum,
-            column: line.indexOf(word) + 1
-          });
-        }
-      });
-    }
-    
-    // Check for semicolons (not pythonic)
-    if (line.includes(';') && !trimmed.startsWith('#')) {
-      errors.push({ 
-        message: 'Unexpected ";" - Python does not use semicolons to end statements', 
-        line: lineNum, 
-        column: line.indexOf(';') + 1 
-      });
-    }
-    
+
+    // Skip empty lines and comments
+    if (!trimmed || trimmed.startsWith("#")) return;
+
     // Check for missing colons at end of control structures
-    if (trimmed.match(/^(if|elif|while|for|def|class|with|try|except|finally|else)\s+/) && !trimmed.endsWith(':')) {
-      errors.push({ 
-        message: `SyntaxError: expected ":" at end of ${trimmed.split(/\s+/)[0]} statement`, 
-        line: lineNum, 
-        column: trimmed.length 
+    if (
+      trimmed.match(
+        /^(if|elif|while|for|def|class|with|try|except|finally|else)\s+/
+      ) &&
+      !trimmed.endsWith(":")
+    ) {
+      errors.push({
+        message: `SyntaxError: expected ":" at end of ${
+          trimmed.split(/\s+/)[0]
+        } statement`,
+        line: lineNum,
+        column: trimmed.length,
       });
     }
-    
-    // Check for incorrect else/elif without colon
-    if (trimmed.match(/^(else|elif|except|finally)\s*[^:]/) && !trimmed.endsWith(':')) {
-      errors.push({ 
-        message: 'SyntaxError: expected ":" after keyword', 
-        line: lineNum, 
-        column: 1 
+
+    // Check for potential invalid syntax patterns
+    if (trimmed.match(/^\w+\s*=\s*\(\s*\)$/) && !trimmed.includes('tuple')) {
+      errors.push({
+        message: "SyntaxError: invalid assignment - empty parentheses",
+        line: lineNum,
+        column: 1,
       });
     }
-    
-    // Check for invalid function/class names
-    if (trimmed.match(/^def\s+([^a-z_]|[0-9])/)) {
-      errors.push({ 
-        message: 'SyntaxError: invalid function name (must start with letter or underscore)', 
-        line: lineNum, 
-        column: 5 
+
+    // Check for standalone identifiers (potential undefined variables)
+    if (trimmed.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/) && 
+        !trimmed.match(/^(True|False|None|self|__name__|__main__)$/)) {
+      errors.push({
+        message: `NameError: potential undefined variable '${trimmed}'`,
+        line: lineNum,
+        column: 1,
       });
     }
-    
-    if (trimmed.match(/^class\s+([^A-Z])/)) {
-      errors.push({ 
-        message: 'Convention: class names should start with uppercase letter', 
-        line: lineNum, 
-        column: 7 
-      });
-    }
-    
-    // Check for unmatched parentheses, brackets, braces
-    const openParens = (line.match(/\(/g) || []).length;
-    const closeParens = (line.match(/\)/g) || []).length;
-    if (openParens !== closeParens) {
-      errors.push({ 
-        message: `SyntaxError: unmatched parentheses (${openParens} open, ${closeParens} close)`, 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
-    const openBrackets = (line.match(/\[/g) || []).length;
-    const closeBrackets = (line.match(/\]/g) || []).length;
-    if (openBrackets !== closeBrackets) {
-      errors.push({ 
-        message: `SyntaxError: unmatched brackets (${openBrackets} open, ${closeBrackets} close)`, 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
-    const openBraces = (line.match(/{/g) || []).length;
-    const closeBraces = (line.match(/}/g) || []).length;
-    if (openBraces !== closeBraces) {
-      errors.push({ 
-        message: `SyntaxError: unmatched braces (${openBraces} open, ${closeBraces} close)`, 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
+
     // Check for unterminated string literals
-    const singleQuotes = (line.match(/(?<!\\)'/g) || []).length;
-    const doubleQuotes = (line.match(/(?<!\\)"/g) || []).length;
-    if (singleQuotes % 2 !== 0 && !line.includes('"""') && !line.includes("'''")) {
-      errors.push({ 
-        message: "SyntaxError: unterminated string literal (single quote)", 
-        line: lineNum, 
-        column: line.indexOf("'") + 1 
+    const singleQuotes = (line.match(/'/g) || []).length;
+    const doubleQuotes = (line.match(/"/g) || []).length;
+
+    if (
+      singleQuotes % 2 !== 0 &&
+      !line.includes('"""') &&
+      !line.includes("'''")
+    ) {
+      errors.push({
+        message: "SyntaxError: unterminated string literal (single quote)",
+        line: lineNum,
+        column: line.indexOf("'") + 1,
       });
     }
-    if (doubleQuotes % 2 !== 0 && !line.includes('"""') && !line.includes("'''")) {
-      errors.push({ 
-        message: "SyntaxError: unterminated string literal (double quote)", 
-        line: lineNum, 
-        column: line.indexOf('"') + 1 
+
+    if (
+      doubleQuotes % 2 !== 0 &&
+      !line.includes('"""') &&
+      !line.includes("'''")
+    ) {
+      errors.push({
+        message: "SyntaxError: unterminated string literal (double quote)",
+        line: lineNum,
+        column: line.indexOf('"') + 1,
       });
-    }
-    
-    // Check for common mistakes
-    if (trimmed.includes('else if')) {
-      errors.push({ 
-        message: 'SyntaxError: use "elif" instead of "else if" in Python', 
-        line: lineNum, 
-        column: trimmed.indexOf('else if') + 1 
-      });
-    }
-    
-    if (trimmed.match(/print\s+[^(]/)) {
-      errors.push({ 
-        message: 'SyntaxError: print is a function in Python 3, use print(...)', 
-        line: lineNum, 
-        column: trimmed.indexOf('print') + 1 
-      });
-    }
-    
-    // Check for invalid comparisons
-    if (trimmed.match(/\s(=)\s/) && !trimmed.includes('==') && trimmed.includes('if ')) {
-      errors.push({ 
-        message: 'Warning: use "==" for comparison, not "=" (assignment)', 
-        line: lineNum, 
-        column: line.indexOf('=') + 1 
-      });
-    }
-    
-    // Check for missing commas in lists/tuples
-    if (trimmed.match(/\[\s*\w+\s+\w+/) && !trimmed.includes('"') && !trimmed.includes("'")) {
-      errors.push({ 
-        message: 'SyntaxError: missing comma between list elements?', 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
-    // Check for pass/return/break/continue not alone
-    if (trimmed.match(/^(pass|break|continue)\s+\w/)) {
-      errors.push({ 
-        message: `SyntaxError: ${trimmed.split(/\s+/)[0]} is a standalone statement`, 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
-    // Check for invalid indentation after colon
-    if (index > 0 && lines[index - 1].trim().endsWith(':')) {
-      const prevIndent = lines[index - 1].length - lines[index - 1].trimStart().length;
-      const currIndent = line.length - line.trimStart().length;
-      if (trimmed && currIndent <= prevIndent) {
-        errors.push({ 
-          message: 'IndentationError: expected an indented block', 
-          line: lineNum, 
-          column: 1 
-        });
-      }
     }
   });
-  
+
   return errors;
 };
 
 /**
- * JavaScript syntax checker
- * Detects common syntax errors in JavaScript code
+ * JavaScript syntax checker using Monaco Editor's built-in validation
+ * Reads existing Monaco markers instead of creating temporary models
  */
-export const checkJavaScriptSyntax = (code: string): ValidationError[] => {
+export const checkJavaScriptSyntax = async (
+  code: string,
+  editor?: monaco.editor.IStandaloneCodeEditor
+): Promise<ValidationError[]> => {
   const errors: ValidationError[] = [];
   
   try {
-    // Try to parse with Function constructor (basic check)
+    // If we have an editor instance, get its existing markers
+    if (editor) {
+      const model = editor.getModel();
+      if (model) {
+        // Wait longer for Monaco's validation to complete
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Get all markers for this model from Monaco's built-in validation
+        const markers = monaco.editor.getModelMarkers({ resource: model.uri });
+        console.log('Monaco markers found:', markers);
+        
+        // Convert Monaco markers to our ValidationError format
+        markers.forEach(marker => {
+          // Include errors and some important warnings
+          if (marker.severity === monaco.MarkerSeverity.Error || 
+              (marker.severity === monaco.MarkerSeverity.Warning && 
+               (marker.message.includes('not defined') || 
+                marker.message.includes('is not defined') ||
+                marker.message.includes('Cannot find name')))) {
+            errors.push({
+              message: marker.message,
+              line: marker.startLineNumber,
+              column: marker.startColumn
+            });
+          }
+        });
+        
+        // Always fall back to custom validation to supplement Monaco
+        console.log('Getting additional errors from fallback validation');
+        const fallbackErrors = checkJavaScriptSyntaxFallback(code);
+        
+        // Merge errors, avoiding duplicates
+        fallbackErrors.forEach(fallbackError => {
+          const isDuplicate = errors.some(existing => 
+            existing.line === fallbackError.line && 
+            existing.message.toLowerCase().includes(fallbackError.message.toLowerCase().split(':')[1]?.trim() || '')
+          );
+          if (!isDuplicate) {
+            errors.push(fallbackError);
+          }
+        });
+        
+        return errors;
+      }
+    }
+
+    // Fallback: try the old approach if no editor provided
+    console.log('No editor provided, using fallback validation');
+    return checkJavaScriptSyntaxFallback(code);
+    
+  } catch (e) {
+    console.warn('Monaco validation failed, using fallback:', e);
+    return checkJavaScriptSyntaxFallback(code);
+  }
+};
+
+/**
+ * Fallback JavaScript syntax checker
+ * Basic validation when Monaco is not available
+ */
+export const checkJavaScriptSyntaxFallback = (code: string): ValidationError[] => {
+  const errors: ValidationError[] = [];
+  
+  try {
     new Function(code);
   } catch (e) {
     if (e instanceof SyntaxError) {
-      const message = e.message;
-      const lines = code.split('\n');
-      
-      let errorLine = 1;
-      
-      // Chrome/V8 error format
-      const v8Match = message.match(/at position (\d+)/);
-      if (v8Match) {
-        const position = parseInt(v8Match[1]);
-        let currentPos = 0;
-        for (let i = 0; i < lines.length; i++) {
-          currentPos += lines[i].length + 1;
-          if (currentPos >= position) {
-            errorLine = i + 1;
-            break;
-          }
-        }
-      }
-      
-      errors.push({ message: `SyntaxError: ${message}`, line: errorLine, column: 1 });
+      errors.push({ 
+        message: `SyntaxError: ${e.message}`, 
+        line: 1, 
+        column: 1 
+      });
     }
   }
+
+  // Additional basic checks
+  const lines = code.split("\n");
+  const definedVariables = new Set<string>();
+  const builtInObjects = new Set(['console', 'window', 'document', 'Math', 'Date', 'Array', 'Object', 'String', 'Number', 'Boolean', 'Function', 'parseInt', 'parseFloat', 'isNaN', 'undefined', 'null', 'true', 'false']);
   
-  // Additional line-by-line checks
-  const lines = code.split('\n');
-  lines.forEach((line, index) => {
-    const lineNum = index + 1;
+  // First pass: collect defined variables
+  lines.forEach((line) => {
     const trimmed = line.trim();
     
-    if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('/*')) return;
-    
-    // Check for missing var/let/const
-    if (trimmed.match(/^[a-zA-Z_$][\w$]*\s*=\s*/) && 
-        !trimmed.startsWith('var ') && 
-        !trimmed.startsWith('let ') && 
-        !trimmed.startsWith('const ') &&
-        index > 0) {
-      const varName = trimmed.split('=')[0].trim();
-      // Check if it's not a property assignment
-      if (!varName.includes('.') && !trimmed.includes('this.')) {
-        errors.push({ 
-          message: `Warning: variable '${varName}' used without declaration (use var/let/const)`, 
-          line: lineNum, 
-          column: 1 
-        });
-      }
+    // Variable declarations
+    const varMatch = trimmed.match(/(?:var|let|const)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/);
+    if (varMatch) {
+      definedVariables.add(varMatch[1]);
     }
     
-    // Check for missing semicolons in certain contexts
-    if (trimmed && 
-        !trimmed.endsWith(';') && 
-        !trimmed.endsWith('{') && 
-        !trimmed.endsWith('}') &&
-        !trimmed.endsWith(',') &&
-        !trimmed.startsWith('if') &&
-        !trimmed.startsWith('for') &&
-        !trimmed.startsWith('while') &&
-        !trimmed.startsWith('function') &&
-        !trimmed.startsWith('class') &&
-        !trimmed.startsWith('else') &&
-        !trimmed.startsWith('//') &&
-        !trimmed.startsWith('/*') &&
-        !trimmed.startsWith('*') &&
-        trimmed.includes('=')) {
-      // Only warn for statements that should have semicolons
-      if (index < lines.length - 1 && lines[index + 1].trim()) {
-        errors.push({ 
-          message: 'Warning: missing semicolon (recommended)', 
-          line: lineNum, 
-          column: trimmed.length 
-        });
-      }
+    // Function declarations
+    const funcMatch = trimmed.match(/function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/);
+    if (funcMatch) {
+      definedVariables.add(funcMatch[1]);
     }
     
-    // Check for invalid function declarations
-    if (trimmed.match(/^function\s+[0-9]/) || trimmed.match(/^function\s+[^a-zA-Z_$]/)) {
-      errors.push({ 
-        message: 'SyntaxError: invalid function name', 
-        line: lineNum, 
-        column: 10 
-      });
-    }
-    
-    // Check for arrow function syntax errors
-    if (trimmed.includes('=>') && !trimmed.includes('(')) {
-      if (trimmed.match(/\w+\s*=\s*\w+\s*=>/)) {
-        errors.push({ 
-          message: 'SyntaxError: arrow function parameters must be in parentheses', 
-          line: lineNum, 
-          column: trimmed.indexOf('=>') 
-        });
-      }
-    }
-    
-    // Check for incorrect comparison operators
-    if (trimmed.match(/[^=!<>](=)[^=]/) && 
-        (trimmed.includes('if') || trimmed.includes('while'))) {
-      errors.push({ 
-        message: 'Warning: use "==" or "===" for comparison, not "=" (assignment)', 
-        line: lineNum, 
-        column: line.indexOf('=') + 1 
-      });
-    }
-    
-    // Check for unmatched parentheses
-    const openParens = (line.match(/\(/g) || []).length;
-    const closeParens = (line.match(/\)/g) || []).length;
-    if (openParens !== closeParens) {
-      errors.push({ 
-        message: `SyntaxError: unmatched parentheses (${openParens} open, ${closeParens} close)`, 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
-    // Check for unmatched brackets
-    const openBrackets = (line.match(/\[/g) || []).length;
-    const closeBrackets = (line.match(/\]/g) || []).length;
-    if (openBrackets !== closeBrackets) {
-      errors.push({ 
-        message: `SyntaxError: unmatched brackets (${openBrackets} open, ${closeBrackets} close)`, 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
-    // Check for unmatched braces
-    const openBraces = (line.match(/{/g) || []).length;
-    const closeBraces = (line.match(/}/g) || []).length;
-    if (openBraces !== closeBraces && (openBraces > 0 || closeBraces > 0)) {
-      errors.push({ 
-        message: `SyntaxError: unmatched braces (${openBraces} open, ${closeBraces} close)`, 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
-    // Check for invalid console.log syntax
-    if (trimmed.includes('console.log') && !trimmed.includes('console.log(')) {
-      errors.push({ 
-        message: 'SyntaxError: console.log requires parentheses', 
-        line: lineNum, 
-        column: trimmed.indexOf('console.log') + 1 
-      });
-    }
-    
-    // Check for unterminated strings
-    const singleQuotes = (line.match(/(?<!\\)'/g) || []).length;
-    const doubleQuotes = (line.match(/(?<!\\)"/g) || []).length;
-    const backticks = (line.match(/(?<!\\)`/g) || []).length;
-    
-    if (singleQuotes % 2 !== 0) {
-      errors.push({ 
-        message: "SyntaxError: unterminated string literal (single quote)", 
-        line: lineNum, 
-        column: line.indexOf("'") + 1 
-      });
-    }
-    if (doubleQuotes % 2 !== 0) {
-      errors.push({ 
-        message: "SyntaxError: unterminated string literal (double quote)", 
-        line: lineNum, 
-        column: line.indexOf('"') + 1 
-      });
-    }
-    if (backticks % 2 !== 0) {
-      errors.push({ 
-        message: "SyntaxError: unterminated template literal", 
-        line: lineNum, 
-        column: line.indexOf('`') + 1 
-      });
-    }
-    
-    // Check for missing commas in object literals
-    if (trimmed.match(/{\s*\w+:\s*\w+\s+\w+:/)) {
-      errors.push({ 
-        message: 'SyntaxError: missing comma in object literal', 
-        line: lineNum, 
-        column: 1 
+    // Function parameters
+    const paramMatch = trimmed.match(/function\s+\w+\s*\(([^)]*)\)/);
+    if (paramMatch && paramMatch[1]) {
+      const params = paramMatch[1].split(',').map(p => p.trim());
+      params.forEach(param => {
+        if (param && !param.includes('=')) {
+          definedVariables.add(param);
+        }
       });
     }
   });
-  
+
+  // Second pass: check for undefined variables
+  lines.forEach((line, index) => {
+    const lineNum = index + 1;
+    const trimmed = line.trim();
+
+    if (!trimmed || trimmed.startsWith("//") || trimmed.startsWith("/*"))
+      return;
+
+    // Check for standalone identifiers (potential undefined variables)
+    if (trimmed.match(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/) && 
+        !definedVariables.has(trimmed) && 
+        !builtInObjects.has(trimmed)) {
+      errors.push({
+        message: `ReferenceError: '${trimmed}' is not defined`,
+        line: lineNum,
+        column: 1,
+      });
+    }
+    
+    // Remove strings from the line before checking for undefined variables
+    let processedLine = line;
+    // Remove string literals (both single and double quotes)
+    processedLine = processedLine.replace(/"[^"]*"/g, '""');
+    processedLine = processedLine.replace(/'[^']*'/g, "''");
+    processedLine = processedLine.replace(/`[^`]*`/g, '``');
+    
+    // Remove object literal property keys (before colons in object literals)
+    processedLine = processedLine.replace(/\{\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '{ :');
+    processedLine = processedLine.replace(/,\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, ', :');
+    
+    // Check for undefined variables in expressions (but not in strings, property access, method calls, or object keys)
+    const identifierMatches = processedLine.match(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)\b/g);
+    if (identifierMatches) {
+      identifierMatches.forEach(identifier => {
+        // Skip if it's part of object property access or method call
+        const beforeIdentifier = processedLine.substring(0, processedLine.indexOf(identifier));
+        const afterIdentifier = processedLine.substring(processedLine.indexOf(identifier) + identifier.length);
+        
+        // Skip if preceded by dot (property access) or followed by dot or parenthesis (method call)
+        // Also skip if followed by colon (object literal key)
+        if (beforeIdentifier.endsWith('.') || afterIdentifier.startsWith('.') || 
+            afterIdentifier.startsWith('(') || afterIdentifier.trimStart().startsWith(':')) {
+          return;
+        }
+        
+        // Skip JavaScript keywords and defined variables
+        if (!definedVariables.has(identifier) && 
+            !builtInObjects.has(identifier) && 
+            !identifier.match(/^(if|else|for|while|do|switch|case|default|break|continue|return|function|var|let|const|class|extends|import|export|from|as|new|this|super|static|async|await|try|catch|finally|throw|typeof|instanceof|in|of|delete|void)$/)) {
+          
+          const column = line.indexOf(identifier) + 1;
+          // Avoid duplicate errors for the same variable on the same line
+          const existingError = errors.find(e => e.line === lineNum && e.message.includes(identifier));
+          if (!existingError) {
+            errors.push({
+              message: `ReferenceError: '${identifier}' is not defined`,
+              line: lineNum,
+              column: column,
+            });
+          }
+        }
+      });
+    }
+
+    // Check for unterminated strings
+    const singleQuotes = (line.match(/'/g) || []).length;
+    const doubleQuotes = (line.match(/"/g) || []).length;
+    const backticks = (line.match(/`/g) || []).length;
+
+    if (singleQuotes % 2 !== 0) {
+      errors.push({
+        message: "SyntaxError: unterminated string literal (single quote)",
+        line: lineNum,
+        column: line.indexOf("'") + 1,
+      });
+    }
+
+    if (doubleQuotes % 2 !== 0) {
+      errors.push({
+        message: "SyntaxError: unterminated string literal (double quote)",
+        line: lineNum,
+        column: line.indexOf('"') + 1,
+      });
+    }
+
+    if (backticks % 2 !== 0) {
+      errors.push({
+        message: "SyntaxError: unterminated template literal",
+        line: lineNum,
+        column: line.indexOf("`") + 1,
+      });
+    }
+  });
+
   return errors;
 };
 
@@ -505,209 +316,156 @@ export const checkJavaScriptSyntax = (code: string): ValidationError[] => {
  */
 export const checkCppSyntax = (code: string): ValidationError[] => {
   const errors: ValidationError[] = [];
-  const lines = code.split('\n');
-  
-  let hasInclude = false;
-  let hasMain = false;
+  const lines = code.split("\n");
+
   let braceBalance = 0;
+  let parenBalance = 0;
+  const definedIdentifiers = new Set(['cout', 'cin', 'endl', 'string', 'int', 'float', 'double', 'char', 'bool', 'void', 'main', 'std', 'using', 'namespace', 'include', 'return', 'map']);
   
+  // First pass: collect defined functions and variables
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    
+    // Function definitions
+    const funcMatch = trimmed.match(/(?:int|void|float|double|char|bool|string)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/);
+    if (funcMatch) {
+      definedIdentifiers.add(funcMatch[1]);
+    }
+    
+    // Variable declarations
+    const varMatch = trimmed.match(/(?:int|float|double|char|bool|string)\s+([a-zA-Z_][a-zA-Z0-9_]*)/);
+    if (varMatch) {
+      definedIdentifiers.add(varMatch[1]);
+    }
+  });
+
   lines.forEach((line, index) => {
     const lineNum = index + 1;
     const trimmed = line.trim();
-    
-    // Skip empty lines, comments
-    if (!trimmed || trimmed.startsWith('//')) return;
-    
-    // Check for include statements
-    if (trimmed.startsWith('#include')) {
-      hasInclude = true;
-      
-      // Check for proper include format
-      if (!trimmed.match(/#include\s*[<"][\w./]+[>"]/)) {
-        errors.push({ 
-          message: 'SyntaxError: invalid #include format (use #include <file> or #include "file")', 
-          line: lineNum, 
-          column: 1 
-        });
-      }
-    }
-    
-    // Check for main function
-    if (trimmed.includes('int main') || trimmed.includes('void main')) {
-      hasMain = true;
-      
-      // Check if main has proper format
-      if (!trimmed.match(/int\s+main\s*\(/)) {
-        errors.push({ 
-          message: 'Warning: main should return int', 
-          line: lineNum, 
-          column: 1 
-        });
-      }
-    }
-    
-    // Track brace balance
+
+    // Skip empty lines, comments, preprocessor directives
+    if (
+      !trimmed ||
+      trimmed.startsWith("//") ||
+      trimmed.startsWith("/*") ||
+      trimmed.startsWith("*") ||
+      trimmed.startsWith("#")
+    )
+      return;
+
+    // Track brace and parentheses balance
     braceBalance += (line.match(/{/g) || []).length;
     braceBalance -= (line.match(/}/g) || []).length;
+    parenBalance += (line.match(/\(/g) || []).length;
+    parenBalance -= (line.match(/\)/g) || []).length;
     
-    // Check for missing semicolons
-    if (trimmed && 
-        !trimmed.startsWith('//') && 
-        !trimmed.startsWith('#') &&
-        !trimmed.startsWith('/*') &&
-        !trimmed.startsWith('*') &&
-        !trimmed.endsWith(';') && 
-        !trimmed.endsWith('{') && 
-        !trimmed.endsWith('}') &&
-        !trimmed.endsWith(',') &&
-        !trimmed.endsWith(':') &&
-        !trimmed.endsWith('\\') &&
-        !trimmed.match(/^(if|else|for|while|do|switch|case|default|public|private|protected|class|struct|namespace|template|using|enum)\b/) &&
-        !trimmed.match(/^\}/) &&
-        !trimmed.match(/^(public|private|protected):$/) &&
-        !trimmed.includes('<<') && // cout statements might span lines
-        trimmed.length > 0) {
-      
+    // Check for standalone identifiers (potential undefined variables)
+    if (trimmed.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/) && 
+        !definedIdentifiers.has(trimmed) && 
+        !trimmed.match(/^(if|else|for|while|do|switch|case|default|break|continue|return|public|private|protected|class|struct|namespace|template|using|enum|typedef)$/)) {
+      errors.push({
+        message: `Error: '${trimmed}' was not declared in this scope`,
+        line: lineNum,
+        column: 1,
+      });
+    }
+    
+    // Check for incomplete control structures (standalone keywords)
+    if (trimmed.match(/^(do|if|while|for|switch|else)$/)) {
+      errors.push({
+        message: `SyntaxError: incomplete ${trimmed} statement - expected condition or body`,
+        line: lineNum,
+        column: 1,
+      });
+    }
+    
+    // Check for keywords followed by invalid syntax
+    if (trimmed.match(/^(do|if|while|for|switch)\s*$/) && !trimmed.includes('(') && !trimmed.includes('{')) {
+      errors.push({
+        message: `SyntaxError: ${trimmed.split(/\s/)[0]} statement requires condition or body`,
+        line: lineNum,
+        column: 1,
+      });
+    }
+    
+    // Check for malformed function calls or syntax
+    if (trimmed.includes('(') && !trimmed.includes(')') && !trimmed.endsWith('{')) {
+      errors.push({
+        message: 'SyntaxError: expected ")" before end of line',
+        line: lineNum,
+        column: trimmed.indexOf('(') + 1,
+      });
+    }
+
+    // Check for missing semicolons on statements
+    if (
+      trimmed &&
+      !trimmed.startsWith("//") &&
+      !trimmed.startsWith("#") &&
+      !trimmed.endsWith(";") &&
+      !trimmed.endsWith("{") &&
+      !trimmed.endsWith("}") &&
+      !trimmed.endsWith(",") &&
+      !trimmed.match(
+        /^(if|else|for|while|do|switch|case|default|public|private|protected|class|struct|namespace|template|using|enum)\b/
+      ) &&
+      !trimmed.includes("<<") &&
+      trimmed.length > 0
+    ) {
       // Check if it looks like a statement that needs semicolon
-      if (trimmed.match(/=/) || 
-          trimmed.match(/^(int|float|double|char|bool|string|void|auto|long|short)\s/) ||
-          trimmed.match(/^return\s/) ||
-          trimmed.includes('++') ||
-          trimmed.includes('--')) {
-        errors.push({ 
-          message: 'SyntaxError: expected ";" at end of statement', 
-          line: lineNum, 
-          column: trimmed.length 
+      if (
+        trimmed.match(/=/) ||
+        trimmed.match(/^(int|float|double|char|bool|string|void|auto)\s/) ||
+        trimmed.match(/^return\s/) ||
+        trimmed.includes("++") ||
+        trimmed.includes("--")
+      ) {
+        errors.push({
+          message: 'SyntaxError: expected ";" at end of statement',
+          line: lineNum,
+          column: trimmed.length,
         });
       }
     }
-    
-    // Check for unmatched braces
-    const openBraces = (line.match(/{/g) || []).length;
-    const closeBraces = (line.match(/}/g) || []).length;
-    if (openBraces !== closeBraces && (openBraces > 0 || closeBraces > 0)) {
-      errors.push({ 
-        message: `SyntaxError: unmatched braces on this line (${openBraces} open, ${closeBraces} close)`, 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
-    // Check for unmatched parentheses
-    const openParens = (line.match(/\(/g) || []).length;
-    const closeParens = (line.match(/\)/g) || []).length;
-    if (openParens !== closeParens) {
-      errors.push({ 
-        message: `SyntaxError: unmatched parentheses (${openParens} open, ${closeParens} close)`, 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
-    // Check for unmatched brackets
-    const openBrackets = (line.match(/\[/g) || []).length;
-    const closeBrackets = (line.match(/\]/g) || []).length;
-    if (openBrackets !== closeBrackets) {
-      errors.push({ 
-        message: `SyntaxError: unmatched brackets (${openBrackets} open, ${closeBrackets} close)`, 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
-    // Check for missing namespace std
-    if ((trimmed.includes('cout') || trimmed.includes('cin') || trimmed.includes('endl')) && 
-        !code.includes('using namespace std') && 
-        !trimmed.includes('std::')) {
-      errors.push({ 
-        message: 'Error: cout/cin/endl requires "using namespace std;" or std:: prefix', 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
-    // Check for invalid variable declarations
-    if (trimmed.match(/^(int|float|double|char|bool|string)\s+[0-9]/)) {
-      errors.push({ 
-        message: 'SyntaxError: variable names cannot start with numbers', 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
-    // Check for assignment in if condition (common mistake)
-    if (trimmed.match(/if\s*\([^)]*=[^=][^)]*\)/)) {
-      errors.push({ 
-        message: 'Warning: use "==" for comparison, not "=" (assignment) in if condition', 
-        line: lineNum, 
-        column: trimmed.indexOf('if') + 1 
-      });
-    }
-    
-    // Check for incorrect pointer/reference syntax
-    if (trimmed.match(/[*&]\s+[a-zA-Z]/)) {
-      errors.push({ 
-        message: 'Warning: pointer/reference symbol should be attached to type (int* ptr, not int * ptr)', 
-        line: lineNum, 
-        column: trimmed.indexOf('*') + 1 
-      });
-    }
-    
-    // Check for missing return type in function
-    if (trimmed.match(/^\w+\s+\w+\s*\(.*\)\s*{?$/) && 
-        !trimmed.match(/^(if|for|while|switch)/) &&
-        !trimmed.startsWith('int') &&
-        !trimmed.startsWith('void') &&
-        !trimmed.startsWith('float') &&
-        !trimmed.startsWith('double') &&
-        !trimmed.startsWith('char') &&
-        !trimmed.startsWith('bool') &&
-        !trimmed.startsWith('string') &&
-        !trimmed.startsWith('auto')) {
-      errors.push({ 
-        message: 'SyntaxError: function declaration missing return type', 
-        line: lineNum, 
-        column: 1 
-      });
-    }
-    
+
     // Check for unterminated strings
-    const doubleQuotes = (line.match(/(?<!\\)"/g) || []).length;
-    const singleQuotes = (line.match(/(?<!\\)'/g) || []).length;
-    
+    const doubleQuotes = (line.match(/"/g) || []).length;
+    const singleQuotes = (line.match(/'/g) || []).length;
+
     if (doubleQuotes % 2 !== 0) {
-      errors.push({ 
-        message: 'SyntaxError: unterminated string literal', 
-        line: lineNum, 
-        column: line.indexOf('"') + 1 
+      errors.push({
+        message: "SyntaxError: unterminated string literal",
+        line: lineNum,
+        column: line.indexOf('"') + 1,
       });
     }
-    
+
     if (singleQuotes % 2 !== 0 && !trimmed.includes("'\\")) {
-      errors.push({ 
-        message: 'SyntaxError: unterminated character literal', 
-        line: lineNum, 
-        column: line.indexOf("'") + 1 
+      errors.push({
+        message: "SyntaxError: unterminated character literal",
+        line: lineNum,
+        column: line.indexOf("'") + 1,
       });
     }
   });
-  
-  // Global checks
-  if (lines.length > 5 && !hasMain) {
-    errors.push({ 
-      message: 'Warning: no main() function found', 
-      line: 1, 
-      column: 1 
-    });
-  }
-  
+
+  // Check overall brace balance
   if (braceBalance !== 0) {
-    errors.push({ 
-      message: `SyntaxError: unmatched braces in file (balance: ${braceBalance > 0 ? '+' : ''}${braceBalance})`, 
-      line: lines.length, 
-      column: 1 
+    errors.push({
+      message: `SyntaxError: mismatched braces in program (balance: ${braceBalance})`,
+      line: 1,
+      column: 1,
     });
   }
   
+  // Check parentheses balance
+  if (parenBalance !== 0) {
+    errors.push({
+      message: `SyntaxError: mismatched parentheses in program (balance: ${parenBalance})`,
+      line: 1,
+      column: 1,
+    });
+  }
+
   return errors;
 };

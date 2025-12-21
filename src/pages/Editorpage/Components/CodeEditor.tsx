@@ -14,6 +14,47 @@ import { useToast } from "../../../contexts/ToastContext";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
 import { checkPythonSyntax, checkJavaScriptSyntax, checkCppSyntax, type ValidationError } from "../../../utils/codeValidation";
 
+// Local Storage keys for code persistence
+const STORAGE_KEYS = {
+  CODE: 'codehub_editor_code',
+  LANGUAGE: 'codehub_editor_language',
+  INPUT: 'codehub_editor_input'
+};
+
+// Functions for localStorage persistence
+const saveCodeToStorage = (code: string, language: string, input: string) => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.CODE, code);
+    localStorage.setItem(STORAGE_KEYS.LANGUAGE, language);
+    localStorage.setItem(STORAGE_KEYS.INPUT, input);
+  } catch (error) {
+    console.warn('Failed to save code to localStorage:', error);
+  }
+};
+
+const loadCodeFromStorage = () => {
+  try {
+    return {
+      code: localStorage.getItem(STORAGE_KEYS.CODE),
+      language: localStorage.getItem(STORAGE_KEYS.LANGUAGE),
+      input: localStorage.getItem(STORAGE_KEYS.INPUT)
+    };
+  } catch (error) {
+    console.warn('Failed to load code from localStorage:', error);
+    return { code: null, language: null, input: null };
+  }
+};
+
+const clearCodeFromStorage = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.CODE);
+    localStorage.removeItem(STORAGE_KEYS.LANGUAGE);
+    localStorage.removeItem(STORAGE_KEYS.INPUT);
+  } catch (error) {
+    console.warn('Failed to clear code from localStorage:', error);
+  }
+};
+
 export interface CodeEditorProps {
   initialCode?: string;
   initialLanguage?: string;
@@ -25,14 +66,28 @@ export default function CodeEditor({
   initialLanguage,
   onStateChange,
 }: CodeEditorProps) {
+  // Load from localStorage if no initial values provided
+  const savedData = loadCodeFromStorage();
+  const getInitialCode = () => {
+    if (initialCode) return initialCode;
+    if (savedData.code) return savedData.code;
+    return getDefaultCodeForLanguage(initialLanguage || savedData.language || "python");
+  };
+  const getInitialLanguage = () => {
+    if (initialLanguage) return initialLanguage;
+    if (savedData.language) return savedData.language;
+    return "python";
+  };
+  const getInitialInput = () => {
+    return savedData.input || "";
+  };
+
   // --- Your Existing State and Refs ---
-  const [code, setCode] = useState(
-    initialCode || getDefaultCodeForLanguage(initialLanguage || "python")
-  );
+  const [code, setCode] = useState(getInitialCode());
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [language, setLanguage] = useState(initialLanguage || "python");
-  const [input, setInput] = useState("");
+  const [language, setLanguage] = useState(getInitialLanguage());
+  const [input, setInput] = useState(getInitialInput());
   const outputEndRef = useRef<HTMLDivElement>(null);
 
   // --- New State for Tabs ---
@@ -70,11 +125,28 @@ export default function CodeEditor({
     }
   }, [isAuthenticated]);
 
+  // --- Show recovery notification if code was loaded from localStorage ---
+  useEffect(() => {
+    const savedData = loadCodeFromStorage();
+    if (!initialCode && savedData.code && savedData.code !== getDefaultCodeForLanguage(savedData.language || 'python')) {
+      showToast("💾 Code recovered from previous session", "info");
+    }
+  }, []);
+
   // --- Update parent component with code changes in real-time ---
   useEffect(() => {
     // Notify parent of code changes immediately
     onStateChange?.({ code, language, error: "", problems });
   }, [code, language, problems, onStateChange]);
+
+  // --- Save code to localStorage whenever it changes ---
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      saveCodeToStorage(code, language, input);
+    }, 1000); // Debounce saves by 1 second
+
+    return () => clearTimeout(timeoutId);
+  }, [code, language, input]);
 
   const loadSnippets = async () => {
     try {
@@ -113,6 +185,7 @@ export default function CodeEditor({
     setLanguage(snippet.language);
     setOutput(snippet.output || "");
     setShowSnippetsPanel(false);
+    clearCodeFromStorage(); // Clear since we're intentionally loading new code
     showToast("Code snippet loaded!", "success");
   };
 
@@ -186,6 +259,7 @@ export default function CodeEditor({
     handleLanguageChange(newLanguage, setLanguage, setCode);
     setOutput("");
     setProblems([]);
+    clearCodeFromStorage(); // Clear since we're intentionally changing language
   };
 
   // Handle Monaco Editor mount
@@ -391,6 +465,7 @@ export default function CodeEditor({
             <button
               onClick={() => {
                 setCode(getDefaultCodeForLanguage(language));
+                clearCodeFromStorage(); // Clear localStorage when intentionally resetting
                 showToast("Code reset to default template", "info");
               }}
               title="Reset Code"

@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { getErrorExplanation, getProblemHint, askCodeQuestion } from "../../../services/codeHelpAPI";
-import { sendCodeChatMessage, getCodeChatHistory, clearCodeChats } from "../../../services/codeChatAPI";
+
+import {
+  sendCodeChatMessage,
+  getCodeChatHistory,
+  clearCodeChats,
+} from "../../../services/codeChatAPI";
 import { formatMarkdownText } from "../../../utils/markdownFormatterHTML";
 
 interface Message {
@@ -16,14 +20,19 @@ interface AiAssistantPanelProps {
   language?: string;
   error?: string;
   problems?: Array<{
-    severity: 'error' | 'warning' | 'info';
+    severity: "error" | "warning" | "info";
     message: string;
     line: number;
     column: number;
   }>;
 }
 
-function AiAssistantPanel({ code, language = "python", error, problems }: AiAssistantPanelProps) {
+function AiAssistantPanel({
+  code,
+  language = "python",
+  error,
+  problems,
+}: AiAssistantPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +53,7 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
       try {
         setIsLoadingHistory(true);
         const history = await getCodeChatHistory();
-        
+
         if (history && history.length > 0) {
           // Convert saved chats to message format
           const loadedMessages: Message[] = [];
@@ -69,24 +78,28 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
           setMessages(loadedMessages);
         } else {
           // Set initial greeting message if no history
-          setMessages([{
+          setMessages([
+            {
+              id: "1",
+              text: "👋 Hi! I'm your AI coding tutor. I'll help you understand errors and guide you through problems. Ask me anything!",
+              isUser: false,
+              timestamp: new Date(),
+              type: "regular",
+            },
+          ]);
+        }
+      } catch (err) {
+        console.error("Error loading code chat history:", err);
+        // Fallback to initial greeting
+        setMessages([
+          {
             id: "1",
             text: "👋 Hi! I'm your AI coding tutor. I'll help you understand errors and guide you through problems. Ask me anything!",
             isUser: false,
             timestamp: new Date(),
             type: "regular",
-          }]);
-        }
-      } catch (err) {
-        console.error("Error loading code chat history:", err);
-        // Fallback to initial greeting
-        setMessages([{
-          id: "1",
-          text: "👋 Hi! I'm your AI coding tutor. I'll help you understand errors and guide you through problems. Ask me anything!",
-          isUser: false,
-          timestamp: new Date(),
-          type: "regular",
-        }]);
+          },
+        ]);
       } finally {
         setIsLoadingHistory(false);
       }
@@ -144,17 +157,22 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
     setIsLoading(true);
 
     try {
-      const answer = await sendCodeChatMessage({
-        message: userMessage,
-        code,
-        language,
-        error,
-        problems
-      }, "question");
+      const answer = await sendCodeChatMessage(
+        {
+          message: userMessage,
+          code,
+          language,
+          error,
+          problems,
+        },
+        "question"
+      );
       addMessage(answer, false, "question");
     } catch (err) {
       addMessage(
-        `Sorry, I couldn't help with that. ${err instanceof Error ? err.message : "Please try again."}`,
+        `Sorry, I couldn't help with that. ${
+          err instanceof Error ? err.message : "Please try again."
+        }`,
         false,
         "regular"
       );
@@ -170,17 +188,22 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
     setIsLoading(true);
 
     try {
-      const explanation = await sendCodeChatMessage({
-        message: `Please explain this error: ${error}`,
-        code,
-        language,
-        error,
-        problems
-      }, "error-help");
+      const explanation = await sendCodeChatMessage(
+        {
+          message: `Please explain this error: ${error}`,
+          code,
+          language,
+          error,
+          problems,
+        },
+        "error-help"
+      );
       addMessage(explanation, false, "error-help");
     } catch (err) {
       addMessage(
-        `Couldn't explain the error. ${err instanceof Error ? err.message : "Try again."}`,
+        `Couldn't explain the error. ${
+          err instanceof Error ? err.message : "Try again."
+        }`,
         false,
         "regular"
       );
@@ -200,17 +223,22 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
     setIsLoading(true);
 
     try {
-      const hint = await sendCodeChatMessage({
-        message: `I need help with these problems: ${problemText}`,
-        code,
-        language,
-        error,
-        problems
-      }, "problem-help");
+      const hint = await sendCodeChatMessage(
+        {
+          message: `I need help with these problems: ${problemText}`,
+          code,
+          language,
+          error,
+          problems,
+        },
+        "problem-help"
+      );
       addMessage(hint, false, "problem-help");
     } catch (err) {
       addMessage(
-        `Couldn't provide a hint. ${err instanceof Error ? err.message : "Try again."}`,
+        `Couldn't provide a hint. ${
+          err instanceof Error ? err.message : "Try again."
+        }`,
         false,
         "regular"
       );
@@ -244,7 +272,9 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
+            className={`flex ${
+              message.isUser ? "justify-end" : "justify-start"
+            }`}
           >
             <div
               className={`max-w-[85%] rounded-lg px-4 py-2 text-sm ${
@@ -284,7 +314,9 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
       {/* Helper Buttons - Show when errors/problems exist */}
       {error && error.trim() ? (
         <div className="px-3 py-2 border-t-4 border-red-500 bg-red-100 flex flex-col gap-2 flex-shrink-0 shadow-md">
-          <div className="text-xs text-red-900 font-semibold">Runtime Error Detected:</div>
+          <div className="text-xs text-red-900 font-semibold">
+            Runtime Error Detected:
+          </div>
           <button
             onClick={handleExplainError}
             disabled={isLoading}
@@ -295,7 +327,9 @@ function AiAssistantPanel({ code, language = "python", error, problems }: AiAssi
         </div>
       ) : problems && problems.length > 0 ? (
         <div className="px-3 py-2 border-t-4 border-yellow-500 bg-yellow-100 flex flex-col gap-2 flex-shrink-0 shadow-md">
-          <div className="text-xs text-yellow-900 font-semibold">Syntax Problems Detected:</div>
+          <div className="text-xs text-yellow-900 font-semibold">
+            Syntax Problems Detected:
+          </div>
           <button
             onClick={handleAskForHint}
             disabled={isLoading}

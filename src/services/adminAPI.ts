@@ -13,7 +13,13 @@ export const adminAPI = {
   },
 
   // User management
-  getAllUsers: async (page = 1, limit = 10, search = "", role = "", status = "") => {
+  getAllUsers: async (
+    page = 1,
+    limit = 10,
+    search = "",
+    role = "",
+    status = ""
+  ) => {
     try {
       const params = new URLSearchParams({
         page: String(page),
@@ -50,7 +56,10 @@ export const adminAPI = {
     }
   },
 
-  updateUserDetails: async (userId: string, userData: Record<string, unknown>) => {
+  updateUserDetails: async (
+    userId: string,
+    userData: Record<string, unknown>
+  ) => {
     try {
       const response = await api.put(`/admin/users/${userId}`, userData);
       return response.data;
@@ -60,7 +69,11 @@ export const adminAPI = {
     }
   },
 
-  updateUserStatus: async (userId: string, accountStatus: string, reason?: string) => {
+  updateUserStatus: async (
+    userId: string,
+    accountStatus: string,
+    reason?: string
+  ) => {
     try {
       const response = await api.put(`/admin/users/${userId}/status`, {
         accountStatus,
@@ -135,9 +148,15 @@ export const adminAPI = {
     }
   },
 
-  updateTutorial: async (tutorialId: string, tutorialData: Record<string, unknown>) => {
+  updateTutorial: async (
+    tutorialId: string,
+    tutorialData: Record<string, unknown>
+  ) => {
     try {
-      const response = await api.put(`/admin/tutorials/${tutorialId}`, tutorialData);
+      const response = await api.put(
+        `/admin/tutorials/${tutorialId}`,
+        tutorialData
+      );
       return response.data;
     } catch (error) {
       console.error("Error updating tutorial:", error);
@@ -172,6 +191,24 @@ export const adminAPI = {
       return response.data;
     } catch (error) {
       console.error("Error fetching recent activity:", error);
+      throw error;
+    }
+  },
+
+  // Newsletter subscriptions
+  getNewsletterSubscriptions: async (filters = {}) => {
+    try {
+      const params = new URLSearchParams();
+      if (filters.search) params.append("search", filters.search);
+      if (filters.page) params.append("page", filters.page.toString());
+      if (filters.limit) params.append("limit", filters.limit.toString());
+
+      const response = await api.get(
+        `/admin/newsletter-subscriptions?${params}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching newsletter subscriptions:", error);
       throw error;
     }
   },

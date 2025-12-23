@@ -12,6 +12,15 @@ function EditorPage() {
     problems: [] as any[],
   });
 
+  // Gentle scroll prevention without interfering with page layout
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   // Resizable AI panel state
   const [aiPanelWidth, setAiPanelWidth] = useState(400); // Default width in pixels
   const [previousWidth, setPreviousWidth] = useState(400); // Store width when minimized

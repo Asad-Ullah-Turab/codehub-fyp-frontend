@@ -165,6 +165,18 @@ export default function CodeEditor({
     }
   }, [isAuthenticated]);
 
+  // --- Prevent auto-scroll on mount ---
+  useEffect(() => {
+    // Gentle scroll correction after mount
+    const timer = setTimeout(() => {
+      if (window.scrollY > 0) {
+        window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      }
+    }, 200);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
   // --- Show recovery notification if code was loaded from localStorage ---
   useEffect(() => {
     const savedData = loadCodeFromStorage();
@@ -781,7 +793,10 @@ export default function CodeEditor({
   };
 
   return (
-    <div className="flex flex-col h-full w-full">
+    <div 
+      className="flex flex-col h-full w-full" 
+      style={{ scrollBehavior: "auto" }}
+    >
       <div
         className="flex flex-col flex-1 bg-gray-50 overflow-hidden"
         style={{ minHeight: 0 }}
@@ -950,8 +965,19 @@ export default function CodeEditor({
               renderWhitespace: "boundary",
               renderControlCharacters: false,
               cursorBlinking: "blink",
-              cursorSmoothCaretAnimation: "on",
-              smoothScrolling: true,
+              cursorSmoothCaretAnimation: "off",
+              smoothScrolling: false,
+              scrollbar: {
+                verticalScrollbarSize: 14,
+                horizontalScrollbarSize: 14,
+                alwaysConsumeMouseWheel: false,
+              },
+              // Prevent initial focus and selection
+              selectOnLineNumbers: false,
+              selectionHighlight: true,
+              occurrencesHighlight: "off",
+              // Disable animations that might cause scroll
+              disableLayerHinting: true,
               find: {
                 addExtraSpaceOnTop: false,
                 autoFindInSelection: "never",

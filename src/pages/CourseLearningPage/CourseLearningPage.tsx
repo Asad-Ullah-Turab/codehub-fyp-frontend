@@ -677,6 +677,48 @@ const CourseLearningPage: React.FC = () => {
         ref={containerRef}
         className="flex h-screen bg-gray-50 overflow-hidden overflow-x-hidden"
       >
+        {/* AI Panel Toggle Button */}
+        <button
+          onClick={toggleAiPanel}
+          className="absolute z-10 w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-l-lg flex items-center justify-center shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl"
+          style={{
+            right: isAiMinimized ? "12px" : `${aiPanelWidth + 4}px`,
+            top: "50vh",
+            transform: "translateY(-50%)",
+          }}
+          title={isAiMinimized ? "Expand AI Chat" : "Minimize AI Chat"}
+        >
+          {isAiMinimized ? (
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          )}
+        </button>
+
         {/* Left Sidebar Toggle Button */}
         <button
           onClick={toggleLeftSidebar}
@@ -1218,43 +1260,6 @@ const CourseLearningPage: React.FC = () => {
               maxWidth: isAiMinimized ? "48px" : "600px",
             }}
           >
-            {/* AI Panel Toggle Button */}
-            <button
-              onClick={toggleAiPanel}
-              className="absolute top-2 right-2 z-10 w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg flex items-center justify-center shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl"
-              title={isAiMinimized ? "Expand AI Chat" : "Minimize AI Chat"}
-            >
-              {isAiMinimized ? (
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              )}
-            </button>
-
             {!isAiMinimized && (
               <AIChatAssistant
                 context="course"

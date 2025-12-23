@@ -12,6 +12,21 @@ function AdminPortal() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [highlightedItem, setHighlightedItem] = useState<{
+    type: string;
+    id: string;
+  } | null>(null);
+
+  const handleTabNavigation = (tab: string, data?: any) => {
+    setActiveTab(tab);
+    if (data) {
+      setHighlightedItem({ type: tab, id: data.userId || data.tutorialId || data.courseId });
+      // Clear highlight after 3 seconds
+      setTimeout(() => {
+        setHighlightedItem(null);
+      }, 3000);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -268,15 +283,24 @@ function AdminPortal() {
       <main className="flex-1 flex flex-col overflow-hidden bg-gray-50">
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === "dashboard" && <AdminDashboard onNavigate={setActiveTab} />}
+          {activeTab === "dashboard" && <AdminDashboard onNavigate={handleTabNavigation} />}
           {activeTab === "users" && (
-            <UserManagement onError={(msg: string) => console.error(msg)} />
+            <UserManagement 
+              onError={(msg: string) => console.error(msg)}
+              highlightedUserId={highlightedItem?.type === 'users' ? highlightedItem.id : undefined}
+            />
           )}
           {activeTab === "tutorials" && (
-            <TutorialManagement onError={(msg: string) => console.error(msg)} />
+            <TutorialManagement 
+              onError={(msg: string) => console.error(msg)}
+              highlightedTutorialId={highlightedItem?.type === 'tutorials' ? highlightedItem.id : undefined}
+            />
           )}
           {activeTab === "courses" && (
-            <CourseManagement onError={(msg: string) => console.error(msg)} />
+            <CourseManagement 
+              onError={(msg: string) => console.error(msg)}
+              highlightedCourseId={highlightedItem?.type === 'courses' ? highlightedItem.id : undefined}
+            />
           )}
           {activeTab === "analytics" && (
             <AnalyticsDashboard onError={(msg: string) => console.error(msg)} />

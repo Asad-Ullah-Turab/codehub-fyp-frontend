@@ -6,11 +6,17 @@ import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
 import CourseForm from "./CourseForm";
 import SectionManagement from "./SectionManagement";
 
-export default function CourseManagement() {
+interface CourseManagementProps {
+  onError?: (message: string) => void;
+  highlightedCourseId?: string;
+}
+
+export default function CourseManagement({ highlightedCourseId }: CourseManagementProps) {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [highlightedCourse, setHighlightedCourse] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState({
     show: false,
     courseId: null as string | null,
@@ -72,6 +78,17 @@ export default function CourseManagement() {
   });
 
   const { showToast } = useToast();
+
+  // Handle highlighting
+  useEffect(() => {
+    if (highlightedCourseId) {
+      setHighlightedCourse(highlightedCourseId);
+      // Remove highlight after animation
+      setTimeout(() => {
+        setHighlightedCourse(null);
+      }, 3000);
+    }
+  }, [highlightedCourseId]);
 
   // Fetch courses
   const fetchCourses = useCallback(async () => {
@@ -367,7 +384,11 @@ export default function CourseManagement() {
                 courses.map((course) => (
                   <tr
                     key={course._id}
-                    className="border-b border-gray-100 hover:bg-gray-50"
+                    className={`border-b border-gray-100 hover:bg-gray-50 transition-all duration-300 ${
+                      highlightedCourse === course._id 
+                        ? 'bg-blue-50 border-l-4 border-l-blue-500 border-r-4 border-r-blue-500 border-t-2 border-t-blue-400 border-b-2 border-b-blue-400 shadow-lg shadow-blue-200/50 animate-pulse' 
+                        : ''
+                    }`}
                   >
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900 font-medium">

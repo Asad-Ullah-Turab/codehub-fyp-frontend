@@ -114,13 +114,11 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   }, []);
 
   const handleEditTutorial = (tutorial: Tutorial) => {
-    setEditingItem(tutorial);
-    setShowTutorialModal(true);
+    onNavigate?.("tutorials", { tutorialId: tutorial._id });
   };
 
   const handleEditCourse = (course: Course) => {
-    setEditingItem(course);
-    setShowCourseModal(true);
+    onNavigate?.("courses", { courseId: course._id });
   };
 
   const loadDashboardStats = async () => {

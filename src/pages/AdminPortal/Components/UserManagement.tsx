@@ -17,12 +17,18 @@ import { adminAPI } from "../../../services/adminAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
 
-export default function UserManagement() {
+interface UserManagementProps {
+  onError?: (message: string) => void;
+  highlightedUserId?: string;
+}
+
+export default function UserManagement({ highlightedUserId }: UserManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [highlightedUser, setHighlightedUser] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     total: 0,
     pages: 0,
@@ -49,6 +55,17 @@ export default function UserManagement() {
   const [suspendFormData, setSuspendFormData] = useState({
     reason: "",
   });
+
+  // Handle highlighting
+  useEffect(() => {
+    if (highlightedUserId) {
+      setHighlightedUser(highlightedUserId);
+      // Remove highlight after animation
+      setTimeout(() => {
+        setHighlightedUser(null);
+      }, 3000);
+    }
+  }, [highlightedUserId]);
 
   useEffect(() => {
     fetchUsers();
@@ -287,7 +304,11 @@ export default function UserManagement() {
                 users.map((user) => (
                   <tr
                     key={user._id}
-                    className="border-b border-gray-100 hover:bg-gray-50"
+                    className={`border-b border-gray-100 hover:bg-gray-50 transition-all duration-300 ${
+                      highlightedUser === user._id 
+                        ? 'bg-blue-50 border-l-4 border-l-blue-500 border-r-4 border-r-blue-500 border-t-2 border-t-blue-400 border-b-2 border-b-blue-400 shadow-lg shadow-blue-200/50 animate-pulse' 
+                        : ''
+                    }`}
                   >
                     <td className="px-4 py-4">
                       <input

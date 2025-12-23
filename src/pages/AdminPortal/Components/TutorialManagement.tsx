@@ -10,7 +10,12 @@ import { adminTutorialAPI } from "../../../services/adminTutorialAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
 
-export default function TutorialManagement() {
+interface TutorialManagementProps {
+  onError?: (message: string) => void;
+  highlightedTutorialId?: string;
+}
+
+export default function TutorialManagement({ highlightedTutorialId }: TutorialManagementProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTutorial, setEditingTutorial] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,6 +26,7 @@ export default function TutorialManagement() {
   const [languages, setLanguages] = useState<string[]>([]);
   const [concepts, setConcepts] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [highlightedTutorial, setHighlightedTutorial] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; tutorialId: string | null }>({
     show: false,
     tutorialId: null,
@@ -44,6 +50,17 @@ export default function TutorialManagement() {
   const [newConcept, setNewConcept] = useState("");
   const [showNewLanguageInput, setShowNewLanguageInput] = useState(false);
   const [showNewConceptInput, setShowNewConceptInput] = useState(false);
+
+  // Handle highlighting
+  useEffect(() => {
+    if (highlightedTutorialId) {
+      setHighlightedTutorial(highlightedTutorialId);
+      // Remove highlight after animation
+      setTimeout(() => {
+        setHighlightedTutorial(null);
+      }, 3000);
+    }
+  }, [highlightedTutorialId]);
 
   // Load tutorials on mount
   useEffect(() => {
@@ -388,7 +405,11 @@ export default function TutorialManagement() {
                 tutorials.map((tutorial) => (
                   <tr
                     key={tutorial._id}
-                    className="border-b border-gray-100 hover:bg-gray-50"
+                    className={`border-b border-gray-100 hover:bg-gray-50 transition-all duration-300 ${
+                      highlightedTutorial === tutorial._id 
+                        ? 'bg-blue-50 border-l-4 border-l-blue-500 border-r-4 border-r-blue-500 border-t-2 border-t-blue-400 border-b-2 border-b-blue-400 shadow-lg shadow-blue-200/50 animate-pulse' 
+                        : ''
+                    }`}
                   >
                     <td className="px-6 py-4 text-sm text-gray-900 font-medium">
                       {tutorial.title}

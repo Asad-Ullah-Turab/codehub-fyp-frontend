@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   fetchTutorialsByLanguageAndConcept,
@@ -23,18 +23,157 @@ const TutorialsDetailPage: React.FC = () => {
   const [selectedTutorial, setSelectedTutorial] = useState<Tutorial | null>(
     null
   );
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [tutorialLoading, setTutorialLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [savingTutorial, setSavingTutorial] = useState(false);
-  const [showAIChat, setShowAIChat] = useState(true);
   const [searchFilter, setSearchFilter] = useState("");
   const [showAIModal, setShowAIModal] = useState(false);
   const [aiTopicInput, setAiTopicInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Resizable sidebar state
+  const [leftSidebarWidth, setLeftSidebarWidth] = useState(320); // Default width in pixels
+  const [previousLeftWidth, setPreviousLeftWidth] = useState(320);
+  const [isLeftResizing, setIsLeftResizing] = useState(false);
+  const [isLeftMinimized, setIsLeftMinimized] = useState(false);
+
+  // Resizable AI panel state
+  const [aiPanelWidth, setAiPanelWidth] = useState(400); // Default width in pixels
+  const [previousAiWidth, setPreviousAiWidth] = useState(400);
+  const [isAiResizing, setIsAiResizing] = useState(false);
+  const [isAiMinimized, setIsAiMinimized] = useState(false);
+
+  const containerRef = React.useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
+
+  // Left sidebar resize handlers
+  const handleLeftMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsLeftResizing(true);
+  };
+
+  const handleLeftMouseMove = useCallback((e: MouseEvent) => {
+    if (!containerRef.current) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const newWidth = e.clientX - containerRect.left;
+
+    const minWidth = 250;
+    const maxWidth = Math.min(containerRect.width * 0.4, 600);
+
+    const clampedWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+    setLeftSidebarWidth(clampedWidth);
+    setPreviousLeftWidth(clampedWidth);
+  }, []);
+
+  const handleLeftMouseUp = useCallback(() => {
+    setIsLeftResizing(false);
+  }, []);
+
+  // AI panel resize handlers
+  const handleAiMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsAiResizing(true);
+  };
+
+  const handleAiMouseMove = useCallback((e: MouseEvent) => {
+    if (!containerRef.current) return;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const newWidth = containerRect.right - e.clientX;
+
+    const minWidth = 250;
+    const maxWidth = Math.min(containerRect.width * 0.4, 600);
+
+    const clampedWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+    setAiPanelWidth(clampedWidth);
+    setPreviousAiWidth(clampedWidth);
+  }, []);
+
+  const handleAiMouseUp = useCallback(() => {
+    setIsAiResizing(false);
+  }, []);
+
+  // Mouse event listeners
+  React.useEffect(() => {
+    const handleMove = (e: MouseEvent) => {
+      if (isLeftResizing) {
+        handleLeftMouseMove(e);
+      }
+      if (isAiResizing) {
+        handleAiMouseMove(e);
+      }
+    };
+
+    const handleUp = () => {
+      if (isLeftResizing) {
+        handleLeftMouseUp();
+      }
+      if (isAiResizing) {
+        handleAiMouseUp();
+      }
+    };
+
+    document.addEventListener("mousemove", handleMove);
+    document.addEventListener("mouseup", handleUp);
+
+    if (isLeftResizing || isAiResizing) {
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+    } else {
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMove);
+      document.removeEventListener("mouseup", handleUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [
+    isLeftResizing,
+    isAiResizing,
+    handleLeftMouseMove,
+    handleLeftMouseUp,
+    handleAiMouseMove,
+    handleAiMouseUp,
+  ]);
+
+  // Toggle functions
+  const toggleLeftSidebar = () => {
+    if (isLeftMinimized) {
+      if (containerRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const maxAllowedWidth = Math.min(containerRect.width * 0.4, 600);
+        const targetWidth = Math.min(previousLeftWidth, maxAllowedWidth);
+        const finalWidth = Math.max(250, targetWidth);
+
+        setLeftSidebarWidth(finalWidth);
+      }
+    } else {
+      setPreviousLeftWidth(leftSidebarWidth);
+    }
+    setIsLeftMinimized(!isLeftMinimized);
+  };
+
+  const toggleAiPanel = () => {
+    if (isAiMinimized) {
+      if (containerRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const maxAllowedWidth = Math.min(containerRect.width * 0.4, 600);
+        const targetWidth = Math.min(previousAiWidth, maxAllowedWidth);
+        const finalWidth = Math.max(250, targetWidth);
+
+        setAiPanelWidth(finalWidth);
+      }
+    } else {
+      setPreviousAiWidth(aiPanelWidth);
+    }
+    setIsAiMinimized(!isAiMinimized);
+  };
 
   const handleTutorialSelect = async (tutorial: Tutorial) => {
     try {
@@ -42,9 +181,9 @@ const TutorialsDetailPage: React.FC = () => {
 
       // Track view
       if (tutorial._id) {
-        viewTrackingAPI.trackTutorialView(tutorial._id).catch(err => 
-          console.error("Failed to track view:", err)
-        );
+        viewTrackingAPI
+          .trackTutorialView(tutorial._id)
+          .catch((err) => console.error("Failed to track view:", err));
       }
 
       // Always use the tutorial data we have since backend API is failing
@@ -87,7 +226,7 @@ const TutorialsDetailPage: React.FC = () => {
           language,
           "all"
         );
-        
+
         // If authenticated, also load user's created tutorials for this language
         let userCreatedTutorials: Tutorial[] = [];
         if (isAuthenticated) {
@@ -100,26 +239,30 @@ const TutorialsDetailPage: React.FC = () => {
             // Silently fail if user created tutorials can't be loaded
           }
         }
-        
+
         // Combine pre-generated and user's created tutorials
         const allTutorials = [...userCreatedTutorials, ...tutorialsData];
-        
+
         setTutorials(allTutorials);
 
         // Check if there's a specific tutorial to select from URL params
-        const tutorialIdFromUrl = searchParams.get('tutorialId');
-        const autoSelectId = localStorage.getItem('auto_select_tutorial');
+        const tutorialIdFromUrl = searchParams.get("tutorialId");
+        const autoSelectId = localStorage.getItem("auto_select_tutorial");
         let tutorialToSelect = allTutorials[0]; // Default to first
-        
+
         // Check for auto-select from localStorage (from global notification)
         if (autoSelectId) {
-          const foundTutorial = allTutorials.find(t => t._id === autoSelectId);
+          const foundTutorial = allTutorials.find(
+            (t) => t._id === autoSelectId
+          );
           if (foundTutorial) {
             tutorialToSelect = foundTutorial;
-            localStorage.removeItem('auto_select_tutorial');
+            localStorage.removeItem("auto_select_tutorial");
           }
         } else if (tutorialIdFromUrl) {
-          const foundTutorial = allTutorials.find(t => t._id === tutorialIdFromUrl);
+          const foundTutorial = allTutorials.find(
+            (t) => t._id === tutorialIdFromUrl
+          );
           if (foundTutorial) {
             tutorialToSelect = foundTutorial;
           }
@@ -192,9 +335,12 @@ const TutorialsDetailPage: React.FC = () => {
     setShowAIModal(false);
     const topic = aiTopicInput.trim();
     setAiTopicInput("");
-    
+
     setIsGenerating(true);
-    showToast(`Generating tutorial about "${topic}"... This may take 10-20 seconds.`, "info");
+    showToast(
+      `Generating tutorial about "${topic}"... This may take 10-20 seconds.`,
+      "info"
+    );
 
     try {
       // Create the tutorial data - AI will generate the content on backend
@@ -207,25 +353,30 @@ const TutorialsDetailPage: React.FC = () => {
 
       // Call the API to create the tutorial - backend will use OpenAI to generate content
       const response = await tutorialAPI.createTutorial(tutorialData);
-      
+
       if (response.success) {
         const newTutorial = response.data;
-        
+
         // Add the new tutorial to the list
-        setTutorials(prev => [newTutorial, ...prev]);
-        
+        setTutorials((prev) => [newTutorial, ...prev]);
+
         // Store in localStorage for global notification
-        localStorage.setItem('ai_tutorial_success', JSON.stringify(newTutorial));
-        
+        localStorage.setItem(
+          "ai_tutorial_success",
+          JSON.stringify(newTutorial)
+        );
+
         showToast("Tutorial generated successfully!", "success");
       } else {
         showToast("Failed to generate tutorial", "error");
       }
     } catch (error: unknown) {
       console.error("Error generating tutorial:", error);
-      const errorMessage = error && typeof error === 'object' && 'response' in error 
-        ? ((error as {response?: {data?: {message?: string}}}).response?.data?.message || "Failed to generate tutorial")
-        : "Failed to generate tutorial";
+      const errorMessage =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response
+              ?.data?.message || "Failed to generate tutorial"
+          : "Failed to generate tutorial";
       showToast(errorMessage, "error");
     } finally {
       setIsGenerating(false);
@@ -236,8 +387,6 @@ const TutorialsDetailPage: React.FC = () => {
     setShowAIModal(false);
     setAiTopicInput("");
   };
-
-
 
   // Map tutorial language to editor language ID
   const mapLanguageToEditorId = (language: string): string => {
@@ -373,34 +522,24 @@ const TutorialsDetailPage: React.FC = () => {
         }
       `}</style>
 
-      <div className="flex h-screen bg-gray-50 overflow-hidden overflow-x-hidden">
-        {/* Sidebar Toggle Button */}
+      <div
+        ref={containerRef}
+        className="flex h-screen bg-gray-50 overflow-hidden overflow-x-hidden"
+      >
+        {/* Left Sidebar Toggle Button */}
         <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="absolute z-10 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-r-lg shadow-lg transition-all duration-300"
+          onClick={toggleLeftSidebar}
+          className="absolute z-10 w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-r-lg flex items-center justify-center shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl"
           style={{
-            left: sidebarOpen ? "256px" : "0px",
+            left: isLeftMinimized ? "12px" : `${leftSidebarWidth + 4}px`,
             top: "50vh",
             transform: "translateY(-50%)",
           }}
+          title={isLeftMinimized ? "Expand Tutorials" : "Minimize Tutorials"}
         >
-          {sidebarOpen ? (
+          {isLeftMinimized ? (
             <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          ) : (
-            <svg
-              className="w-5 h-5"
+              className="w-4 h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -412,110 +551,145 @@ const TutorialsDetailPage: React.FC = () => {
                 d="M9 5l7 7-7 7"
               />
             </svg>
+          ) : (
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
           )}
         </button>
 
-        {/* Sidebar - Similar to image */}
+        {/* Left Sidebar */}
         <div
-          className={`${
-            sidebarOpen ? "w-64" : "w-0"
-          } transition-all duration-300 bg-white border-r border-gray-200 overflow-hidden flex flex-col`}
+          className="bg-white border-r border-gray-200 overflow-hidden flex flex-col transition-all duration-300"
+          style={{
+            width: isLeftMinimized ? "48px" : `${leftSidebarWidth}px`,
+            minWidth: isLeftMinimized ? "48px" : "250px",
+            maxWidth: isLeftMinimized ? "48px" : "600px",
+          }}
         >
-          <div className="p-4 border-b border-gray-200">
-            <input
-              type="text"
-              placeholder="Filter tutorials"
-              value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-            />
-          </div>
+          {!isLeftMinimized && (
+            <>
+              <div className="p-4 border-b border-gray-200">
+                <input
+                  type="text"
+                  placeholder="Filter tutorials"
+                  value={searchFilter}
+                  onChange={(e) => setSearchFilter(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
 
-          <div className="flex-1 overflow-y-auto p-4 hide-scrollbar">
-            <div className="space-y-2">
-              {filteredTutorials.length > 0 ? (
-                filteredTutorials.map((tutorial) => {
-                  const isPersonal = tutorial.tags?.includes('personal') || tutorial.tags?.includes('AI-generated');
-                  return (
-                    <div
-                      key={tutorial._id}
-                      onClick={() => handleTutorialSelect(tutorial)}
-                      className={`p-3 rounded-lg cursor-pointer transition-all text-sm ${
-                        selectedTutorial?._id === tutorial._id
-                          ? "bg-blue-50 border border-blue-200 text-blue-800"
-                          : "hover:bg-gray-50 text-gray-700"
-                      }`}
-                    >
-                      <div className="font-medium mb-1 flex items-center gap-2">
-                        <span>• {tutorial.title}</span>
-                        {isPersonal && (
-                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
-                            My
-                          </span>
-                        )}
-                      </div>
+              <div className="flex-1 overflow-y-auto p-4 hide-scrollbar">
+                <div className="space-y-2">
+                  {filteredTutorials.length > 0 ? (
+                    filteredTutorials.map((tutorial) => {
+                      const isPersonal =
+                        tutorial.tags?.includes("personal") ||
+                        tutorial.tags?.includes("AI-generated");
+                      return (
+                        <div
+                          key={tutorial._id}
+                          onClick={() => handleTutorialSelect(tutorial)}
+                          className={`p-3 rounded-lg cursor-pointer transition-all text-sm ${
+                            selectedTutorial?._id === tutorial._id
+                              ? "bg-blue-50 border border-blue-200 text-blue-800"
+                              : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                        >
+                          <div className="font-medium mb-1 flex items-center gap-2">
+                            <span>• {tutorial.title}</span>
+                            {isPersonal && (
+                              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
+                                My
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 text-sm">
+                      <svg
+                        className="w-12 h-12 mx-auto mb-2 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      No tutorials found
                     </div>
-                  );
-                })
-              ) : (
-                <div className="text-center py-8 text-gray-500 text-sm">
-                  <svg
-                    className="w-12 h-12 mx-auto mb-2 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  No tutorials found
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
 
-          {/* Generate with AI Button */}
-          <div className="p-4 border-t border-gray-200">
-            <button 
-              onClick={handleGenerateAITutorial}
-              disabled={isGenerating}
-              className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isGenerating ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                    />
-                  </svg>
-                  Generate with AI
-                </>
-              )}
-            </button>
-          </div>
+              {/* Generate with AI Button */}
+              <div className="p-4 border-t border-gray-200">
+                <button
+                  onClick={handleGenerateAITutorial}
+                  disabled={isGenerating}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                        />
+                      </svg>
+                      Generate with AI
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
+        {/* Left Sidebar Resize Handle */}
+        {!isLeftMinimized && (
+          <div
+            onMouseDown={handleLeftMouseDown}
+            className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize flex-shrink-0 transition-colors duration-150 relative group"
+          >
+            <div className="absolute inset-y-0 -left-1 -right-1 flex items-center justify-center">
+              <div className="w-1 h-8 bg-gray-400 rounded opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </div>
+          </div>
+        )}
+
         {/* Main Content Area */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden min-w-0">
           {/* Tutorial Content */}
-          <div className="flex-1 overflow-y-auto hide-scrollbar overflow-x-hidden">
+          <div className="flex-1 overflow-y-auto hide-scrollbar overflow-x-hidden min-w-0">
             {selectedTutorial ? (
               <>
                 {/* Breadcrumb */}
@@ -574,7 +748,9 @@ const TutorialsDetailPage: React.FC = () => {
                           <div className="flex gap-3">
                             <button
                               className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all bg-purple-50 text-purple-600 border border-purple-200 hover:shadow-md hover:bg-purple-100"
-                              onClick={() => exportTutorialToPDF(selectedTutorial)}
+                              onClick={() =>
+                                exportTutorialToPDF(selectedTutorial)
+                              }
                               title="Export as PDF"
                             >
                               <svg
@@ -598,45 +774,47 @@ const TutorialsDetailPage: React.FC = () => {
                                   ? "bg-red-50 text-red-600 border border-red-200"
                                   : "bg-blue-50 text-blue-600 border border-blue-200"
                               } ${
-                                savingTutorial ? "opacity-60" : "hover:shadow-md"
+                                savingTutorial
+                                  ? "opacity-60"
+                                  : "hover:shadow-md"
                               }`}
                               onClick={handleSaveTutorial}
                               disabled={savingTutorial}
                             >
-                            {isSaved ? (
-                              <>
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                                Saved
-                              </>
-                            ) : (
-                              <>
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                                  />
-                                </svg>
-                                Save
-                              </>
-                            )}
-                          </button>
+                              {isSaved ? (
+                                <>
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  Saved
+                                </>
+                              ) : (
+                                <>
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                                    />
+                                  </svg>
+                                  Save
+                                </>
+                              )}
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -896,7 +1074,7 @@ const TutorialsDetailPage: React.FC = () => {
                               )
                             )}
                           </div>
-                        )}{" "}
+                        )}
                       {/* Key Takeaways Box */}
                       {selectedTutorial.notes &&
                         selectedTutorial.notes.length > 0 && (
@@ -1052,69 +1230,36 @@ const TutorialsDetailPage: React.FC = () => {
             )}
           </div>
 
-          {/* AI Assistant Panel */}
-          {showAIChat && (
-            <div className="w-96 flex-shrink-0 overflow-hidden">
-              <AIChatAssistant
-                context="tutorial"
-                contextTitle={selectedTutorial?.title}
-                contextId={selectedTutorial?._id}
-                contentScope={selectedTutorial?.content}
-              />
+          {/* AI Resize Handle */}
+          {!isAiMinimized && (
+            <div
+              onMouseDown={handleAiMouseDown}
+              className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize flex-shrink-0 transition-colors duration-150 relative group"
+            >
+              <div className="absolute inset-y-0 -left-1 -right-1 flex items-center justify-center">
+                <div className="w-1 h-8 bg-gray-400 rounded opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </div>
             </div>
           )}
-        </div>
 
-        {/* AI Chat Toggle Button */}
-        <button
-          onClick={() => setShowAIChat(!showAIChat)}
-          className="absolute z-10 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-l-lg shadow-lg transition-all duration-300"
-          style={{
-            right: showAIChat ? "384px" : "0px",
-            top: "50vh",
-            transform: "translateY(-50%)",
-          }}
-        >
-          {showAIChat ? (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          {/* AI Assistant Panel */}
+          <div
+            className="bg-white flex-shrink-0 transition-all duration-300 overflow-hidden relative"
+            style={{
+              width: isAiMinimized ? "48px" : `${aiPanelWidth}px`,
+              minWidth: isAiMinimized ? "48px" : "250px",
+              maxWidth: isAiMinimized ? "48px" : "600px",
+            }}
+          >
+            {/* AI Panel Toggle Button */}
+            <button
+              onClick={toggleAiPanel}
+              className="absolute top-2 right-2 z-10 w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg flex items-center justify-center shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl"
+              title={isAiMinimized ? "Expand AI Chat" : "Minimize AI Chat"}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          ) : (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          )}
-        </button>
-      </div>
-
-      {/* AI Tutorial Generation Modal */}
-      {showAIModal && (
-        <div className="fixed inset-0 backdrop-blur-md bg-opacity-20 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              {isAiMinimized ? (
                 <svg
-                  className="w-6 h-6 text-purple-600"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -1123,84 +1268,173 @@ const TutorialsDetailPage: React.FC = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                    d="M15 19l-7-7 7-7"
                   />
                 </svg>
-                Generate Tutorial
-              </h2>
-              <button
-                onClick={handleCloseAIModal}
-                disabled={isGenerating}
-                className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
-              </button>
-            </div>
+              )}
+            </button>
 
-            <div className="mb-6">
-              <p className="text-gray-600 mb-1">
-                Creating <span className="font-semibold text-purple-600">personal tutorial</span> for: <span className="font-semibold text-gray-900">{language?.toUpperCase()}</span>
-              </p>
-              <p className="text-sm text-gray-500">
-                This tutorial will be created for you and saved to your account.
-              </p>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Topic / Concept Name
-              </label>
-              <input
-                type="text"
-                value={aiTopicInput}
-                onChange={(e) => setAiTopicInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && !isGenerating && handleGenerateTutorial()}
-                placeholder={`e.g., ${language === 'python' ? 'List Comprehensions' : language === 'javascript' ? 'Arrow Functions' : 'Pointers and References'}`}
-                disabled={isGenerating}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                autoFocus
+            {!isAiMinimized && (
+              <AIChatAssistant
+                context="tutorial"
+                contextTitle={selectedTutorial?.title}
+                contextId={selectedTutorial?._id}
+                contentScope={selectedTutorial?.content}
               />
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={handleCloseAIModal}
-                disabled={isGenerating}
-                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleGenerateTutorial}
-                disabled={isGenerating || !aiTopicInput.trim()}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isGenerating ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    Generate
-                  </>
-                )}
-              </button>
-            </div>
-
-            <div className="mt-4 p-3 bg-purple-50 rounded-lg">
-              <p className="text-xs text-purple-800">
-                <span className="font-semibold">💡 Tip:</span> The AI will generate a personal tutorial with examples and code snippets. This tutorial will be saved to your account and you can edit it anytime.
-              </p>
-            </div>
+            )}
           </div>
         </div>
-      )}
+
+        {/* AI Tutorial Generation Modal */}
+        {showAIModal && (
+          <div className="fixed inset-0 backdrop-blur-md bg-opacity-20 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <svg
+                    className="w-6 h-6 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                    />
+                  </svg>
+                  Generate Tutorial
+                </h2>
+                <button
+                  onClick={handleCloseAIModal}
+                  disabled={isGenerating}
+                  className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-gray-600 mb-1">
+                  Creating{" "}
+                  <span className="font-semibold text-purple-600">
+                    personal tutorial
+                  </span>{" "}
+                  for:{" "}
+                  <span className="font-semibold text-gray-900">
+                    {language?.toUpperCase()}
+                  </span>
+                </p>
+                <p className="text-sm text-gray-500">
+                  This tutorial will be created for you and saved to your
+                  account.
+                </p>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Topic / Concept Name
+                </label>
+                <input
+                  type="text"
+                  value={aiTopicInput}
+                  onChange={(e) => setAiTopicInput(e.target.value)}
+                  onKeyPress={(e) =>
+                    e.key === "Enter" &&
+                    !isGenerating &&
+                    handleGenerateTutorial()
+                  }
+                  placeholder={`e.g., ${
+                    language === "python"
+                      ? "List Comprehensions"
+                      : language === "javascript"
+                      ? "Arrow Functions"
+                      : "Pointers and References"
+                  }`}
+                  disabled={isGenerating}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCloseAIModal}
+                  disabled={isGenerating}
+                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleGenerateTutorial}
+                  disabled={isGenerating || !aiTopicInput.trim()}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
+                      Generate
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="mt-4 p-3 bg-purple-50 rounded-lg">
+                <p className="text-xs text-purple-800">
+                  <span className="font-semibold">💡 Tip:</span> The AI will
+                  generate a personal tutorial with examples and code snippets.
+                  This tutorial will be saved to your account and you can edit
+                  it anytime.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 };

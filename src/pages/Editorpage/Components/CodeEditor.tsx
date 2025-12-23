@@ -472,10 +472,16 @@ export default function CodeEditor({
   const formatPythonCode = (code: string): string => {
     const lines = code.split("\n");
     const formattedLines: string[] = [];
-    let indentLevel = 0;
     const indentSize = 4; // 4 spaces per indent level
     let consecutiveEmptyLines = 0;
     const maxConsecutiveEmptyLines = 2; // Allow max 2 consecutive empty lines
+    
+    // Track the actual indentation from the original code
+    // This preserves the user's intended structure
+    const getIndentLevel = (line: string): number => {
+      const leadingSpaces = line.match(/^(\s*)/)?.[1].length || 0;
+      return Math.floor(leadingSpaces / indentSize);
+    };
 
     lines.forEach((line) => {
       const trimmed = line.trim();
@@ -492,26 +498,12 @@ export default function CodeEditor({
       // Reset empty line counter when we hit content
       consecutiveEmptyLines = 0;
 
-      // Handle dedent keywords first (before applying indent)
-      if (trimmed.match(/^(elif|else|except|finally)\b/)) {
-        indentLevel = Math.max(0, indentLevel - 1);
-      }
-
-      // Apply current indent
-      const indent = " ".repeat(indentLevel * indentSize);
+      // Get the original indent level
+      const originalIndent = getIndentLevel(line);
+      
+      // Apply the original indent (preserving structure)
+      const indent = " ".repeat(originalIndent * indentSize);
       formattedLines.push(indent + trimmed);
-
-      // Handle indent changes for next line
-      if (trimmed.endsWith(":")) {
-        // Increase indent for next line after colon
-        indentLevel += 1;
-      } else if (
-        trimmed.match(/^(return|break|continue|pass)\b/) &&
-        indentLevel > 0
-      ) {
-        // Decrease indent after control flow statements
-        indentLevel = Math.max(0, indentLevel - 1);
-      }
     });
 
     // Remove trailing empty lines but keep one

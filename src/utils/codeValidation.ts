@@ -398,10 +398,15 @@ export const checkCppSyntax = (code: string): ValidationError[] => {
     }
 
     // Check for missing semicolons on statements
+    // Skip lines that are: empty, comments, preprocessor directives, don't end with special chars,
+    // control structures, or contain stream operators
     if (
       trimmed &&
       !trimmed.startsWith("//") &&
+      !trimmed.startsWith("/*") &&
+      !trimmed.startsWith("*") &&
       !trimmed.startsWith("#") &&
+      !line.includes("//") && // Skip any line containing a comment
       !trimmed.endsWith(";") &&
       !trimmed.endsWith("{") &&
       !trimmed.endsWith("}") &&

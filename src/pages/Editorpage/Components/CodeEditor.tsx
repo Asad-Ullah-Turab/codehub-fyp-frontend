@@ -1041,10 +1041,18 @@ export default function CodeEditor({
             {/* Minimize/Maximize Toggle */}
             <button
               onClick={toggleBottomPanel}
-              className="w-6 h-6 bg-gray-600 hover:bg-gray-700 text-white rounded flex items-center justify-center text-xs transition-colors"
+              className="w-8 h-8 bg-gradient-to-b from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-lg flex items-center justify-center shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
               title={isBottomPanelMinimized ? "Expand Panel" : "Minimize Panel"}
             >
-              {isBottomPanelMinimized ? "↑" : "↓"}
+              {isBottomPanelMinimized ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              )}
             </button>
           </div>
 
@@ -1102,15 +1110,6 @@ export default function CodeEditor({
                 </button>
               </div>
             )}
-
-            {/* Minimize/Maximize Toggle */}
-            <button
-              onClick={toggleBottomPanel}
-              className="w-6 h-6 bg-gray-600 hover:bg-gray-700 text-white rounded flex items-center justify-center text-xs transition-colors"
-              title={isBottomPanelMinimized ? "Expand Panel" : "Minimize Panel"}
-            >
-              {isBottomPanelMinimized ? "↑" : "↓"}
-            </button>
           </div>
         </div>
         {/* Panel Content */}

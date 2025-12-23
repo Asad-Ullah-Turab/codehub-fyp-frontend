@@ -155,10 +155,18 @@ function EditorPage() {
         {/* Minimize/Maximize Toggle */}
         <button
           onClick={toggleMinimize}
-          className="absolute top-3 left-3 z-10 w-6 h-6 bg-gray-600 hover:bg-gray-700 text-white rounded-full flex items-center justify-center text-xs transition-colors"
+          className="absolute top-2 left-2 z-10 w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg flex items-center justify-center shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl"
           title={isMinimized ? "Expand AI Chat" : "Minimize AI Chat"}
         >
-          {isMinimized ? "→" : "←"}
+          {isMinimized ? (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          )}
         </button>
         
         {!isMinimized && (

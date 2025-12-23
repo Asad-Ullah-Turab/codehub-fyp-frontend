@@ -85,9 +85,10 @@ export default function Header() {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
             >
-              {user?.profilePicture && getProfileImageUrl(user.profilePicture) ? (
+              {user?.profilePicture &&
+              getProfileImageUrl(user.profilePicture) ? (
                 <img
-                  src={getProfileImageUrl(user.profilePicture) || ''}
+                  src={getProfileImageUrl(user.profilePicture) || ""}
                   alt={user.name}
                   className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
                 />
@@ -119,9 +120,10 @@ export default function Header() {
                 {/* User Info */}
                 <div className="px-4 py-3 border-b border-gray-100">
                   <div className="flex items-center space-x-3">
-                    {user?.profilePicture && getProfileImageUrl(user.profilePicture) ? (
+                    {user?.profilePicture &&
+                    getProfileImageUrl(user.profilePicture) ? (
                       <img
-                        src={getProfileImageUrl(user.profilePicture) || ''}
+                        src={getProfileImageUrl(user.profilePicture) || ""}
                         alt={user.name}
                         className="w-12 h-12 rounded-full object-cover"
                       />
@@ -130,11 +132,11 @@ export default function Header() {
                         {getAvatarDisplay()}
                       </div>
                     )}
-                    <div>
-                      <p className="font-semibold text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">
                         {user?.name}
                       </p>
-                      <p className="text-sm text-gray-600">{user?.email}</p>
+                      <p className="text-sm text-gray-600 truncate">{user?.email}</p>
                       <span
                         className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
                           user?.role === "admin"
@@ -330,7 +332,7 @@ export default function Header() {
           >
             {user?.profilePicture && getProfileImageUrl(user.profilePicture) ? (
               <img
-                src={getProfileImageUrl(user.profilePicture) || ''}
+                src={getProfileImageUrl(user.profilePicture) || ""}
                 alt={user.name}
                 className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
               />
@@ -362,11 +364,12 @@ export default function Header() {
       {isAuthenticated && dropdownOpen && (
         <div className="lg:hidden absolute right-4 top-16 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-50">
           {/* User Info */}
-          <div className="px-4 py-3 border-b border-gray-100">
+          <div className="px-4 py-3 w-full border-b border-gray-100">
             <div className="flex items-center space-x-3">
-              {user?.profilePicture && getProfileImageUrl(user.profilePicture) ? (
+              {user?.profilePicture &&
+              getProfileImageUrl(user.profilePicture) ? (
                 <img
-                  src={getProfileImageUrl(user.profilePicture) || ''}
+                  src={getProfileImageUrl(user.profilePicture) || ""}
                   alt={user.name}
                   className="w-12 h-12 rounded-full object-cover"
                 />

@@ -13,19 +13,39 @@ const Hero = () => {
         <div className="max-w-4xl text-center relative">
           {/* Technology Icons - Hidden on mobile, shown on larger screens */}
           <div className="hidden lg:block absolute right-1/2 -top-30 flex flex-col items-center">
-            <img src={Cpp} alt="C++" className="w-12 h-12 xl:w-16 xl:h-16 mb-2" />
+            <img
+              src={Cpp}
+              alt="C++"
+              className="w-12 h-12 xl:w-16 xl:h-16 mb-2"
+            />
           </div>
           <div className="hidden lg:block absolute -left-42 top-0 flex flex-col items-center">
-            <img src={Java} alt="Java" className="w-12 h-12 xl:w-16 xl:h-16 mb-2" />
+            <img
+              src={Java}
+              alt="Java"
+              className="w-12 h-12 xl:w-16 xl:h-16 mb-2"
+            />
           </div>
           <div className="hidden lg:block absolute -right-42 top-0 flex flex-col items-center">
-            <img src={Python} alt="Python" className="w-12 h-12 xl:w-16 xl:h-16 mb-2" />
+            <img
+              src={Python}
+              alt="Python"
+              className="w-12 h-12 xl:w-16 xl:h-16 mb-2"
+            />
           </div>
           <div className="hidden md:block absolute -left-25 bottom-8 flex flex-col items-center">
-            <img src={Html} alt="HTML" className="w-12 h-12 xl:w-16 xl:h-16 mb-2" />
+            <img
+              src={Html}
+              alt="HTML"
+              className="w-12 h-12 xl:w-16 xl:h-16 mb-2"
+            />
           </div>
           <div className="hidden md:block absolute -right-25 bottom-8 flex flex-col items-center">
-            <img src={Javascript} alt="JavaScript" className="w-12 h-12 xl:w-16 xl:h-16 mb-2" />
+            <img
+              src={Javascript}
+              alt="JavaScript"
+              className="w-12 h-12 xl:w-16 xl:h-16 mb-2"
+            />
           </div>
 
           {/* Main Heading */}
@@ -65,7 +85,7 @@ const Hero = () => {
               Explore Courses
             </Link>
             <Link
-              to="/free-course"
+              to="/courses"
               className="w-full sm:w-auto px-6 sm:px-8 py-[10px] sm:py-[10px] border-2 border-gray-800 text-gray-800 rounded font-medium hover:bg-gray-800 hover:text-white transition-colors text-center"
             >
               Join Free Course

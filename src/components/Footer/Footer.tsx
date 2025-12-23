@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   FaFacebookF,
   FaLinkedinIn,
@@ -5,8 +6,48 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
+import { subscribeToNewsletter } from "../../services/subscriptionAPI";
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error" | "">("");
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (isSubmitting) return;
+    
+    // Basic validation
+    if (!email.trim()) {
+      setMessage("Please enter your email address");
+      setMessageType("error");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setMessage("");
+    setMessageType("");
+
+    try {
+      const result = await subscribeToNewsletter(email);
+      
+      // Handle both success and already subscribed cases as success
+      setMessage(result.message);
+      setMessageType("success");
+      
+      // Only clear email on new subscription, not on already subscribed
+      if (!result.message.includes("already subscribed")) {
+        setEmail("");
+      }
+    } catch (error) {
+      setMessage("An unexpected error occurred. Please try again.");
+      setMessageType("error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <footer className="bg-black text-white py-12 border-t border-gray-700">
       {/* Top Section */}
@@ -108,20 +149,36 @@ export default function Footer() {
         </div>
         <div>
           <h3 className="text-xl font-semibold mb-4 border-b-2 border-white inline-block">
-            Company
+            Newsletter
           </h3>
-          <form className="flex flex-col space-y-4 text-white">
+          <p className="text-gray-300 text-sm mb-4">
+            Subscribe to get the latest coding tutorials and updates from CodeHub!
+          </p>
+          <form onSubmit={handleSubscribe} className="flex flex-col space-y-4 text-white">
             <input
               type="email"
               placeholder="Enter your email"
-              className="px-4 py-3 rounded-md border-gray-700 focus:border-white border-1 focus:outline-none"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isSubmitting}
+              className="px-4 py-3 rounded-md border-gray-700 focus:border-white border-1 focus:outline-none text-black disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               type="submit"
-              className="bg-gray-100 text-black font-semibold py-3 rounded-md hover:bg-white transition"
+              disabled={isSubmitting}
+              className="bg-gray-100 text-black font-semibold py-3 rounded-md hover:bg-white transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Subscribe
+              {isSubmitting ? "Subscribing..." : "Subscribe"}
             </button>
+            {message && (
+              <p className={`text-sm mt-2 ${
+                messageType === "success" 
+                  ? "text-green-400" 
+                  : "text-red-400"
+              }`}>
+                {message}
+              </p>
+            )}
           </form>
         </div>
       </div>

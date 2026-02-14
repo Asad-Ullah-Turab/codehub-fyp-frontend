@@ -42,7 +42,7 @@ export const testTokenValidity = async (): Promise<boolean> => {
       return false;
     }
   } catch (error) {
-    console.log('❌ Token test error:', error);
+    console.error('Token test error:', error);
     return false;
   }
 };

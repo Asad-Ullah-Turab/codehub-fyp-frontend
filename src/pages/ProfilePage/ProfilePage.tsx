@@ -217,12 +217,10 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleGoToProfile = async () => {
-    console.log("Go to profile button clicked in ProfilePage");
     setShowProfileModal(false);
     setActiveTab("settings");
     try {
       const result = await markPromptShown();
-      console.log("Prompt marked as shown, settings tab activated");
       // Update local state with the new user data
       if (result.data) {
         setUser(result.data);

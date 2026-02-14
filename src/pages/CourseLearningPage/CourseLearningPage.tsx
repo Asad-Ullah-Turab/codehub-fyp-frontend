@@ -94,7 +94,7 @@ const CourseLearningPage: React.FC = () => {
             const enrollmentResponse = await getEnrollmentDetails(courseId);
             setEnrollment(enrollmentResponse.data);
           } catch (err) {
-            console.log("Using basic enrollment data");
+            // Falling back to basic enrollment data when detailed fetch fails
           }
         }
       } catch (err: any) {

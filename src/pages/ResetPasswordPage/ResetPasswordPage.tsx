@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { authAPI } from '../../services/api';
 import { ROUTES } from '../../constants';
+import { useToast } from '../../contexts/ToastContext';
 
 export default function ResetPasswordPage() {
   const [otp, setOtp] = useState('');
@@ -12,6 +13,7 @@ export default function ResetPasswordPage() {
   const [step, setStep] = useState<'verify-otp' | 'reset-password'>('verify-otp');
   const [resetToken, setResetToken] = useState('');
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email') || '';
 
@@ -61,7 +63,7 @@ export default function ResetPasswordPage() {
       await authAPI.resetPassword(resetToken, newPassword, confirmPassword);
       
       // Show success and redirect
-      alert('Password reset successful! You can now sign in with your new password.');
+      showToast('Password reset successful! You can now sign in with your new password.', 'success');
       navigate(ROUTES.SIGNIN);
       
     } catch (err: unknown) {
@@ -77,7 +79,7 @@ export default function ResetPasswordPage() {
     
     try {
       await authAPI.requestPasswordReset(email);
-      alert('New verification code sent to your email!');
+      showToast('New verification code sent to your email!', 'info');
     } catch (err: unknown) {
       const errorMessage = (err as any)?.response?.data?.message || 'Failed to resend code';
       setError(errorMessage);

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Printer, Award, CheckCircle } from "lucide-react";
 import { STORAGE_KEYS } from "../../constants";
+import { useToast } from "../../contexts/ToastContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -31,6 +32,7 @@ export default function UserCertificates() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [printingId, setPrintingId] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   const LIMIT = 6;
 
@@ -94,7 +96,7 @@ export default function UserCertificates() {
       
     } catch (error) {
       console.error('Error opening certificate:', error);
-      alert('Failed to open certificate for printing. Please try again.');
+      showToast('Failed to open certificate for printing. Please try again.', 'error');
       setPrintingId(null);
     }
   };

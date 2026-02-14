@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { authAPI } from "../../services/api";
 import { ROUTES } from "../../constants";
+import { useToast } from "../../contexts/ToastContext";
 
 export default function EmailVerificationPage() {
   const [otp, setOtp] = useState("");
@@ -9,6 +10,7 @@ export default function EmailVerificationPage() {
   const [error, setError] = useState("");
   const [isResending, setIsResending] = useState(false);
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const email = searchParams.get("email") || "";
   const autoResent = searchParams.get("autoResent") === "true";
@@ -63,7 +65,7 @@ export default function EmailVerificationPage() {
 
     try {
       await authAPI.resendVerificationOTP(email);
-      alert("Verification code sent to your email!");
+      showToast("Verification code sent to your email!", "info");
     } catch (err: unknown) {
       const errorResponse = (
         err as { response?: { data?: { message?: string } } }

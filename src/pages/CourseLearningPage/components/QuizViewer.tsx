@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useToast } from "../../../contexts/ToastContext";
 import {
   getQuizDetails,
   submitQuizAnswers,
@@ -28,6 +29,7 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const loadQuiz = async () => {
@@ -72,7 +74,7 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
     );
 
     if (unansweredQuestions.length > 0) {
-      alert("Please answer all questions before submitting.");
+      showToast("Please answer all questions before submitting.", "warning");
       return;
     }
 
@@ -88,7 +90,7 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
       setResult(response.data);
     } catch (err: any) {
       console.error("Error submitting quiz:", err);
-      alert(err.message || "Failed to submit quiz. Please try again.");
+      showToast(err.message || "Failed to submit quiz. Please try again.", "error");
     } finally {
       setSubmitting(false);
     }

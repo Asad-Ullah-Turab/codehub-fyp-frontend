@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useToast } from "../../contexts/ToastContext";
 
 import {
   sendMessage as sendChatMessage,
@@ -43,6 +44,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
   const [isTyping, setIsTyping] = useState(false);
   const [, setError] = useState<string | null>(null);
   const [, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   // Load chat history on mount or when context changes
   useEffect(() => {
@@ -224,10 +226,11 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
                   },
                 ]);
                 setError(null);
+                showToast('Chats cleared', 'success');
               } catch (err) {
-                setError(
-                  err instanceof Error ? err.message : "Failed to clear chats",
-                );
+                const message = err instanceof Error ? err.message : 'Failed to clear chats';
+                setError(message);
+                showToast(message, 'error');
               }
             }
           }}

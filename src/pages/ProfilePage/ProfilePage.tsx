@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { tutorialAPI } from "../../services/tutorialAPI";
+import { useToast } from "../../contexts/ToastContext";
 import {
   getProfile,
   updateProfile,
@@ -43,6 +44,7 @@ import {
 const ProfilePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(
@@ -266,8 +268,10 @@ const ProfilePage: React.FC = () => {
       // Refresh the created tutorials list
       const createdRes = await tutorialAPI.getUserCreatedTutorials();
       setCreatedTutorials(createdRes.data || []);
+      showToast("Tutorial deleted successfully", "success");
     } catch (err) {
       console.error("Error deleting tutorial:", err);
+      showToast(err instanceof Error ? err.message : "Failed to delete tutorial", "error");
       setError(
         err instanceof Error ? err.message : "Failed to delete tutorial"
       );

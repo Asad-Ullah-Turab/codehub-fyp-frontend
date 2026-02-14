@@ -7,6 +7,7 @@ import {
   ChevronUp,
   Loader,
 } from "lucide-react";
+import { useToast } from "../../../contexts/ToastContext";
 import { STORAGE_KEYS } from "../../../constants";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -39,6 +40,7 @@ export default function CertificateApproval() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   const LIMIT = 10;
 
@@ -107,11 +109,12 @@ export default function CertificateApproval() {
           certificates.filter((cert) => cert._id !== certificateId)
         );
         setTotal(total - 1);
+        showToast("Certificate approved", "success");
       } else {
-        alert(data.message || "Failed to approve certificate");
+        showToast(data.message || "Failed to approve certificate", "error");
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : "An error occurred");
+      showToast(err instanceof Error ? err.message : "An error occurred", "error");
     } finally {
       setApprovingId(null);
     }
@@ -119,7 +122,7 @@ export default function CertificateApproval() {
 
   const rejectCertificate = async (certificateId: string) => {
     if (!rejectionReason.trim()) {
-      alert("Please provide a rejection reason");
+      showToast("Please provide a rejection reason", "warning");
       return;
     }
 
@@ -150,11 +153,12 @@ export default function CertificateApproval() {
         setTotal(total - 1);
         setRejectionReason("");
         setExpandedId(null);
+        showToast("Certificate rejected", "success");
       } else {
-        alert(data.message || "Failed to reject certificate");
+        showToast(data.message || "Failed to reject certificate", "error");
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : "An error occurred");
+      showToast(err instanceof Error ? err.message : "An error occurred", "error");
     } finally {
       setRejectingId(null);
     }

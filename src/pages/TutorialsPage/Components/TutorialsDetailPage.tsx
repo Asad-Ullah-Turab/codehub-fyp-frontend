@@ -454,7 +454,7 @@ const TutorialsDetailPage: React.FC = () => {
           error instanceof Error
             ? error.message
             : "Failed to save tutorial. Please try again.";
-        alert(message);
+        showToast(message, "error");
       }
     } finally {
       setSavingTutorial(false);

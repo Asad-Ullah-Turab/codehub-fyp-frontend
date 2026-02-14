@@ -4,6 +4,7 @@ import {
   type Course,
   type CourseEnrollment,
 } from "../../../functions/CourseFunctions/courseFunctions";
+import { useToast } from "../../../contexts/ToastContext";
 import { STORAGE_KEYS } from "../../../constants";
 
 interface Certificate {
@@ -30,6 +31,7 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
 }) => {
   const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const loadCertificate = async () => {
@@ -142,10 +144,10 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
             }
           })
           .catch(() => {
-            alert('Failed to open certificate for printing');
+            showToast('Failed to open certificate for printing', 'error');
           });
       } catch {
-        alert('Failed to open certificate for printing');
+        showToast('Failed to open certificate for printing', 'error');
       }
     }
   };
@@ -153,7 +155,7 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
   const handleShareCertificate = () => {
     if (certificate?.shareableUrl) {
       navigator.clipboard.writeText(certificate.shareableUrl);
-      alert("Certificate link copied to clipboard!");
+      showToast("Certificate link copied to clipboard!", "success");
     }
   };
 

@@ -10,8 +10,11 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "warning" | "info" } | null>(null);
 
+  const stripEmojis = (text: string) => text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "").trim();
+
   const showToast = useCallback((message: string, type: "success" | "error" | "warning" | "info" = "info") => {
-    setToast({ message, type });
+    const sanitized = stripEmojis(message);
+    setToast({ message: sanitized, type });
   }, []);
 
   const closeToast = useCallback(() => {
@@ -22,7 +25,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <ToastContext.Provider value={{ showToast }}>
       {children}
       {toast && (
-        <div className="fixed top-4 right-4 z-50">
+        <div className="toast-container">
           <Toast
             message={toast.message}
             type={toast.type}

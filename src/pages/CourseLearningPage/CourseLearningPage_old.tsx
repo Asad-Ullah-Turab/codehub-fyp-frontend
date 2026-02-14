@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useToast } from "../../contexts/ToastContext";
 import {
   getCourseById,
   getEnrollmentDetails,
@@ -17,6 +18,7 @@ import AIChatAssistant from "../../components/AIChatAssistant/AIChatAssistant";
 const CourseLearningPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [course, setCourse] = useState<Course | null>(null);
   const [enrollment, setEnrollment] = useState<CourseEnrollment | null>(null);
@@ -76,12 +78,12 @@ const CourseLearningPage: React.FC = () => {
 
       if (response.success) {
         await loadCourseData();
-        alert('Successfully enrolled in the course!');
+        showToast('Successfully enrolled in the course!', 'success');
       }
     } catch (err: unknown) {
       console.error("Error enrolling in course:", err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to enroll in course. Please try again.';
-      alert(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setEnrolling(false);
     }

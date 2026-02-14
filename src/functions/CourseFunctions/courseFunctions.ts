@@ -521,7 +521,7 @@ export const getAvailableLanguages = async (): Promise<string[]> => {
 };
 
 // Get course statistics
-export const getCourseStats = async (courseId: string): Promise<{
+export const getCourseStats = async (_courseId: string): Promise<{
   totalEnrollments: number;
   averageProgress: number;
   completionRate: number;

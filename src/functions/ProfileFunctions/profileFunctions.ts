@@ -36,7 +36,7 @@ export const testTokenValidity = async (): Promise<boolean> => {
     });
     
     if (response.ok) {
-      const data = await response.json();
+      await response.json();
       return true;
     } else {
       return false;

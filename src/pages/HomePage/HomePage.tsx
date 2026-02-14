@@ -40,7 +40,7 @@ const HomePage = () => {
   const handleSkipModal = async () => {
     setShowProfileModal(false);
     try {
-      const result = await markPromptShown();
+      await markPromptShown();
       // User data will be fetched on next auth check
     } catch (err) {
       console.error("Error marking prompt as shown:", err);
@@ -49,7 +49,7 @@ const HomePage = () => {
 
   const handleGoToProfile = async () => {
     try {
-      const result = await markPromptShown();
+      await markPromptShown();
       // User data will be fetched on next auth check
       navigate("/profile?tab=settings");
       setShowProfileModal(false);

@@ -486,19 +486,12 @@ export const getCertificateById = async (certificateId: string): Promise<{
       throw new Error('Authentication required');
     }
 
-    console.log('Fetching certificate with ID:', certificateId);
     const url = `${API_BASE_URL}/admin/courses/certificates/${certificateId}`;
-    console.log('Certificate fetch URL:', url);
 
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    });
-    
-    console.log('Certificate response status:', response.status);
-    console.log('Certificate response headers:', {
-      contentType: response.headers.get('Content-Type'),
     });
 
     if (!response.ok) {
@@ -508,7 +501,6 @@ export const getCertificateById = async (certificateId: string): Promise<{
     }
     
     const data = await response.json();
-    console.log('Certificate data received:', data);
     return data;
   } catch (error) {
     console.error('Error fetching certificate:', error);
@@ -537,7 +529,6 @@ export const getCourseStats = async (courseId: string): Promise<{
   try {
     // This would need to be implemented in the backend
     // For now, return mock data
-    console.log('Getting stats for course:', courseId); // Use the parameter to avoid warning
     return {
       totalEnrollments: 0,
       averageProgress: 0,

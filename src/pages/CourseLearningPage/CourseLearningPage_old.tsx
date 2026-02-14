@@ -170,19 +170,15 @@ const CourseLearningPage: React.FC = () => {
 
   const handleQuizComplete = async () => {
     // Reload enrollment to get updated progress
-    console.log('Quiz completed - reloading course data...');
     await loadCourseData();
-    console.log('Course data reloaded after quiz completion');
     
     // Force a re-fetch to ensure we have the latest data
     setTimeout(async () => {
       await loadCourseData();
-      console.log('Second reload completed');
     }, 500);
     
     // For final quiz, show certificate view
     if (course && currentSectionIndex >= course.sections.length) {
-      console.log('Final quiz completed - showing certificate');
       setViewMode('certificate');
     } else {
       handleNext();

@@ -9,10 +9,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 export const testTokenValidity = async (): Promise<boolean> => {
   try {
     const token = localStorage.getItem('authToken');
-    console.log('🔍 Testing token:', token ? `${token.substring(0, 20)}...` : 'No token found');
-    
     if (!token) {
-      console.log('❌ No token in localStorage');
       return false;
     }
 
@@ -21,17 +18,12 @@ export const testTokenValidity = async (): Promise<boolean> => {
       const parts = token.split('.');
       const payload = JSON.parse(atob(parts[1]));
       const now = Math.floor(Date.now() / 1000);
-      console.log('🔍 Token payload:', payload);
-      console.log('🔍 Token expires at:', new Date(payload.exp * 1000));
-      console.log('🔍 Current time:', new Date(now * 1000));
-      console.log('🔍 Token expired?', payload.exp && payload.exp < now);
       
       if (payload.exp && payload.exp < now) {
-        console.log('❌ Token has expired');
         return false;
       }
     } catch (decodeError) {
-      console.log('⚠️ Could not decode token:', decodeError);
+      // ignore decode errors
     }
 
     // Test with a simple auth endpoint
@@ -42,16 +34,11 @@ export const testTokenValidity = async (): Promise<boolean> => {
         Authorization: `Bearer ${token}`,
       },
     });
-
-    console.log('🔍 Auth test response status:', response.status);
     
     if (response.ok) {
       const data = await response.json();
-      console.log('✅ Token is valid, user:', data.user?.name);
       return true;
     } else {
-      const errorData = await response.json();
-      console.log('❌ Token invalid:', errorData.message);
       return false;
     }
   } catch (error) {

@@ -31,7 +31,6 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
 
   useEffect(() => {
     const loadQuiz = async () => {
-      console.log('QuizViewer - quizId:', quizId);
       if (!quizId) {
         setError("Quiz not found");
         setLoading(false);
@@ -41,14 +40,10 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
       try {
         setLoading(true);
         const response = await getQuizDetails(quizId);
-        console.log('Quiz response:', response);
-        console.log('Quiz data:', response.data);
         // Support both shapes:
         // 1) { success: true, data: { quiz: {...} } }
         // 2) { success: true, data: {...} } (quiz object directly in data)
         const quizData = response.data?.quiz ?? response.data;
-        console.log('Resolved quiz object:', quizData);
-        console.log('Resolved quiz questions:', quizData?.questions);
         setQuiz(quizData || null);
       } catch (err: any) {
         console.error("Error loading quiz:", err);
@@ -90,7 +85,6 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
         answers
       );
 
-      console.log('Quiz submitted successfully:', response.data);
       setResult(response.data);
     } catch (err: any) {
       console.error("Error submitting quiz:", err);

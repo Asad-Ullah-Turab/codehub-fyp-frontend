@@ -114,7 +114,6 @@ export const checkJavaScriptSyntax = async (
         
         // Get all markers for this model from Monaco's built-in validation
         const markers = monaco.editor.getModelMarkers({ resource: model.uri });
-        console.log('Monaco markers found:', markers);
         
         // Convert Monaco markers to our ValidationError format
         markers.forEach(marker => {
@@ -133,7 +132,6 @@ export const checkJavaScriptSyntax = async (
         });
         
         // Always fall back to custom validation to supplement Monaco
-        console.log('Getting additional errors from fallback validation');
         const fallbackErrors = checkJavaScriptSyntaxFallback(code);
         
         // Merge errors, avoiding duplicates
@@ -152,7 +150,6 @@ export const checkJavaScriptSyntax = async (
     }
 
     // Fallback: try the old approach if no editor provided
-    console.log('No editor provided, using fallback validation');
     return checkJavaScriptSyntaxFallback(code);
     
   } catch (e) {

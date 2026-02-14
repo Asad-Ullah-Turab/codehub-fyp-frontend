@@ -26,7 +26,6 @@ const HomePage = () => {
           const profileRes = await getProfile();
           // Only show modal for newly created accounts (first login only)
           if (!profileRes.data.profileCompletionPromptShown) {
-            console.log("Showing profile completion modal for new user");
             setShowProfileModal(true);
           }
         } catch (err) {
@@ -39,11 +38,9 @@ const HomePage = () => {
   }, [isAuthenticated]);
 
   const handleSkipModal = async () => {
-    console.log("Skip button clicked");
     setShowProfileModal(false);
     try {
-      await markPromptShown();
-      console.log("Prompt marked as shown");
+      const result = await markPromptShown();
       // User data will be fetched on next auth check
     } catch (err) {
       console.error("Error marking prompt as shown:", err);
@@ -51,10 +48,8 @@ const HomePage = () => {
   };
 
   const handleGoToProfile = async () => {
-    console.log("Go to profile button clicked");
     try {
-      await markPromptShown();
-      console.log("Prompt marked as shown, navigating...");
+      const result = await markPromptShown();
       // User data will be fetched on next auth check
       navigate("/profile?tab=settings");
       setShowProfileModal(false);

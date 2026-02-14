@@ -16,11 +16,7 @@ export default function EmailVerificationPage() {
   // Handle redirect when no email is provided
   useEffect(() => {
     if (!email) {
-      console.log(
-        "EmailVerificationPage - No email found, will redirect to signin"
-      );
       const timer = setTimeout(() => {
-        console.log("EmailVerificationPage - Redirecting to signin");
         navigate(ROUTES.SIGNIN);
       }, 2000);
 

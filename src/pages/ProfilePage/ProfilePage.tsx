@@ -204,11 +204,9 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleSkipModal = async () => {
-    console.log("Skip button clicked in ProfilePage");
     setShowProfileModal(false);
     try {
       const result = await markPromptShown();
-      console.log("Prompt marked as shown");
       // Update local state with the new user data
       if (result.data) {
         setUser(result.data);

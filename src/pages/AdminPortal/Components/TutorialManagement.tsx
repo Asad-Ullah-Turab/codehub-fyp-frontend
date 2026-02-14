@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   Plus,
@@ -19,7 +19,7 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTutorial, setEditingTutorial] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("all");
+  const [selectedLanguage] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
   const [tutorials, setTutorials] = useState<any[]>([]);

@@ -36,7 +36,7 @@ export interface CourseSection {
   description: string;
   order: number;
   lessons: string[];
-  sectionQuiz?: string;
+  sectionQuiz?: string | Quiz;
   estimatedHours: number;
   isLocked: boolean;
   unlockCondition?: string;

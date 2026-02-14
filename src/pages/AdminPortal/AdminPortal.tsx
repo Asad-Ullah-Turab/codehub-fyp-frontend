@@ -11,7 +11,7 @@ import QueriesManagement from "./Components/QueriesManagement";
 
 function AdminPortal() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [highlightedItem, setHighlightedItem] = useState<{
     type: string;

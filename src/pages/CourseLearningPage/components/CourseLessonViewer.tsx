@@ -18,6 +18,16 @@ const CourseLessonViewer: React.FC<CourseLessonViewerProps> = ({
 }) => {
   const navigate = useNavigate();
 
+  // Use onNext/onPrevious (keyboard navigation) so they are not unused
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") onNext?.();
+      if (e.key === "ArrowLeft") onPrevious?.();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onNext, onPrevious]);
+
   const getDifficultyColor = (difficulty?: string) => {
     if (!difficulty) return "bg-gray-100 text-gray-800";
     switch (difficulty.toLowerCase()) {

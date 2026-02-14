@@ -1,24 +1,41 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   Mail,
   Eye,
   Calendar,
-  User,
   Users,
   MessageSquare,
 } from "lucide-react";
+
+interface ContactType {
+  _id: string;
+  fullName?: string;
+  email?: string;
+  subject?: string;
+  message?: string;
+  createdAt?: string;
+  status?: string;
+}
+
+interface SubscriptionType {
+  _id: string;
+  email?: string;
+  subscribedAt?: string;
+  isActive?: boolean;
+  ipAddress?: string;
+}
 import { adminAPI } from "../../../services/adminAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import { contactAPI } from "../../../services/contactAPI";
 
 export default function QueriesManagement() {
   const [activeTab, setActiveTab] = useState("contacts");
-  const [contacts, setContacts] = useState([]);
-  const [subscriptions, setSubscriptions] = useState([]);
+  const [contacts, setContacts] = useState<ContactType[]>([]);
+  const [subscriptions, setSubscriptions] = useState<SubscriptionType[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedContact, setSelectedContact] = useState(null);
+  const [selectedContact, setSelectedContact] = useState<ContactType | null>(null);
   const [showReplyModal, setShowReplyModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [replyForm, setReplyForm] = useState({
@@ -236,7 +253,7 @@ export default function QueriesManagement() {
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-600 flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          {new Date(contact.createdAt).toLocaleDateString()}
+                          {contact.createdAt ? new Date(contact.createdAt).toLocaleDateString() : "-"}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -340,9 +357,7 @@ export default function QueriesManagement() {
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-600 flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          {new Date(
-                            subscription.subscribedAt
-                          ).toLocaleDateString()}
+                          {subscription.subscribedAt ? new Date(subscription.subscribedAt).toLocaleDateString() : "-"}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -420,7 +435,7 @@ export default function QueriesManagement() {
                   Submitted On
                 </label>
                 <p className="text-gray-600">
-                  {new Date(selectedContact.createdAt).toLocaleString()}
+                  {selectedContact.createdAt ? new Date(selectedContact.createdAt).toLocaleString() : "-"}
                 </p>
               </div>
             </div>

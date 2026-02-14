@@ -9,6 +9,7 @@ import { STORAGE_KEYS } from "../../../constants";
 interface Certificate {
   _id: string;
   status: string;
+  approvalStatus?: "approved" | "rejected" | "pending";
   studentName?: string;
   issuedDate?: string;
   certificateId?: string;

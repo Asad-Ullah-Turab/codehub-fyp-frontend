@@ -42,7 +42,7 @@ const HomePage = () => {
     console.log("Skip button clicked");
     setShowProfileModal(false);
     try {
-      const result = await markPromptShown();
+      await markPromptShown();
       console.log("Prompt marked as shown");
       // User data will be fetched on next auth check
     } catch (err) {
@@ -53,7 +53,7 @@ const HomePage = () => {
   const handleGoToProfile = async () => {
     console.log("Go to profile button clicked");
     try {
-      const result = await markPromptShown();
+      await markPromptShown();
       console.log("Prompt marked as shown, navigating...");
       // User data will be fetched on next auth check
       navigate("/profile?tab=settings");

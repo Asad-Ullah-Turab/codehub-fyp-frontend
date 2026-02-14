@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Search, ChevronDown } from "lucide-react";
 
-export default function AnalyticsDashboard() {
+export default function AnalyticsDashboard(_props: { onError?: (msg: string) => void } = {}) {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Sample data

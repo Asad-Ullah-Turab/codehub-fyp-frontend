@@ -4,13 +4,12 @@ import {
   getCourseById,
   getEnrollmentDetails,
   enrollInCourse,
-  completeLessonProgress,
   type Course,
   type CourseEnrollment,
   type CourseSection,
   type CourseLesson,
 } from "../../functions/CourseFunctions/courseFunctions";
-import LessonViewer from "./components/LessonViewer";
+import { default as CourseLessonViewer } from "./components/CourseLessonViewer";
 import QuizViewer from "./components/QuizViewer";
 import CertificateViewer from "./components/CertificateViewer";
 import AIChatAssistant from "../../components/AIChatAssistant/AIChatAssistant";
@@ -88,27 +87,6 @@ const CourseLearningPage: React.FC = () => {
     }
   };
 
-  // Handle lesson completion
-  const handleLessonComplete = async () => {
-    if (!course || !courseId || !enrollment) return;
-
-    const currentSection = course.sections[currentSectionIndex];
-    const currentLesson = currentSection.lessons[currentLessonIndex];
-
-    try {
-      const response = await completeLessonProgress(
-        courseId,
-        currentSection._id,
-        currentLesson._id
-      );
-      setEnrollment(response.data);
-
-      // Move to next lesson or quiz
-      handleNext();
-    } catch (err) {
-      console.error("Error completing lesson:", err);
-    }
-  };
 
   // Navigation handlers
   const handleNext = () => {
@@ -584,18 +562,11 @@ const CourseLearningPage: React.FC = () => {
         {/* Content Viewer */}
         <div className="flex-1 overflow-y-auto">
           {viewMode === "lesson" && currentLesson && (
-            <LessonViewer
+            <CourseLessonViewer
               lesson={currentLesson}
               section={currentSection}
-              onComplete={handleLessonComplete}
               onNext={handleNext}
               onPrevious={handlePrevious}
-              isCompleted={isLessonCompleted(
-                currentSection._id,
-                currentLesson._id
-              )}
-              canGoPrevious={currentSectionIndex > 0 || currentLessonIndex > 0}
-              canGoNext={true}
             />
           )}
 

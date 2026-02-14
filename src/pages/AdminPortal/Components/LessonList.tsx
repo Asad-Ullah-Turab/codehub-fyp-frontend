@@ -1,5 +1,5 @@
 import { type CourseLesson } from "../../../services/adminCourseAPI";
-import { Edit, Trash2, FileQuestion } from "lucide-react";
+import { FileQuestion } from "lucide-react";
 
 interface LessonListProps {
   lessons: CourseLesson[];
@@ -40,8 +40,8 @@ export default function LessonList({ lessons, loading, onEdit, onDelete }: Lesso
                 <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                   <span>Order: {lesson.order}</span>
                   <span>Difficulty: {lesson.difficulty}</span>
-                  {lesson.duration > 0 && <span>Duration: {lesson.duration}min</span>}
-                  {lesson.estimatedHours > 0 && <span>Hours: {lesson.estimatedHours}</span>}
+                  {(lesson.duration ?? 0) > 0 && <span>Duration: {lesson.duration}min</span>}
+                  {(lesson.estimatedHours ?? 0) > 0 && <span>Hours: {lesson.estimatedHours}</span>}
                   {lesson.videoUrl && <span className="text-blue-600">Has Video</span>}
                   {lesson.codeExamples && lesson.codeExamples.length > 0 && (
                     <span className="text-green-600">{lesson.codeExamples.length} Code Examples</span>

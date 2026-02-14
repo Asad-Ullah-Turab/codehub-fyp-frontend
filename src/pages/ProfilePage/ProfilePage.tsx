@@ -62,13 +62,12 @@ const ProfilePage: React.FC = () => {
   }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "courses" | "tutorials" | "certificates" | "settings"
-  >(() => {
+  type ProfileTab = "overview" | "courses" | "tutorials" | "certificates" | "settings";
+  const [activeTab, setActiveTab] = useState<ProfileTab>(() => {
     // Try to load from localStorage first
     const stored = localStorage.getItem("profileActiveTab");
     if (stored && ["overview", "courses", "tutorials", "certificates", "settings"].includes(stored)) {
-      return stored as typeof activeTab;
+      return stored as ProfileTab;
     }
     return "overview";
   });

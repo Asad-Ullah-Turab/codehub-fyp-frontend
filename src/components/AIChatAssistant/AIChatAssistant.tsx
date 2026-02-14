@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "../../contexts/ToastContext";
+import ConfirmModal from "../ConfirmModal/ConfirmModal";
 
 import {
   sendMessage as sendChatMessage,
@@ -45,6 +46,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
   const [, setError] = useState<string | null>(null);
   const [, setLoading] = useState(true);
   const { showToast } = useToast();
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Load chat history on mount or when context changes
   useEffect(() => {
@@ -211,29 +213,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
         <h2 className="font-semibold text-gray-800 text-sm">AI Assistant</h2>
         <button
-          onClick={async () => {
-            if (window.confirm("Are you sure you want to clear all chats?")) {
-              try {
-                await clearChats();
-                setMessages([
-                  {
-                    id: "1",
-                    text: `Hi! I'm your AI assistant. Ask me anything about ${
-                      contextTitle || "JavaScript variables"
-                    }.`,
-                    isUser: false,
-                    timestamp: new Date(),
-                  },
-                ]);
-                setError(null);
-                showToast('Chats cleared', 'success');
-              } catch (err) {
-                const message = err instanceof Error ? err.message : 'Failed to clear chats';
-                setError(message);
-                showToast(message, 'error');
-              }
-            }
-          }}
+          onClick={() => setShowClearConfirm(true)}
           className="text-gray-400 hover:text-gray-600 transition-colors p-1"
           title="Clear all chats"
         >
@@ -251,6 +231,38 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
             />
           </svg>
         </button>
+
+        <ConfirmModal
+          isOpen={showClearConfirm}
+          title="Clear chats"
+          message="Are you sure you want to clear all chats?"
+          confirmText="Clear"
+          confirmButtonClass="bg-red-600 hover:bg-red-700"
+          onConfirm={async () => {
+            try {
+              await clearChats();
+              setMessages([
+                {
+                  id: "1",
+                  text: `Hi! I'm your AI assistant. Ask me anything about ${
+                    contextTitle || "JavaScript variables"
+                  }.`,
+                  isUser: false,
+                  timestamp: new Date(),
+                },
+              ]);
+              setError(null);
+              showToast("Chats cleared", "success");
+            } catch (err) {
+              const message = err instanceof Error ? err.message : "Failed to clear chats";
+              setError(message);
+              showToast(message, "error");
+            } finally {
+              setShowClearConfirm(false);
+            }
+          }}
+          onCancel={() => setShowClearConfirm(false)}
+        />
       </div>
 
       {/* Messages Area */}

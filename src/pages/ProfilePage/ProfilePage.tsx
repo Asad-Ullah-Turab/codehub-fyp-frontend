@@ -22,6 +22,7 @@ import {
 } from "../../functions/ProfileFunctions/profileFunctions";
 import ProfileCompletionModal from "../../components/ProfileCompletionModal/ProfileCompletionModal";
 import UserCertificates from "../../components/Certificates/UserCertificates";
+import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
 import {
   BookOpen,
   CheckCircle,
@@ -47,6 +48,9 @@ const ProfilePage: React.FC = () => {
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
+
+  // Confirmation modal state for deleting created tutorials
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; tutorialId?: string }>({ show: false });
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(
     null
   );
@@ -259,10 +263,6 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleDeleteCreatedTutorial = async (tutorialId: string) => {
-    if (!confirm("Are you sure you want to delete this tutorial? This action cannot be undone.")) {
-      return;
-    }
-    
     try {
       await tutorialAPI.deleteUserTutorial(tutorialId);
       // Refresh the created tutorials list
@@ -322,6 +322,22 @@ const ProfilePage: React.FC = () => {
         isOpen={showProfileModal}
         onSkip={handleSkipModal}
         onGoToProfile={handleGoToProfile}
+      />
+
+      {/* Delete tutorial confirmation */}
+      <ConfirmModal
+        isOpen={deleteConfirm.show}
+        title="Delete tutorial"
+        message="Are you sure you want to delete this tutorial? This action cannot be undone."
+        confirmText="Delete"
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
+        onConfirm={() => {
+          if (deleteConfirm.tutorialId) {
+            handleDeleteCreatedTutorial(deleteConfirm.tutorialId);
+          }
+          setDeleteConfirm({ show: false });
+        }}
+        onCancel={() => setDeleteConfirm({ show: false })}
       />
 
       {/* Modern Header */}
@@ -683,7 +699,7 @@ const ProfilePage: React.FC = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDeleteCreatedTutorial(tutorial._id);
+                          setDeleteConfirm({ show: true, tutorialId: tutorial._id });
                         }}
                         className="absolute top-3 right-3 w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Delete tutorial"

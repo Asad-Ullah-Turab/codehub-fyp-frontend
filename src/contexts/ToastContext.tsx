@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
+import { AnimatePresence } from "framer-motion";
 import Toast from "../components/Toast/Toast";
 
 interface ToastContextType {
@@ -24,15 +25,18 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      {toast && (
-        <div className="toast-container">
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            onClose={closeToast}
-          />
-        </div>
-      )}
+      <div className="toast-container">
+        <AnimatePresence>
+          {toast && (
+            <Toast
+              key={`${toast.type}-${toast.message}`}
+              message={toast.message}
+              type={toast.type}
+              onClose={closeToast}
+            />
+          )}
+        </AnimatePresence>
+      </div>
     </ToastContext.Provider>
   );
 };
@@ -40,7 +44,15 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 export const useToast = () => {
   const context = useContext(ToastContext);
   if (!context) {
-    throw new Error("useToast must be used within ToastProvider");
+    // Fallback for safety: return a no-op implementation so components don't crash
+    // when rendered outside the provider (useful during isolated testing or dev mistakes).
+    // Also log a developer warning so the missing provider can be fixed.
+    // NOTE: Prefer fixing the app root to include <ToastProvider />; this is a safe fallback.
+    // eslint-disable-next-line no-console
+    console.warn("useToast called outside ToastProvider — returning no-op showToast.");
+    return { showToast: (_message: string, _type: "success" | "error" | "warning" | "info" = "info") => {
+      /* no-op */
+    } };
   }
   return context;
 };

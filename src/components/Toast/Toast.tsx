@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { motion } from "framer-motion";
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from "lucide-react";
 import "./Toast.css";
 
@@ -28,12 +29,20 @@ export default function Toast({
   } as const;
 
   return (
-    <div className={`toast toast-${type}`} role="status" aria-live="polite">
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 8 }}
+      transition={{ duration: 0.18 }}
+      className={`toast toast-${type}`}
+      role="status"
+      aria-live="polite"
+    >
       <span className="toast-icon">{icons[type]}</span>
       <span className="toast-message">{message}</span>
       <button className="toast-close" onClick={onClose} aria-label="Close notification">
         <X className="w-3 h-3" />
       </button>
-    </div>
+    </motion.div>
   );
 }

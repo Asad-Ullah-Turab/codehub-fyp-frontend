@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
   fetchTutorialsByLanguageAndConcept,
@@ -634,13 +635,16 @@ const TutorialsDetailPage: React.FC = () => {
               <div className="flex-1 overflow-y-auto p-4 hide-scrollbar">
                 <div className="space-y-2">
                   {filteredTutorials.length > 0 ? (
-                    filteredTutorials.map((tutorial) => {
+                    filteredTutorials.map((tutorial, idx) => {
                       const isPersonal =
                         tutorial.tags?.includes("personal") ||
                         tutorial.tags?.includes("AI-generated");
                       return (
-                        <div
+                        <motion.div
                           key={tutorial._id}
+                          initial={{ opacity: 0, x: 8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.22, delay: idx * 0.025 }}
                           onClick={() => handleTutorialSelect(tutorial)}
                           className={`p-3 rounded-lg cursor-pointer transition-all text-sm ${
                             selectedTutorial?._id === tutorial._id
@@ -649,14 +653,14 @@ const TutorialsDetailPage: React.FC = () => {
                           }`}
                         >
                           <div className="font-medium mb-1 flex items-center gap-2">
-                            <span>• {tutorial.title}</span>
+                            <span className="text-slate-700">{tutorial.title}</span>
                             {isPersonal && (
                               <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
                                 My
                               </span>
                             )}
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })
                   ) : (

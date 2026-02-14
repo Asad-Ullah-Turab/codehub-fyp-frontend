@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { BookOpen } from "lucide-react";
 import {
   fetchMainConcepts,
   getLanguageEmoji,
@@ -186,10 +187,8 @@ const TutorialsPage: React.FC = () => {
             </div>
           ) : (
             <div className="text-center bg-gray-50 rounded-2xl shadow-md p-12 border-2 border-gray-200 max-w-2xl mx-auto">
-              <div className="text-6xl mb-4">📚</div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                No courses available yet
-              </h3>
+              <BookOpen className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">No courses available yet</h3>
               <p className="text-gray-600">Check back later for new courses!</p>
             </div>
           )}

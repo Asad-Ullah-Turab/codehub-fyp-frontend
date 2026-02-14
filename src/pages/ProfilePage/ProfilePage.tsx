@@ -43,11 +43,21 @@ import {
 } from "lucide-react";
 
 const ProfilePage: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      showToast("Signed out", "info");
+    } catch (err) {
+      console.error("Logout error:", err);
+      showToast(err instanceof Error ? err.message : "Failed to sign out", "error");
+    }
+  };
 
   // Confirmation modal state for deleting created tutorials
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; tutorialId?: string }>({ show: false });
@@ -374,10 +384,7 @@ const ProfilePage: React.FC = () => {
               <button className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
                 <Bell className="w-5 h-5 text-gray-600" />
               </button>
-              <button className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors">
-                <Settings className="w-5 h-5 text-gray-600" />
-              </button>
-              <button className="p-2.5 hover:bg-red-50 rounded-xl transition-colors">
+              <button onClick={handleLogout} className="p-2.5 hover:bg-red-50 rounded-xl transition-colors" title="Sign out">
                 <LogOut className="w-5 h-5 text-red-600" />
               </button>
             </div>
@@ -694,7 +701,7 @@ const ProfilePage: React.FC = () => {
                   {createdTutorials.map((tutorial) => (
                     <div
                       key={tutorial._id}
-                      className="bg-white rounded-2xl p-5 shadow-lg border border-purple-100 hover:shadow-xl hover:border-purple-300 transition-all group relative"
+                      className="bg-white rounded-2xl p-5 shadow-lg border border-purple-100 hover:shadow-xl hover:border-purple-300 transition-all group relative transform-gpu group-hover:-translate-y-1 group-hover:scale-105"
                     >
                       <button
                         onClick={(e) => {

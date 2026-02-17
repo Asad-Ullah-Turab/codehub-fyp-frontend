@@ -4,7 +4,7 @@ export const viewTrackingAPI = {
   // Track views
   trackTutorialView: async (tutorialId: string) => {
     try {
-      const response = await api.post(`/views/tutorials/${tutorialId}/view`);
+      const response = await api.post(`${API_ENDPOINTS.VIEWS_TUTORIAL_VIEW.replace('{tutorialId}', tutorialId)}`);
       return response.data;
     } catch (error) {
       console.error("Error tracking tutorial view:", error);
@@ -14,7 +14,7 @@ export const viewTrackingAPI = {
 
   trackCourseView: async (courseId: string) => {
     try {
-      const response = await api.post(`/views/courses/${courseId}/view`);
+      const response = await api.post(`${API_ENDPOINTS.VIEWS_COURSE_VIEW.replace('{courseId}', courseId)}`);
       return response.data;
     } catch (error) {
       console.error("Error tracking course view:", error);
@@ -25,7 +25,7 @@ export const viewTrackingAPI = {
   // Get most viewed content
   getMostViewedTutorials: async (limit: number = 10) => {
     try {
-      const response = await api.get(`/views/tutorials/most-viewed?limit=${limit}`);
+      const response = await api.get(`${API_ENDPOINTS.VIEWS_TUTORIALS_MOST_VIEWED}?limit=${limit}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching most viewed tutorials:", error);
@@ -35,7 +35,7 @@ export const viewTrackingAPI = {
 
   getMostViewedCourses: async (limit: number = 10) => {
     try {
-      const response = await api.get(`/views/courses/most-viewed?limit=${limit}`);
+      const response = await api.get(`${API_ENDPOINTS.VIEWS_COURSES_MOST_VIEWED}?limit=${limit}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching most viewed courses:", error);
@@ -45,7 +45,7 @@ export const viewTrackingAPI = {
 
   getMostViewedContent: async (limit: number = 10) => {
     try {
-      const response = await api.get(`/views/most-viewed?limit=${limit}`);
+      const response = await api.get(`${API_ENDPOINTS.VIEWS_MOST_VIEWED}?limit=${limit}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching most viewed content:", error);

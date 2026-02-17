@@ -49,23 +49,23 @@ export const authAPI = {
 
   // Email verification endpoints
   verifyEmail: async (email: string, otp: string) => {
-    const response = await api.post("/auth/verify-email", { email, otp });
+    const response = await api.post(API_ENDPOINTS.VERIFY_EMAIL, { email, otp });
     return response;
   },
 
   resendVerificationOTP: async (email: string) => {
-    const response = await api.post("/auth/resend-verification", { email });
+    const response = await api.post(API_ENDPOINTS.RESEND_VERIFICATION, { email });
     return response.data;
   },
 
   // Password reset endpoints
   requestPasswordReset: async (email: string) => {
-    const response = await api.post("/auth/forgot-password", { email });
+    const response = await api.post(API_ENDPOINTS.FORGOT_PASSWORD, { email });
     return response.data;
   },
 
   verifyPasswordResetOTP: async (email: string, otp: string) => {
-    const response = await api.post("/auth/verify-reset-otp", { email, otp });
+    const response = await api.post(API_ENDPOINTS.VERIFY_RESET_OTP, { email, otp });
     return response.data;
   },
 
@@ -74,7 +74,7 @@ export const authAPI = {
     newPassword: string,
     confirmPassword: string
   ) => {
-    const response = await api.post("/auth/reset-password", {
+    const response = await api.post(API_ENDPOINTS.RESET_PASSWORD, {
       resetToken,
       newPassword,
       confirmPassword,

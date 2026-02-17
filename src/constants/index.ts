@@ -13,6 +13,13 @@ export const API_ENDPOINTS = {
   GOOGLE_OAUTH: "/auth/google",
   GITHUB_OAUTH: "/auth/github",
   CODE_EXECUTE: "/code/execute",
+  
+  // Auth (email / password helpers)
+  VERIFY_EMAIL: '/auth/verify-email',
+  RESEND_VERIFICATION: '/auth/resend-verification',
+  FORGOT_PASSWORD: '/auth/forgot-password',
+  VERIFY_RESET_OTP: '/auth/verify-reset-otp',
+  RESET_PASSWORD: '/auth/reset-password',
 
   // Tutorials
   TUTORIALS: "/tutorials",
@@ -47,6 +54,13 @@ export const API_ENDPOINTS = {
   CODEHELP_ERROR_EXPLANATION: "/codehelp/error-explanation",
   CODEHELP_PROBLEM_HINT: "/codehelp/problem-hint",
   CODEHELP_ASK_QUESTION: "/codehelp/ask-question",
+
+  // Views / analytics
+  VIEWS_TUTORIAL_VIEW: '/views/tutorials/{tutorialId}/view',
+  VIEWS_COURSE_VIEW: '/views/courses/{courseId}/view',
+  VIEWS_TUTORIALS_MOST_VIEWED: '/views/tutorials/most-viewed',
+  VIEWS_COURSES_MOST_VIEWED: '/views/courses/most-viewed',
+  VIEWS_MOST_VIEWED: '/views/most-viewed',
 
   // Misc
   SNIPPETS: "/snippets",

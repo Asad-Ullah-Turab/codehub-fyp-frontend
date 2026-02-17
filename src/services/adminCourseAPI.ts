@@ -267,7 +267,7 @@ export const adminCourseAPI = {
     }
   ) => {
     const response = await api.put(
-      `/admin/courses/lessons/${lessonId}`,
+      `${API_ENDPOINTS.ADMIN_COURSES}/lessons/${lessonId}`,
       lessonData
     );
     return response.data.data;
@@ -275,14 +275,14 @@ export const adminCourseAPI = {
 
   // Delete lesson
   deleteLesson: async (lessonId: string) => {
-    const response = await api.delete(`/admin/courses/lessons/${lessonId}`);
+    const response = await api.delete(`${API_ENDPOINTS.ADMIN_COURSES}/lessons/${lessonId}`);
     return response.data;
   },
 
   // Get section lessons
   getSectionLessons: async (sectionId: string) => {
     const response = await api.get(
-      `/admin/courses/sections/${sectionId}/lessons`
+      `${API_ENDPOINTS.ADMIN_COURSES}/sections/${sectionId}/lessons`
     );
     return response.data.data;
   },
@@ -304,7 +304,7 @@ export const adminCourseAPI = {
     maxRetakes?: number;
   }) => {
     // Use the course route for creating quizzes
-    const url = `/admin/courses/${quizData.courseId}/quizzes`;
+    const url = `${API_ENDPOINTS.ADMIN_COURSES}/${quizData.courseId}/quizzes`;
     const response = await api.post(url, quizData);
     return response.data.data;
   },
@@ -324,23 +324,23 @@ export const adminCourseAPI = {
       maxRetakes?: number;
     }
   ) => {
-    const response = await api.put(`/admin/courses/quizzes/${quizId}`, quizData);
+    const response = await api.put(`${API_ENDPOINTS.ADMIN_COURSES}/quizzes/${quizId}`, quizData);
     return response.data.data;
   },
 
   deleteQuiz: async (quizId: string) => {
-    const response = await api.delete(`/admin/courses/quizzes/${quizId}`);
+    const response = await api.delete(`${API_ENDPOINTS.ADMIN_COURSES}/quizzes/${quizId}`);
     return response.data;
   },
 
   getQuiz: async (quizId: string) => {
-    const response = await api.get(`/admin/courses/quizzes/${quizId}`);
+    const response = await api.get(`${API_ENDPOINTS.ADMIN_COURSES}/quizzes/${quizId}`);
     return response.data.data;
   },
 
   // Publish/Unpublish course
   togglePublishCourse: async (courseId: string) => {
-    const response = await api.patch(`/admin/courses/${courseId}/publish`);
+    const response = await api.patch(`${API_ENDPOINTS.ADMIN_COURSES}/${courseId}/publish`);
     return response.data;
   },
 };

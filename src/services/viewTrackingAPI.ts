@@ -1,4 +1,5 @@
 import api from "./api";
+import { API_ENDPOINTS } from '../constants';
 
 export const viewTrackingAPI = {
   // Track views

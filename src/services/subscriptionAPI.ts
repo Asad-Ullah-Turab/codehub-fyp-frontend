@@ -1,4 +1,5 @@
 import api from './api';
+import { API_ENDPOINTS } from '../constants';
 
 export interface SubscriptionData {
   email: string;
@@ -34,7 +35,7 @@ export const subscribeToNewsletter = async (email: string): Promise<Subscription
       };
     }
 
-    const response = await api.post('/newsletter/subscribe', { email: email.trim() });
+    const response = await api.post(API_ENDPOINTS.NEWSLETTER_SUBSCRIBE, { email: email.trim() });
 
     return {
       status: 'success',

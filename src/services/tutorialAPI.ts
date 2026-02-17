@@ -1,4 +1,5 @@
 import api from "./api";
+import { API_ENDPOINTS } from "../constants";
 
 // Tutorial API for regular users
 export const tutorialAPI = {
@@ -15,7 +16,7 @@ export const tutorialAPI = {
     tips?: string[];
     tags?: string[];
   }) => {
-    const response = await api.post("/tutorials/create", tutorialData);
+    const response = await api.post(API_ENDPOINTS.TUTORIALS_CREATE, tutorialData);
     return response.data;
   },
 
@@ -25,63 +26,63 @@ export const tutorialAPI = {
     difficulty?: string;
     concept?: string;
   }) => {
-    const response = await api.get("/tutorials", { params });
+    const response = await api.get(API_ENDPOINTS.TUTORIALS, { params });
     return response.data;
   },
 
   // Get tutorial by ID
   getTutorialById: async (id: string) => {
-    const response = await api.get(`/tutorials/${id}`);
+    const response = await api.get(`${API_ENDPOINTS.TUTORIALS}/${id}`);
     return response.data;
   },
 
   // Get tutorials by language
   getTutorialsByLanguage: async (language: string, difficulty?: string) => {
     const params = difficulty ? { difficulty } : undefined;
-    const response = await api.get(`/tutorials/language/${language}`, { params });
+    const response = await api.get(`${API_ENDPOINTS.TUTORIALS}/language/${language}`, { params });
     return response.data;
   },
 
   // Get concepts by language
   getConceptsByLanguage: async (language: string) => {
-    const response = await api.get(`/tutorials/concepts/${language}`);
+    const response = await api.get(`${API_ENDPOINTS.TUTORIALS_CONCEPTS}/${language}`);
     return response.data;
   },
 
   // Save tutorial
   saveTutorial: async (tutorialId: string) => {
-    const response = await api.post("/tutorials/save", { tutorialId });
+    const response = await api.post(API_ENDPOINTS.TUTORIALS_SAVE, { tutorialId });
     return response.data;
   },
 
   // Get saved tutorials
   getSavedTutorials: async (language?: string) => {
     const params = language ? { language } : undefined;
-    const response = await api.get("/tutorials/user/saved", { params });
+    const response = await api.get(API_ENDPOINTS.TUTORIALS_USER_SAVED, { params });
     return response.data;
   },
 
   // Unsave tutorial
   unsaveTutorial: async (tutorialId: string) => {
-    const response = await api.delete(`/tutorials/saved/${tutorialId}`);
+    const response = await api.delete(`${API_ENDPOINTS.TUTORIALS}/saved/${tutorialId}`);
     return response.data;
   },
 
   // Update tutorial progress
   updateTutorialProgress: async (tutorialId: string, completed: boolean, notes?: string) => {
-    const response = await api.put(`/tutorials/progress/${tutorialId}`, { completed, notes });
+    const response = await api.put(`${API_ENDPOINTS.TUTORIALS}/progress/${tutorialId}`, { completed, notes });
     return response.data;
   },
 
   // Get user's created tutorials (AI-generated or custom)
   getUserCreatedTutorials: async () => {
-    const response = await api.get("/tutorials/user/created");
+    const response = await api.get(API_ENDPOINTS.TUTORIALS_USER_CREATED);
     return response.data;
   },
 
   // Delete user's own tutorial
   deleteUserTutorial: async (tutorialId: string) => {
-    const response = await api.delete(`/tutorials/user/created/${tutorialId}`);
+    const response = await api.delete(`${API_ENDPOINTS.TUTORIALS_USER_CREATED}/${tutorialId}`);
     return response.data;
   },
 };

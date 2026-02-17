@@ -1,4 +1,5 @@
 import api from './api';
+import { API_ENDPOINTS } from '../constants';
 
 export interface CodeSnippet {
   _id: string;
@@ -16,7 +17,7 @@ export const snippetAPI = {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('Authentication required');
 
-    const response = await api.get('/snippets');
+    const response = await api.get(API_ENDPOINTS.SNIPPETS);
     return response.data;
   },
 
@@ -25,7 +26,7 @@ export const snippetAPI = {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('Authentication required');
 
-    const response = await api.get(`/snippets/${id}`);
+    const response = await api.get(`${API_ENDPOINTS.SNIPPETS}/${id}`);
     return response.data;
   },
 
@@ -39,7 +40,7 @@ export const snippetAPI = {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('Authentication required');
 
-    const response = await api.post('/snippets', data);
+    const response = await api.post(API_ENDPOINTS.SNIPPETS, data);
     return response.data;
   },
 
@@ -56,7 +57,7 @@ export const snippetAPI = {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('Authentication required');
 
-    const response = await api.put(`/snippets/${id}`, data);
+    const response = await api.put(`${API_ENDPOINTS.SNIPPETS}/${id}`, data);
     return response.data;
   },
 
@@ -65,7 +66,7 @@ export const snippetAPI = {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('Authentication required');
 
-    const response = await api.delete(`/snippets/${id}`);
+    const response = await api.delete(`${API_ENDPOINTS.SNIPPETS}/${id}`);
     return response.data;
   },
 };

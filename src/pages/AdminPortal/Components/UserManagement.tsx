@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { adminAPI } from "../../../services/adminAPI";
 import { useToast } from "../../../contexts/ToastContext";
+import { getProfileImageUrl } from "../../../utils/imageUtils";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
 
 interface UserManagementProps {
@@ -488,11 +489,7 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                     <div className="flex items-center gap-4">
                       {selectedUser.profilePicture ? (
                         <img
-                          src={
-                            selectedUser.profilePicture.startsWith('http')
-                              ? selectedUser.profilePicture
-                              : `http://localhost:5000${selectedUser.profilePicture}`
-                          }
+                          src={getProfileImageUrl(selectedUser.profilePicture) || selectedUser.profilePicture}
                           alt={selectedUser.name}
                           className="w-20 h-20 rounded-full object-cover border-4 border-gray-100 shadow-md"
                         />

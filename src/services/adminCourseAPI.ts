@@ -1,4 +1,5 @@
 import api from "./api";
+import { API_ENDPOINTS } from '../constants';
 
 // Course interface for type safety
 export interface Course {
@@ -130,13 +131,13 @@ export const adminCourseAPI = {
     category?: string;
     search?: string;
   }) => {
-    const response = await api.get("/admin/courses", { params });
+    const response = await api.get(API_ENDPOINTS.ADMIN_COURSES, { params });
     return response.data;
   },
 
   // Get single course
   getCourse: async (id: string) => {
-    const response = await api.get(`/courses/${id}`);
+    const response = await api.get(`${API_ENDPOINTS.COURSES}/${id}`);
     return response.data;
   },
 
@@ -153,7 +154,7 @@ export const adminCourseAPI = {
     tags?: string[];
     prerequisites?: string[];
   }) => {
-    const response = await api.post("/admin/courses", courseData);
+    const response = await api.post(API_ENDPOINTS.ADMIN_COURSES, courseData);
     return response.data.data;
   },
 
@@ -173,19 +174,19 @@ export const adminCourseAPI = {
       prerequisites?: string[];
     }
   ) => {
-    const response = await api.put(`/admin/courses/${courseId}`, courseData);
+    const response = await api.put(`${API_ENDPOINTS.ADMIN_COURSES}/${courseId}`, courseData);
     return response.data.data;
   },
 
   // Delete course
   deleteCourse: async (courseId: string) => {
-    const response = await api.delete(`/admin/courses/${courseId}`);
+    const response = await api.delete(`${API_ENDPOINTS.ADMIN_COURSES}/${courseId}`);
     return response.data;
   },
 
   // Get course sections
   getCourseSections: async (courseId: string) => {
-    const response = await api.get(`/admin/courses/${courseId}/sections`);
+    const response = await api.get(`${API_ENDPOINTS.ADMIN_COURSES}/${courseId}/sections`);
     return response.data?.data || [];
   },
 
@@ -199,10 +200,7 @@ export const adminCourseAPI = {
       estimatedHours?: number;
     }
   ) => {
-    const response = await api.post(
-      `/admin/courses/${courseId}/sections`,
-      sectionData
-    );
+    const response = await api.post(`${API_ENDPOINTS.ADMIN_COURSES}/${courseId}/sections`, sectionData);
     return response.data.data;
   },
 
@@ -216,16 +214,13 @@ export const adminCourseAPI = {
       estimatedHours?: number;
     }
   ) => {
-    const response = await api.put(
-      `/admin/courses/sections/${sectionId}`,
-      sectionData
-    );
+    const response = await api.put(`${API_ENDPOINTS.ADMIN_COURSES}/sections/${sectionId}`, sectionData);
     return response.data.data;
   },
 
   // Delete section
   deleteSection: async (sectionId: string) => {
-    const response = await api.delete(`/admin/courses/sections/${sectionId}`);
+    const response = await api.delete(`${API_ENDPOINTS.ADMIN_COURSES}/sections/${sectionId}`);
     return response.data;
   },
 
@@ -248,10 +243,7 @@ export const adminCourseAPI = {
       estimatedHours?: number;
     }
   ) => {
-    const response = await api.post(
-      `/admin/courses/sections/${sectionId}/lessons`,
-      lessonData
-    );
+    const response = await api.post(`${API_ENDPOINTS.ADMIN_COURSES}/sections/${sectionId}/lessons`, lessonData);
     return response.data.data;
   },
 

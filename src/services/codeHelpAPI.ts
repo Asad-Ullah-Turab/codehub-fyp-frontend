@@ -1,6 +1,6 @@
+import api from "./api";
 import axios from "axios";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+import { API_ENDPOINTS } from '../constants';
 
 export interface CodeHelpRequest {
   error?: string;
@@ -22,25 +22,11 @@ export interface CodeHelpResponse {
 
 export const getErrorExplanation = async (error: string, code?: string, language?: string): Promise<string> => {
   try {
-    const token = localStorage.getItem("authToken");
-    
-    const response = await axios.post<CodeHelpResponse>(
-      `${API_BASE_URL}/api/codehelp/error-explanation`,
-      { error, code, language },
-      {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
+    const response = await api.post<CodeHelpResponse>(API_ENDPOINTS.CODEHELP_ERROR_EXPLANATION, { error, code, language });
     return response.data.data.explanation || "";
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || "Failed to get error explanation"
-      );
+      throw new Error(error.response?.data?.message || "Failed to get error explanation");
     }
     throw error;
   }
@@ -48,25 +34,11 @@ export const getErrorExplanation = async (error: string, code?: string, language
 
 export const getProblemHint = async (problem: string, code?: string, language?: string, attempt?: string): Promise<string> => {
   try {
-    const token = localStorage.getItem("authToken");
-    
-    const response = await axios.post<CodeHelpResponse>(
-      `${API_BASE_URL}/api/codehelp/problem-hint`,
-      { problem, code, language, attempt },
-      {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
+    const response = await api.post<CodeHelpResponse>(API_ENDPOINTS.CODEHELP_PROBLEM_HINT, { problem, code, language, attempt });
     return response.data.data.hint || "";
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || "Failed to get hint"
-      );
+      throw new Error(error.response?.data?.message || "Failed to get hint");
     }
     throw error;
   }
@@ -74,25 +46,11 @@ export const getProblemHint = async (problem: string, code?: string, language?: 
 
 export const askCodeQuestion = async (question: string, code?: string, language?: string): Promise<string> => {
   try {
-    const token = localStorage.getItem("authToken");
-    
-    const response = await axios.post<CodeHelpResponse>(
-      `${API_BASE_URL}/api/codehelp/ask-question`,
-      { question, code, language },
-      {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
+    const response = await api.post<CodeHelpResponse>(API_ENDPOINTS.CODEHELP_ASK_QUESTION, { question, code, language });
     return response.data.data.answer || "";
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || "Failed to get answer"
-      );
+      throw new Error(error.response?.data?.message || "Failed to get answer");
     }
     throw error;
   }

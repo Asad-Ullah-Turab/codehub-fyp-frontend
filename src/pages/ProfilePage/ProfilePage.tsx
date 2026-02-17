@@ -20,6 +20,7 @@ import {
   type CourseProgress,
   type SavedTutorial,
 } from "../../functions/ProfileFunctions/profileFunctions";
+import { getProfileImageUrl } from "../../utils/imageUtils";
 import ProfileCompletionModal from "../../components/ProfileCompletionModal/ProfileCompletionModal";
 import UserCertificates from "../../components/Certificates/UserCertificates";
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
@@ -390,11 +391,7 @@ const ProfilePage: React.FC = () => {
               <div className="flex-shrink-0">
                 {user.profilePicture ? (
                   <img
-                    src={
-                      user.profilePicture.startsWith("http")
-                        ? user.profilePicture
-                        : `http://localhost:5000${user.profilePicture}`
-                    }
+                    src={getProfileImageUrl(user.profilePicture) || user.profilePicture}
                     alt={user.name}
                     className="w-24 h-24 rounded-xl border-4 border-white shadow-lg object-cover transition-transform hover:scale-105"
                   />
@@ -1075,9 +1072,7 @@ const ProfilePage: React.FC = () => {
                       <div className="flex-shrink-0">
                         <img
                           src={
-                            profileForm.profilePicture.startsWith("http")
-                              ? profileForm.profilePicture
-                              : `http://localhost:5000${profileForm.profilePicture}`
+                            getProfileImageUrl(profileForm.profilePicture) || profileForm.profilePicture
                           }
                           alt="Profile preview"
                           className="w-24 h-24 rounded-xl object-cover border border-gray-200 shadow-sm"

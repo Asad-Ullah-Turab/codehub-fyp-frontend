@@ -1,4 +1,5 @@
 import api from "./api";
+import { API_ENDPOINTS } from '../constants';
 
 // Admin Tutorial API
 export const adminTutorialAPI = {
@@ -10,13 +11,13 @@ export const adminTutorialAPI = {
     difficulty?: string;
     search?: string;
   }) => {
-    const response = await api.get("/admin/tutorials", { params });
+    const response = await api.get(API_ENDPOINTS.ADMIN_TUTORIALS, { params });
     return response.data;
   },
 
   // Get single tutorial
   getTutorial: async (id: string) => {
-    const response = await api.get(`/tutorials/${id}`);
+    const response = await api.get(`${API_ENDPOINTS.TUTORIALS}/${id}`);
     return response.data;
   },
 
@@ -33,7 +34,7 @@ export const adminTutorialAPI = {
     tips?: string[];
     tags?: string[];
   }) => {
-    const response = await api.post("/admin/tutorials", tutorialData);
+    const response = await api.post(API_ENDPOINTS.ADMIN_TUTORIALS, tutorialData);
     return response.data;
   },
 
@@ -53,25 +54,25 @@ export const adminTutorialAPI = {
       tags?: string[];
     }
   ) => {
-    const response = await api.put(`/admin/tutorials/${id}`, tutorialData);
+    const response = await api.put(`${API_ENDPOINTS.ADMIN_TUTORIALS}/${id}`, tutorialData);
     return response.data;
   },
 
   // Delete tutorial
   deleteTutorial: async (id: string) => {
-    const response = await api.delete(`/admin/tutorials/${id}`);
+    const response = await api.delete(`${API_ENDPOINTS.ADMIN_TUTORIALS}/${id}`);
     return response.data;
   },
 
   // Get available languages
   getLanguages: async () => {
-    const response = await api.get("/tutorials/languages");
+    const response = await api.get(API_ENDPOINTS.TUTORIALS_LANGUAGES);
     return response.data;
   },
 
   // Get concepts by language
   getConcepts: async (language: string) => {
-    const response = await api.get(`/tutorials/languages/${language}/concepts`);
+    const response = await api.get(`${API_ENDPOINTS.TUTORIALS_LANGUAGES}/${language}/concepts`);
     return response.data;
   },
 };

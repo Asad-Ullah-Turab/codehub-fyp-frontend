@@ -1,10 +1,11 @@
 import api from "./api";
+import { API_ENDPOINTS } from '../constants';
 
 export const adminAPI = {
   // Dashboard stats
   getDashboardStats: async () => {
     try {
-      const response = await api.get("/admin/stats");
+      const response = await api.get(API_ENDPOINTS.ADMIN_STATS);
       return response.data;
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
@@ -28,7 +29,7 @@ export const adminAPI = {
         role,
         status,
       });
-      const response = await api.get(`/admin/users?${params}`);
+      const response = await api.get(`${API_ENDPOINTS.ADMIN_USERS}?${params}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -38,7 +39,7 @@ export const adminAPI = {
 
   searchUsers: async (query: string) => {
     try {
-      const response = await api.get(`/admin/users/search?query=${query}`);
+      const response = await api.get(`${API_ENDPOINTS.ADMIN_USERS}/search?query=${query}`);
       return response.data;
     } catch (error) {
       console.error("Error searching users:", error);
@@ -48,7 +49,7 @@ export const adminAPI = {
 
   getUserDetails: async (userId: string) => {
     try {
-      const response = await api.get(`/admin/users/${userId}`);
+      const response = await api.get(`${API_ENDPOINTS.ADMIN_USERS}/${userId}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching user details:", error);
@@ -61,7 +62,7 @@ export const adminAPI = {
     userData: Record<string, unknown>
   ) => {
     try {
-      const response = await api.put(`/admin/users/${userId}`, userData);
+      const response = await api.put(`${API_ENDPOINTS.ADMIN_USERS}/${userId}`, userData);
       return response.data;
     } catch (error) {
       console.error("Error updating user details:", error);
@@ -75,7 +76,7 @@ export const adminAPI = {
     reason?: string
   ) => {
     try {
-      const response = await api.put(`/admin/users/${userId}/status`, {
+      const response = await api.put(`${API_ENDPOINTS.ADMIN_USERS}/${userId}/status`, {
         accountStatus,
         reason,
       });
@@ -88,7 +89,7 @@ export const adminAPI = {
 
   changeUserRole: async (userId: string, role: string) => {
     try {
-      const response = await api.put(`/admin/users/${userId}/role`, {
+      const response = await api.put(`${API_ENDPOINTS.ADMIN_USERS}/${userId}/role`, {
         role,
       });
       return response.data;
@@ -100,7 +101,7 @@ export const adminAPI = {
 
   sendEmailToUser: async (userId: string, subject: string, message: string) => {
     try {
-      const response = await api.post(`/admin/users/${userId}/send-email`, {
+      const response = await api.post(`${API_ENDPOINTS.ADMIN_USERS}/${userId}/send-email`, {
         subject,
         message,
       });
@@ -113,7 +114,7 @@ export const adminAPI = {
 
   deleteUser: async (userId: string) => {
     try {
-      const response = await api.delete(`/admin/users/${userId}`);
+      const response = await api.delete(`${API_ENDPOINTS.ADMIN_USERS}/${userId}`);
       return response.data;
     } catch (error) {
       console.error("Error deleting user:", error);
@@ -130,7 +131,7 @@ export const adminAPI = {
         language,
         search,
       });
-      const response = await api.get(`/admin/tutorials?${params}`);
+      const response = await api.get(`${API_ENDPOINTS.ADMIN_TUTORIALS}?${params}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching tutorials:", error);
@@ -140,7 +141,7 @@ export const adminAPI = {
 
   createTutorial: async (tutorialData: Record<string, unknown>) => {
     try {
-      const response = await api.post("/admin/tutorials", tutorialData);
+      const response = await api.post(API_ENDPOINTS.ADMIN_TUTORIALS, tutorialData);
       return response.data;
     } catch (error) {
       console.error("Error creating tutorial:", error);
@@ -153,10 +154,7 @@ export const adminAPI = {
     tutorialData: Record<string, unknown>
   ) => {
     try {
-      const response = await api.put(
-        `/admin/tutorials/${tutorialId}`,
-        tutorialData
-      );
+      const response = await api.put(`${API_ENDPOINTS.ADMIN_TUTORIALS}/${tutorialId}`, tutorialData);
       return response.data;
     } catch (error) {
       console.error("Error updating tutorial:", error);
@@ -166,7 +164,7 @@ export const adminAPI = {
 
   deleteTutorial: async (tutorialId: string) => {
     try {
-      const response = await api.delete(`/admin/tutorials/${tutorialId}`);
+      const response = await api.delete(`${API_ENDPOINTS.ADMIN_TUTORIALS}/${tutorialId}`);
       return response.data;
     } catch (error) {
       console.error("Error deleting tutorial:", error);
@@ -177,7 +175,7 @@ export const adminAPI = {
   // Analytics
   getAnalytics: async () => {
     try {
-      const response = await api.get("/admin/analytics");
+      const response = await api.get(API_ENDPOINTS.ADMIN_ANALYTICS);
       return response.data;
     } catch (error) {
       console.error("Error fetching analytics:", error);
@@ -187,7 +185,7 @@ export const adminAPI = {
 
   getRecentActivity: async (limit = 10) => {
     try {
-      const response = await api.get(`/admin/recent-activity?limit=${limit}`);
+      const response = await api.get(`${API_ENDPOINTS.ADMIN_RECENT_ACTIVITY}?limit=${limit}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching recent activity:", error);
@@ -198,7 +196,7 @@ export const adminAPI = {
   // Admin: certificate management
   getPendingCertificates: async (page = 1, limit = 10) => {
     try {
-      const response = await api.get(`/admin/certificates/pending?page=${page}&limit=${limit}`);
+      const response = await api.get(`${API_ENDPOINTS.ADMIN_CERTIFICATES_PENDING}?page=${page}&limit=${limit}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching pending certificates:", error);
@@ -208,7 +206,7 @@ export const adminAPI = {
 
   approveCertificate: async (certificateId: string) => {
     try {
-      const response = await api.put(`/admin/certificates/${certificateId}/approve`);
+      const response = await api.put(`${API_ENDPOINTS.ADMIN_CERTIFICATES}/${certificateId}/approve`);
       return response.data;
     } catch (error) {
       console.error("Error approving certificate:", error);
@@ -218,7 +216,7 @@ export const adminAPI = {
 
   rejectCertificate: async (certificateId: string, rejectionReason: string) => {
     try {
-      const response = await api.put(`/admin/certificates/${certificateId}/reject`, { rejectionReason });
+      const response = await api.put(`${API_ENDPOINTS.ADMIN_CERTIFICATES}/${certificateId}/reject`, { rejectionReason });
       return response.data;
     } catch (error) {
       console.error("Error rejecting certificate:", error);
@@ -234,9 +232,7 @@ export const adminAPI = {
       if (filters.page) params.append("page", filters.page.toString());
       if (filters.limit) params.append("limit", filters.limit.toString());
 
-      const response = await api.get(
-        `/admin/newsletter-subscriptions?${params}`
-      );
+      const response = await api.get(`${API_ENDPOINTS.ADMIN_NEWSLETTER_SUBSCRIPTIONS}?${params}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching newsletter subscriptions:", error);

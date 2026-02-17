@@ -3,6 +3,7 @@ import { Printer, Award, CheckCircle } from "lucide-react";
 import { STORAGE_KEYS } from "../../constants";
 import { useToast } from "../../contexts/ToastContext";
 import { profileAPI } from "../../services/profileAPI";
+import { getApiUrl } from "../../utils/config";
 
 interface Certificate {
   _id: string;
@@ -65,7 +66,7 @@ export default function UserCertificates() {
       const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       
       // Create URL with token as query parameter - backend supports this
-      const base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const base = getApiUrl();
       const downloadUrl = `${base}/profile/certificates/${certificateId}/download?token=${token || ''}`;
       
       // Open certificate HTML page in new window for printing

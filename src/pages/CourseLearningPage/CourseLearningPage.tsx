@@ -5,6 +5,7 @@ import {
   getCourseById,
   getEnrollmentDetails,
   enrollInCourse,
+  completeLessonProgress,
   type Course,
   type CourseEnrollment,
   type CourseSection,
@@ -284,43 +285,19 @@ const CourseLearningPage: React.FC = () => {
     if (!courseId || !selectedSection || !selectedLesson) return;
 
     try {
-      // Mark lesson as complete via API
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        showToast("Authentication required. Please log in again.", "error");
-        return;
-      }
-
       const timeSpentMinutes = lessonStartTime
         ? Math.floor((new Date().getTime() - lessonStartTime.getTime()) / 60000)
         : 0;
 
-      const response = await fetch(
-        `http://localhost:5000/api/courses/${courseId}/progress/lesson`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            courseId,
-            sectionId: selectedSection._id,
-            lessonId: selectedLesson._id,
-            timeSpentMinutes,
-          }),
-        }
+      const result = await completeLessonProgress(
+        courseId,
+        selectedSection._id,
+        selectedLesson._id,
+        timeSpentMinutes
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to complete lesson");
-      }
+      setEnrollment(result.data);
 
-      const data = await response.json();
-      setEnrollment(data.data);
-
-      // Show success message
       showToast("Lesson completed successfully!", "success");
     } catch (err: any) {
       console.error("Error completing lesson:", err);

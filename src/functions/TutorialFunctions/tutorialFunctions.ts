@@ -3,7 +3,7 @@
  * Utility functions for user-facing tutorial operations
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { tutorialAPI } from "../../services/tutorialAPI";
 
 // Type definitions
 export interface Tutorial {
@@ -71,13 +71,10 @@ export const fetchMainConcepts = async (): Promise<MainConcepts> => {
       cpp: [],
     };
 
-    // Fetch concepts for each language from backend
+    // Fetch concepts for each language using centralized API service
     for (const language of languages) {
-      const response = await fetch(`${API_BASE_URL}/tutorials/concepts/${language}`);
-      if (response.ok) {
-        const data = await response.json();
-        result[language as keyof MainConcepts] = data.concepts || [];
-      }
+      const resp = await tutorialAPI.getConceptsByLanguage(language);
+      result[language as keyof MainConcepts] = resp?.concepts || resp?.data || [];
     }
 
     // Return fetched concepts, fallback to hardcoded if backend fails
@@ -100,38 +97,24 @@ export const fetchTutorialsByLanguageAndConcept = async (
   concept: string = ''
 ): Promise<Tutorial[]> => {
   try {
-    let url: string;
-    
-    // If concept is 'all' or empty, use the language-specific endpoint
+    // Language-specific grouped response
     if (!concept || concept === 'all') {
-      url = `${API_BASE_URL}/tutorials/language/${language}`;
-    } else {
-      // Use the general endpoint with concept filter
-      url = `${API_BASE_URL}/tutorials?language=${language}&concept=${concept}`;
+      const resp = await tutorialAPI.getTutorialsByLanguage(language);
+      if (resp?.tutorials) {
+        const allTutorials: Tutorial[] = [];
+        Object.values(resp.tutorials as Record<string, Tutorial[]>).forEach((conceptTutorials) => {
+          allTutorials.push(...conceptTutorials);
+        });
+        return allTutorials;
+      }
+
+      return resp?.data || [];
     }
 
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Response error:', errorText);
-      throw new Error(`Failed to fetch tutorials: ${response.status} - ${errorText}`);
-    }
-    
-    const data = await response.json();
-    
-    // Handle different response formats
-    if (data.tutorials) {
-      // Response from /language/:language endpoint (grouped by concept)
-      const allTutorials: Tutorial[] = [];
-      Object.values(data.tutorials as Record<string, Tutorial[]>).forEach((conceptTutorials) => {
-        allTutorials.push(...conceptTutorials);
-      });
-      return allTutorials;
-    } else {
-      // Response from general endpoint
-      return data.data || [];
-    }
+    // Use general tutorials endpoint with filters
+    const resp = await tutorialAPI.getAllTutorials({ language, concept });
+    if (Array.isArray(resp)) return resp;
+    return resp?.data || [];
   } catch (error) {
     console.error('Error fetching tutorials:', error);
     throw error;
@@ -145,11 +128,8 @@ export const fetchTutorialsByLanguageAndConcept = async (
  */
 export const fetchTutorialById = async (tutorialId: string): Promise<Tutorial> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/tutorials/${tutorialId}`);
-    if (!response.ok) throw new Error('Failed to fetch tutorial');
-    
-    const data = await response.json();
-    return data.data;
+    const resp = await tutorialAPI.getTutorialById(tutorialId);
+    return resp?.data;
   } catch (error) {
     console.error('Error fetching tutorial:', error);
     throw error;
@@ -163,14 +143,8 @@ export const fetchTutorialById = async (tutorialId: string): Promise<Tutorial> =
  */
 export const saveTutorialToFavorites = async (tutorialId: string): Promise<{ success: boolean }> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/tutorials/${tutorialId}/save`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-    });
-    if (!response.ok) throw new Error('Failed to save tutorial');
-    
-    return await response.json();
+    const resp = await tutorialAPI.saveTutorial(tutorialId);
+    return resp;
   } catch (error) {
     console.error('Error saving tutorial:', error);
     throw error;
@@ -247,26 +221,8 @@ export const saveTutorial = async (tutorialId: string): Promise<{
   message: string;
 }> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/tutorials/save`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ tutorialId }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    const resp = await tutorialAPI.saveTutorial(tutorialId);
+    return resp;
   } catch (error) {
     console.error('Error saving tutorial:', error);
     throw error;
@@ -283,25 +239,8 @@ export const unsaveTutorial = async (tutorialId: string): Promise<{
   message: string;
 }> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/tutorials/saved/${tutorialId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    const resp = await tutorialAPI.unsaveTutorial(tutorialId);
+    return resp;
   } catch (error) {
     console.error('Error unsaving tutorial:', error);
     throw error;
@@ -326,31 +265,8 @@ export const getSavedTutorials = async (filters?: {
   }>;
 }> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-
-    const queryParams = new URLSearchParams();
-    if (filters?.language) queryParams.append('language', filters.language);
-    if (filters?.difficulty) queryParams.append('difficulty', filters.difficulty);
-
-    const url = `${API_BASE_URL}/tutorials/user/saved${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    const resp = await tutorialAPI.getSavedTutorials(filters?.language);
+    return resp;
   } catch (error) {
     console.error('Error fetching saved tutorials:', error);
     throw error;

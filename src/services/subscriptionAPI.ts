@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import api from './api';
 
 export interface SubscriptionData {
   email: string;
@@ -34,35 +34,21 @@ export const subscribeToNewsletter = async (email: string): Promise<Subscription
       };
     }
 
-    const response = await fetch(`${API_BASE_URL}/newsletter/subscribe`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email: email.trim() }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        status: 'error',
-        message: data.message || 'Failed to subscribe to newsletter',
-        errors: data.errors || []
-      };
-    }
+    const response = await api.post('/newsletter/subscribe', { email: email.trim() });
 
     return {
       status: 'success',
-      message: data.message || 'Successfully subscribed to CodeHub newsletter!',
-      data: data.data
+      message: response.message || 'Successfully subscribed to CodeHub newsletter!',
+      data: response.data
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error subscribing to newsletter:', error);
+    const message = error?.response?.data?.message || 'An unexpected error occurred. Please try again.';
+    const errors = error?.response?.data?.errors || ['Network error or server unavailable'];
     return {
       status: 'error',
-      message: 'An unexpected error occurred. Please try again.',
-      errors: ['Network error or server unavailable']
+      message,
+      errors,
     };
   }
 };

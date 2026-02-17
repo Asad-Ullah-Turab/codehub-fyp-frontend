@@ -12,6 +12,11 @@ export const contactAPI = {
     return axiosInstance.get(`/contact?${params}`);
   },
 
+  // Public: submit contact form
+  submitContact: (formData: { fullName: string; email: string; subject: string; message: string }) => {
+    return axiosInstance.post('/contact', formData);
+  },
+
   // Reply to a specific contact
   replyToContact: (contactId: string, replyData: { subject: string; message: string }) => {
     return axiosInstance.post(`/contact/${contactId}/reply`, replyData);

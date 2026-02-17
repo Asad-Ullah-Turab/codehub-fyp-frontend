@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Printer, Award, CheckCircle } from "lucide-react";
 import { STORAGE_KEYS } from "../../constants";
 import { useToast } from "../../contexts/ToastContext";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { profileAPI } from "../../services/profileAPI";
 
 interface Certificate {
   _id: string;
@@ -40,26 +39,13 @@ export default function UserCertificates() {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch(
-        `${API_BASE_URL}/profile/certificates?page=${page}&limit=${LIMIT}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) || ""}`,
-          },
-        }
-      );
+      const resp = await profileAPI.getUserCertificates(page, LIMIT);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setCertificates(data.data);
-        setTotal(data.total);
+      if (resp?.success) {
+        setCertificates(resp.data || []);
+        setTotal(resp.total || 0);
       } else {
-        setError(data.message || "Failed to load certificates");
+        setError(resp?.message || "Failed to load certificates");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");

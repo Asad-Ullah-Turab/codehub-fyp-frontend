@@ -3,7 +3,9 @@
  * API functions for user profile management, progress tracking, and enrollment management
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { authAPI } from "../../services/api";
+import { profileAPI } from "../../services/profileAPI";
+import { tutorialAPI } from "../../services/tutorialAPI";
 
 // Debug function to test token validity
 export const testTokenValidity = async (): Promise<boolean> => {
@@ -27,18 +29,10 @@ export const testTokenValidity = async (): Promise<boolean> => {
     }
 
     // Test with a simple auth endpoint
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    
-    if (response.ok) {
-      await response.json();
+    try {
+      await authAPI.getProfile();
       return true;
-    } else {
+    } catch {
       return false;
     }
   } catch (error) {
@@ -177,20 +171,9 @@ export const getProfile = async (): Promise<{
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/profile`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    // Delegate to centralized service (axios + interceptors)
+    const resp = await profileAPI.getProfile();
+    return resp; 
   } catch (error) {
     console.error('Error fetching profile:', error);
     throw error;
@@ -223,21 +206,8 @@ export const updateProfile = async (profileData: {
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/profile`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(profileData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    const resp = await profileAPI.updateProfile(profileData);
+    return resp; 
   } catch (error) {
     console.error('Error updating profile:', error);
     throw error;
@@ -260,23 +230,8 @@ export const uploadProfilePicture = async (file: File): Promise<{
       throw new Error('Authentication required');
     }
 
-    const formData = new FormData();
-    formData.append('profilePicture', file);
-
-    const response = await fetch(`${API_BASE_URL}/profile/upload-picture`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    const resp = await profileAPI.uploadProfilePicture(file);
+    return resp; 
   } catch (error) {
     console.error('Error uploading profile picture:', error);
     throw error;
@@ -296,20 +251,8 @@ export const markPromptShown = async (): Promise<{
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/profile/prompt-shown`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    const resp = await profileAPI.markPromptShown();
+    return resp; 
   } catch (error) {
     console.error('Error marking prompt as shown:', error);
     throw error;
@@ -330,20 +273,8 @@ export const getCourseProgress = async (): Promise<{
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/profile/progress/courses`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    const resp = await profileAPI.getCourseProgress();
+    return resp; 
   } catch (error) {
     console.error('Error fetching course progress:', error);
     throw error;
@@ -362,20 +293,8 @@ export const getDashboardStats = async (): Promise<{
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/profile/dashboard`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    const resp = await profileAPI.getDashboardStats();
+    return resp; 
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
     throw error;
@@ -411,22 +330,8 @@ export const getUserEnrollments = async (params?: {
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
 
-    const url = `${API_BASE_URL}/profile/enrollments${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    const resp = await profileAPI.getUserEnrollments(params);
+    return resp; 
   } catch (error) {
     console.error('Error fetching user enrollments:', error);
     throw error;
@@ -448,21 +353,8 @@ export const updateEnrollmentStatus = async (
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/profile/enrollments/${enrollmentId}/status`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    const resp = await profileAPI.updateEnrollmentStatus(enrollmentId, status);
+    return resp; 
   } catch (error) {
     console.error('Error updating enrollment status:', error);
     throw error;
@@ -562,20 +454,8 @@ export const getSavedTutorials = async (): Promise<{
       throw new Error('Authentication required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/tutorials/user/saved`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return await response.json();
+    const resp = await tutorialAPI.getSavedTutorials();
+    return resp; 
   } catch (error) {
     console.error('Error fetching saved tutorials:', error);
     throw error;

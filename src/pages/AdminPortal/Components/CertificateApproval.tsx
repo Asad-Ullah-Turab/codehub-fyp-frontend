@@ -9,8 +9,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
 import { STORAGE_KEYS } from "../../../constants";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { adminAPI } from "../../../services/adminAPI";
 
 interface Certificate {
   _id: string;
@@ -48,31 +47,13 @@ export default function CertificateApproval() {
     try {
       setLoading(true);
       setError("");
-      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
-      
-      const response = await fetch(
-        `${API_BASE_URL}/admin/certificates/pending?page=${page}&limit=${LIMIT}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token || ""}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const resp = await adminAPI.getPendingCertificates(page, LIMIT);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const text = await response.text();
-      
-      const data = JSON.parse(text);
-
-      if (data.success) {
-        setCertificates(data.data);
-        setTotal(data.total);
+      if (resp?.success) {
+        setCertificates(resp.data);
+        setTotal(resp.total || 0);
       } else {
-        setError(data.message || "Failed to load certificates");
+        setError(resp?.message || "Failed to load certificates");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -88,30 +69,16 @@ export default function CertificateApproval() {
   const approveCertificate = async (certificateId: string) => {
     try {
       setApprovingId(certificateId);
-      const response = await fetch(
-        `${API_BASE_URL}/admin/certificates/${certificateId}/approve`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) || ""}`,
-          },
-        }
-      );
+      const resp = await adminAPI.approveCertificate(certificateId);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
+      if (resp?.success) {
         setCertificates(
           certificates.filter((cert) => cert._id !== certificateId)
         );
         setTotal(total - 1);
         showToast("Certificate approved", "success");
       } else {
-        showToast(data.message || "Failed to approve certificate", "error");
+        showToast(resp?.message || "Failed to approve certificate", "error");
       }
     } catch (err) {
       showToast(err instanceof Error ? err.message : "An error occurred", "error");
@@ -128,25 +95,9 @@ export default function CertificateApproval() {
 
     try {
       setRejectingId(certificateId);
-      const response = await fetch(
-        `${API_BASE_URL}/admin/certificates/${certificateId}/reject`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN) || ""}`,
-          },
-          body: JSON.stringify({ rejectionReason: rejectionReason.trim() }),
-        }
-      );
+      const resp = await adminAPI.rejectCertificate(certificateId, rejectionReason.trim());
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
+      if (resp?.success) {
         setCertificates(
           certificates.filter((cert) => cert._id !== certificateId)
         );
@@ -155,7 +106,7 @@ export default function CertificateApproval() {
         setExpandedId(null);
         showToast("Certificate rejected", "success");
       } else {
-        showToast(data.message || "Failed to reject certificate", "error");
+        showToast(resp?.message || "Failed to reject certificate", "error");
       }
     } catch (err) {
       showToast(err instanceof Error ? err.message : "An error occurred", "error");

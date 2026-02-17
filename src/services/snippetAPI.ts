@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import api from './api';
 
 export interface CodeSnippet {
   _id: string;
@@ -14,43 +14,19 @@ export const snippetAPI = {
   // Get all user snippets
   async getUserSnippets(): Promise<{ success: boolean; data: CodeSnippet[] }> {
     const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
+    if (!token) throw new Error('Authentication required');
 
-    const response = await fetch(`${API_BASE_URL}/snippets`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch snippets');
-    }
-
-    return response.json();
+    const response = await api.get('/snippets');
+    return response;
   },
 
   // Get a single snippet
   async getSnippet(id: string): Promise<{ success: boolean; data: CodeSnippet }> {
     const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
+    if (!token) throw new Error('Authentication required');
 
-    const response = await fetch(`${API_BASE_URL}/snippets/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to fetch snippet');
-    }
-
-    return response.json();
+    const response = await api.get(`/snippets/${id}`);
+    return response;
   },
 
   // Create a new snippet
@@ -61,25 +37,10 @@ export const snippetAPI = {
     output?: string;
   }): Promise<{ success: boolean; message: string; data: CodeSnippet }> {
     const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
+    if (!token) throw new Error('Authentication required');
 
-    const response = await fetch(`${API_BASE_URL}/snippets`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to save snippet');
-    }
-
-    return response.json();
+    const response = await api.post('/snippets', data);
+    return response;
   },
 
   // Update a snippet
@@ -93,46 +54,18 @@ export const snippetAPI = {
     }>
   ): Promise<{ success: boolean; message: string; data: CodeSnippet }> {
     const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
+    if (!token) throw new Error('Authentication required');
 
-    const response = await fetch(`${API_BASE_URL}/snippets/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to update snippet');
-    }
-
-    return response.json();
+    const response = await api.put(`/snippets/${id}`, data);
+    return response;
   },
 
   // Delete a snippet
   async deleteSnippet(id: string): Promise<{ success: boolean; message: string }> {
     const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
+    if (!token) throw new Error('Authentication required');
 
-    const response = await fetch(`${API_BASE_URL}/snippets/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to delete snippet');
-    }
-
-    return response.json();
+    const response = await api.delete(`/snippets/${id}`);
+    return response;
   },
 };

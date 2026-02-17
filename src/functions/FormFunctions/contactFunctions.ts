@@ -1,5 +1,5 @@
 // Contact form related functions
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { contactAPI } from '../../services/contactAPI';
 
 // Types
 export interface ContactFormData {
@@ -109,26 +109,8 @@ export const submitContactForm = async (formData: ContactFormData): Promise<Cont
       };
     }
 
-    const response = await fetch(`${API_BASE_URL}/contact`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(formData),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        status: 'error',
-        message: data.message || 'Failed to submit contact form',
-        errors: data.errors || [],
-      };
-    }
-
-    return data;
+    const resp = await contactAPI.submitContact(formData);
+    return resp;
   } catch (error) {
     console.error('Error submitting contact form:', error);
     return {

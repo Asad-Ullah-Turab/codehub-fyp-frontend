@@ -195,6 +195,37 @@ export const adminAPI = {
     }
   },
 
+  // Admin: certificate management
+  getPendingCertificates: async (page = 1, limit = 10) => {
+    try {
+      const response = await api.get(`/admin/certificates/pending?page=${page}&limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching pending certificates:", error);
+      throw error;
+    }
+  },
+
+  approveCertificate: async (certificateId: string) => {
+    try {
+      const response = await api.put(`/admin/certificates/${certificateId}/approve`);
+      return response.data;
+    } catch (error) {
+      console.error("Error approving certificate:", error);
+      throw error;
+    }
+  },
+
+  rejectCertificate: async (certificateId: string, rejectionReason: string) => {
+    try {
+      const response = await api.put(`/admin/certificates/${certificateId}/reject`, { rejectionReason });
+      return response.data;
+    } catch (error) {
+      console.error("Error rejecting certificate:", error);
+      throw error;
+    }
+  },
+
   // Newsletter subscriptions
   getNewsletterSubscriptions: async (filters: { search?: string; page?: number; limit?: number } = {}) => {
     try {

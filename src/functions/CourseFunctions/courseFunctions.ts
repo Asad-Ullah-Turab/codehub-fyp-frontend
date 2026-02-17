@@ -3,7 +3,7 @@
  * Utility functions for user-facing course operations
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { courseAPI } from "../../services/courseAPI";
 
 // Type definitions
 export interface Course {
@@ -162,26 +162,14 @@ export const getAllCourses = async (filters?: {
   limit?: number;
 }): Promise<PaginationResponse<Course>> => {
   try {
-    const queryParams = new URLSearchParams();
-    
-    if (filters?.language) queryParams.append('language', filters.language);
-    if (filters?.category) queryParams.append('category', filters.category);
-    if (filters?.difficulty) queryParams.append('difficulty', filters.difficulty);
-    if (filters?.page) queryParams.append('page', filters.page.toString());
-    if (filters?.limit) queryParams.append('limit', filters.limit.toString());
-
-    const response = await fetch(`${API_BASE_URL}/courses?${queryParams.toString()}`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
+    const resp = await courseAPI.getAllCourses(filters as Record<string, unknown>);
+    return resp as PaginationResponse<Course>;
   } catch (error) {
     console.error('Error fetching courses:', error);
     throw error;
   }
 };
+
 
 // Get courses by language
 export const getCoursesByLanguage = async (
@@ -190,20 +178,14 @@ export const getCoursesByLanguage = async (
   limit = 10
 ): Promise<PaginationResponse<Course>> => {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/courses/language/${language}?page=${page}&limit=${limit}`
-    );
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
+    const resp = await courseAPI.getCoursesByLanguage(language, page, limit);
+    return resp as PaginationResponse<Course>;
   } catch (error) {
     console.error('Error fetching courses by language:', error);
     throw error;
   }
 };
+
 
 // Get a single course by ID
 export const getCourseById = async (id: string): Promise<{
@@ -212,29 +194,14 @@ export const getCourseById = async (id: string): Promise<{
   enrollment?: CourseEnrollment;
 }> => {
   try {
-    const token = localStorage.getItem('authToken');
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    };
-    
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
-      headers,
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
+    const resp = await courseAPI.getCourseById(id);
+    return resp;
   } catch (error) {
     console.error('Error fetching course by ID:', error);
     throw error;
   }
 };
+
 
 // Enroll in a course (requires authentication)
 export const enrollInCourse = async (courseId: string): Promise<{
@@ -243,31 +210,14 @@ export const enrollInCourse = async (courseId: string): Promise<{
   enrollment?: CourseEnrollment;
 }> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/courses/enroll`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ courseId }),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
+    const resp = await courseAPI.enrollInCourse(courseId);
+    return resp;
   } catch (error) {
     console.error('Error enrolling in course:', error);
     throw error;
   }
 };
+
 
 // Get user's enrolled courses (requires authentication)
 export const getUserEnrolledCourses = async (): Promise<{
@@ -275,27 +225,14 @@ export const getUserEnrolledCourses = async (): Promise<{
   data: CourseEnrollment[];
 }> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/courses/user/enrolled`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
+    const resp = await courseAPI.getUserEnrolledCourses();
+    return resp;
   } catch (error) {
     console.error('Error fetching enrolled courses:', error);
     throw error;
   }
 };
+
 
 // Get enrollment details for a specific course (requires authentication)
 export const getEnrollmentDetails = async (courseId: string): Promise<{
@@ -303,63 +240,35 @@ export const getEnrollmentDetails = async (courseId: string): Promise<{
   data: CourseEnrollment;
 }> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/courses/${courseId}/enrollment`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
+    const resp = await courseAPI.getEnrollmentDetails(courseId);
+    return resp;
   } catch (error) {
     console.error('Error fetching enrollment details:', error);
     throw error;
   }
 };
 
+
 // Complete a lesson (update progress)
 export const completeLessonProgress = async (
   courseId: string,
   sectionId: string,
-  lessonId: string
+  lessonId: string,
+  timeSpentMinutes?: number
 ): Promise<{
   success: boolean;
   message: string;
   data: CourseEnrollment;
 }> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/courses/${courseId}/progress/lesson`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ courseId, sectionId, lessonId }),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
+    const resp = await courseAPI.completeLessonProgress(courseId, sectionId, lessonId, timeSpentMinutes);
+    return resp;
   } catch (error) {
     console.error('Error updating lesson progress:', error);
     throw error;
   }
 };
+
 
 // Submit quiz answers
 export const submitQuizAnswers = async (
@@ -388,32 +297,14 @@ export const submitQuizAnswers = async (
   };
 }> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/courses/quizzes/${quizId}/submit`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ quizId, courseId, sectionId, answers }),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Quiz submission error:', errorData);
-      throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
+    const resp = await courseAPI.submitQuizAnswers(quizId, courseId, sectionId, answers);
+    return resp;
   } catch (error) {
     console.error('Error submitting quiz:', error);
     throw error;
   }
 };
+
 
 // Get quiz details
 export const getQuizDetails = async (quizId: string): Promise<{
@@ -425,27 +316,14 @@ export const getQuizDetails = async (quizId: string): Promise<{
   };
 }> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/courses/quizzes/${quizId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
+    const resp = await courseAPI.getQuizDetails(quizId);
+    return resp;
   } catch (error) {
     console.error('Error fetching quiz details:', error);
     throw error;
   }
 };
+
 
 // Get user certificates
 export const getUserCertificates = async (): Promise<{
@@ -453,27 +331,14 @@ export const getUserCertificates = async (): Promise<{
   data: unknown[];
 }> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/admin/courses/user/certificates`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    return await response.json();
+    const resp = await courseAPI.getUserCertificates();
+    return resp;
   } catch (error) {
     console.error('Error fetching certificates:', error);
     throw error;
   }
 };
+
 
 // Get certificate by ID
 export const getCertificateById = async (certificateId: string): Promise<{
@@ -481,32 +346,14 @@ export const getCertificateById = async (certificateId: string): Promise<{
   data: unknown;
 }> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Authentication required');
-    }
-
-    const url = `${API_BASE_URL}/admin/courses/certificates/${certificateId}`;
-
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-      console.error('Certificate fetch error response:', errorData);
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return data;
+    const resp = await courseAPI.getCertificateById(certificateId);
+    return resp;
   } catch (error) {
     console.error('Error fetching certificate:', error);
     throw error;
   }
 };
+
 
 // Get available course languages (utility function)
 export const getAvailableLanguages = async (): Promise<string[]> => {

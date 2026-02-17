@@ -65,7 +65,8 @@ export default function UserCertificates() {
       const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       
       // Create URL with token as query parameter - backend supports this
-      const downloadUrl = `${API_BASE_URL}/profile/certificates/${certificateId}/download?token=${token || ''}`;
+      const base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const downloadUrl = `${base}/profile/certificates/${certificateId}/download?token=${token || ''}`;
       
       // Open certificate HTML page in new window for printing
       const printWindow = window.open(downloadUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');

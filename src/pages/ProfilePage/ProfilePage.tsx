@@ -41,19 +41,14 @@ import {
   Bell,
   LogOut,
   User as UserIcon,
-  Calendar,
   MapPin,
   Globe,
-  Github,
-  Linkedin,
   X,
   Trash2,
   Layers,
   Sparkles,
   Bookmark,
-  FileText,
   Briefcase,
-  GraduationCap,
 } from "lucide-react";
 
 const ProfilePage: React.FC = () => {

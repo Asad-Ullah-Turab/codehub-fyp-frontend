@@ -38,7 +38,7 @@ export const subscribeToNewsletter = async (email: string): Promise<Subscription
 
     return {
       status: 'success',
-      message: response.message || 'Successfully subscribed to CodeHub newsletter!',
+      message: response.data?.message || 'Successfully subscribed to CodeHub newsletter!',
       data: response.data
     };
   } catch (error: any) {

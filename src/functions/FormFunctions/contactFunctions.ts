@@ -110,7 +110,7 @@ export const submitContactForm = async (formData: ContactFormData): Promise<Cont
     }
 
     const resp = await contactAPI.submitContact(formData);
-    return resp;
+    return resp?.data || resp;
   } catch (error) {
     console.error('Error submitting contact form:', error);
     return {

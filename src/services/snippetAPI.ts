@@ -17,7 +17,7 @@ export const snippetAPI = {
     if (!token) throw new Error('Authentication required');
 
     const response = await api.get('/snippets');
-    return response;
+    return response.data;
   },
 
   // Get a single snippet
@@ -26,7 +26,7 @@ export const snippetAPI = {
     if (!token) throw new Error('Authentication required');
 
     const response = await api.get(`/snippets/${id}`);
-    return response;
+    return response.data;
   },
 
   // Create a new snippet
@@ -40,7 +40,7 @@ export const snippetAPI = {
     if (!token) throw new Error('Authentication required');
 
     const response = await api.post('/snippets', data);
-    return response;
+    return response.data;
   },
 
   // Update a snippet
@@ -57,7 +57,7 @@ export const snippetAPI = {
     if (!token) throw new Error('Authentication required');
 
     const response = await api.put(`/snippets/${id}`, data);
-    return response;
+    return response.data;
   },
 
   // Delete a snippet
@@ -66,6 +66,6 @@ export const snippetAPI = {
     if (!token) throw new Error('Authentication required');
 
     const response = await api.delete(`/snippets/${id}`);
-    return response;
+    return response.data;
   },
 };

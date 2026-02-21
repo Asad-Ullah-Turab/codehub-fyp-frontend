@@ -16,6 +16,11 @@ self.addEventListener('fetch', event => {
     return;
   }
   
+  // Bypass the service worker for API endpoints (avoid intercepting auth/signin, subscriptions etc.)
+  if (url.pathname.startsWith('/api/')) {
+    return; // let network handle it normally
+  }
+
   // For other requests, respond with the fetch
   event.respondWith(
     fetch(event.request)

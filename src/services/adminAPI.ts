@@ -19,7 +19,8 @@ export const adminAPI = {
     limit = 10,
     search = "",
     role = "",
-    status = ""
+    status = "",
+    plan = ""
   ) => {
     try {
       const params = new URLSearchParams({
@@ -28,6 +29,7 @@ export const adminAPI = {
         search,
         role,
         status,
+        plan,
       });
       const response = await api.get(`${API_ENDPOINTS.ADMIN_USERS}?${params}`);
       return response.data;

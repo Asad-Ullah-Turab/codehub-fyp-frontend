@@ -17,6 +17,9 @@ import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import AdminPortal from "./pages/AdminPortal/AdminPortal";
 import AboutPage from "./pages/AboutPage/AboutPage";
 import ContactPage from "./pages/ContactPage/ContactPage";
+import SubscriptionPage from "./pages/SubscriptionPage/SubscriptionPage";
+import SubscriptionSuccess from "./pages/SubscriptionSuccess/SubscriptionSuccess";
+import SubscriptionCancelled from "./pages/SubscriptionCancelled/SubscriptionCancelled";
 import AITutorialSuccessNotification from "./components/AITutorialSuccessNotification/AITutorialSuccessNotification";
 
 function App() {
@@ -93,6 +96,16 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/auth/success" element={<OAuthSuccessPage />} />
+          <Route path="/upgrade" element={<SubscriptionPage />} />
+          <Route
+            path="/subscription-success"
+            element={
+              <ProtectedRoute>
+                <SubscriptionSuccess />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/subscription-cancelled" element={<SubscriptionCancelled />} />
         </Routes>
       </Router>
     </AuthProvider>

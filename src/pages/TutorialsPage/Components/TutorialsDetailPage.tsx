@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -313,6 +313,20 @@ const TutorialsDetailPage: React.FC = () => {
       tutorial.difficulty?.toLowerCase().includes(searchFilter.toLowerCase())
   );
 
+  const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const info = await import("../../../services/subscriptionAPI").then(m => m.getSubscriptionStatus());
+        setSubscriptionInfo(info);
+      } catch {
+        // ignore
+      }
+    };
+    if (isAuthenticated) fetchStatus();
+  }, [isAuthenticated]);
+
   const handleGenerateAITutorial = () => {
     if (!isAuthenticated) {
       showToast("Please login to generate tutorials", "error");
@@ -357,6 +371,13 @@ const TutorialsDetailPage: React.FC = () => {
 
       if (response.success) {
         const newTutorial = response.data;
+        // update local subscription info so counts refresh
+        if (subscriptionInfo && subscriptionInfo.plan === 'free') {
+          setSubscriptionInfo((prev: any) => ({
+            ...prev,
+            tutorialGenRemaining: Math.max((prev.tutorialGenRemaining || 1) - 1, 0),
+          }));
+        }
 
         // Add the new tutorial to the list
         setTutorials((prev) => [newTutorial, ...prev]);
@@ -1365,6 +1386,19 @@ const TutorialsDetailPage: React.FC = () => {
                   This tutorial will be created for you and saved to your
                   account.
                 </p>
+                {subscriptionInfo && subscriptionInfo.plan === 'free' && (
+                  <p className="text-xs text-yellow-800 mt-1">
+                    You have {subscriptionInfo.tutorialGenRemaining} free AI
+                    tutorial generations remaining.{' '}
+                    <button
+                      onClick={() => window.location.href = '/upgrade'}
+                      className="underline text-blue-600 text-xs"
+                    >
+                      Upgrade
+                    </button>{' '}
+                    for unlimited access.
+                  </p>
+                )}
               </div>
 
               <div className="mb-6">

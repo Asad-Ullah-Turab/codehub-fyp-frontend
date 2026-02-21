@@ -95,6 +95,7 @@ const ProfilePage: React.FC = () => {
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
   type ProfileTab =
     | "overview"
     | "courses"
@@ -182,6 +183,13 @@ const ProfilePage: React.FC = () => {
             profileRes.data.preferences?.emailNotifications !== false,
         },
       });
+      // fetch subscription status separately
+      try {
+        const status = await import("../../services/subscriptionAPI").then(m => m.getSubscriptionStatus());
+        setSubscriptionInfo(status);
+      } catch (err) {
+        // ignore failures
+      }
 
       if (!profileRes.data.profileCompletionPromptShown) {
         setShowProfileModal(true);
@@ -415,6 +423,26 @@ const ProfilePage: React.FC = () => {
                       <span className="flex items-center text-sm">
                         <MapPin className="w-4 h-4 mr-1" />
                         {user.location}
+                      </span>
+                    )}
+                    {subscriptionInfo && (
+                      <span className="flex items-center text-sm">
+                        <Sparkles className="w-4 h-4 mr-1" />
+                        Plan: {subscriptionInfo.plan}{' '}
+                        {subscriptionInfo.plan === 'free' && (
+                          <>
+                            ({subscriptionInfo.chatQueriesRemaining} chat +{' '}
+                            {subscriptionInfo.codeQueriesRemaining} code +{' '}
+                            {subscriptionInfo.tutorialGenRemaining} tutorial{' '}
+                            remaining)
+                            <button
+                              onClick={() => navigate('/upgrade')}
+                              className="ml-2 text-blue-600 text-xs"
+                            >
+                              Upgrade
+                            </button>
+                          </>
+                        )}
                       </span>
                     )}
                   </div>

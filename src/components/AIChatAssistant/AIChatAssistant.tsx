@@ -9,6 +9,7 @@ import {
   getChatHistory,
 } from "../../services/chatAPI";
 import { formatMarkdownText } from "../../utils/markdownFormatterHTML";
+import { getSubscriptionStatus } from "../../services/subscriptionAPI";
 
 interface Message {
   id: string;
@@ -48,6 +49,20 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
   const [, setLoading] = useState(true);
   const { showToast } = useToast();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
+
+  // load subscription status once when component mounts
+  useEffect(() => {
+    async function loadStatus() {
+      try {
+        const info = await getSubscriptionStatus();
+        setSubscriptionInfo(info);
+      } catch (err) {
+        // ignore
+      }
+    }
+    loadStatus();
+  }, []);
 
   // Load chat history on mount or when context changes
   useEffect(() => {
@@ -120,11 +135,24 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiResponse]);
+      // decrement local count
+      if (subscriptionInfo && subscriptionInfo.plan === 'free') {
+        setSubscriptionInfo((prev: any) => ({
+          ...prev,
+          chatQueriesRemaining: Math.max((prev.chatQueriesRemaining || 1) - 1, 0)
+        }));
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to get response");
+      const msg = err instanceof Error ? err.message : "Failed to get response";
+      setError(msg);
+      showToast(msg, "error");
+      // if limit reached include upgrade suggestion
+      if (msg.toLowerCase().includes('limit')) {
+        showToast('Visit your profile to upgrade subscription.', 'info');
+      }
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Sorry, I couldn't process your request. Please try again.",
+        text: msg,
         isUser: false,
         timestamp: new Date(),
       };
@@ -171,6 +199,12 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiResponse]);
+      if (subscriptionInfo && subscriptionInfo.plan === 'free') {
+        setSubscriptionInfo((prev: any) => ({
+          ...prev,
+          chatQueriesRemaining: Math.max((prev.chatQueriesRemaining || 1) - 1, 0)
+        }));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to get response");
       const errorMessage: Message = {
@@ -212,7 +246,22 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
       )}
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+        <div className="flex items-center gap-2">
         <h2 className="font-semibold text-gray-800 text-sm">AI Assistant</h2>
+        {subscriptionInfo && subscriptionInfo.plan === 'free' && (
+          <>
+            <span className="text-xs text-gray-500">
+              Chat: {subscriptionInfo.chatQueriesRemaining}, Code: {subscriptionInfo.codeQueriesRemaining}
+            </span>
+            <button
+              onClick={() => window.location.href = '/upgrade'}
+              className="ml-2 px-2 py-1 bg-yellow-300 text-xs rounded"
+            >
+              Upgrade
+            </button>
+          </>
+        )}
+      </div>
         <button
           onClick={() => setShowClearConfirm(true)}
           className="text-gray-400 hover:text-gray-600 transition-colors p-1"

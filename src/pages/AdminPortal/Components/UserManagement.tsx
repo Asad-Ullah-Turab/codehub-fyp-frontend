@@ -11,6 +11,7 @@ import {
   Eye,
   Calendar,
   Award,
+  Sparkles,
 } from "lucide-react";
 import { adminAPI } from "../../../services/adminAPI";
 import { useToast } from "../../../contexts/ToastContext";
@@ -268,6 +269,9 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                   Role
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
+                  Plan
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
                   Date Joined
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
@@ -338,6 +342,9 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
                       </select>
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-700">
+                      {user.subscriptionPlan || 'free'}
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-700">
                       {new Date(user.createdAt).toLocaleDateString()}
@@ -539,6 +546,18 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                     </div>
                     <p className="text-base font-semibold text-gray-900">
                       {new Date(selectedUser.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                  </div>
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-gray-500 mb-1">
+                      <Sparkles className="w-4 h-4" />
+                      <span className="text-xs font-medium uppercase">Subscription</span>
+                    </div>
+                    <p className="text-base font-semibold text-gray-900 capitalize">
+                      {selectedUser.subscriptionPlan || 'free'}
+                      {selectedUser.subscriptionPlan === 'free' && (
+                        <> ({selectedUser.chatQueriesRemaining} chat, {selectedUser.codeQueriesRemaining} code, {selectedUser.tutorialGenRemaining} tutorials left)</>
+                      )}
                     </p>
                   </div>
                   

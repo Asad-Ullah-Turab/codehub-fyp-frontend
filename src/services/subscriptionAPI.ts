@@ -53,3 +53,15 @@ export const subscribeToNewsletter = async (email: string): Promise<Subscription
     };
   }
 };
+
+// ---------- Stripe subscription helpers ----------
+
+export const createCheckoutSession = async (): Promise<{ url: string }> => {
+  const response = await api.post(API_ENDPOINTS.SUBSCRIPTIONS_CREATE_SESSION);
+  return response.data.data;
+};
+
+export const getSubscriptionStatus = async (): Promise<any> => {
+  const response = await api.get(API_ENDPOINTS.SUBSCRIPTIONS_STATUS);
+  return response.data.data;
+};

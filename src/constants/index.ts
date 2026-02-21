@@ -13,13 +13,13 @@ export const API_ENDPOINTS = {
   GOOGLE_OAUTH: "/auth/google",
   GITHUB_OAUTH: "/auth/github",
   CODE_EXECUTE: "/code/execute",
-  
+
   // Auth (email / password helpers)
-  VERIFY_EMAIL: '/auth/verify-email',
-  RESEND_VERIFICATION: '/auth/resend-verification',
-  FORGOT_PASSWORD: '/auth/forgot-password',
-  VERIFY_RESET_OTP: '/auth/verify-reset-otp',
-  RESET_PASSWORD: '/auth/reset-password',
+  VERIFY_EMAIL: "/auth/verify-email",
+  RESEND_VERIFICATION: "/auth/resend-verification",
+  FORGOT_PASSWORD: "/auth/forgot-password",
+  VERIFY_RESET_OTP: "/auth/verify-reset-otp",
+  RESET_PASSWORD: "/auth/reset-password",
 
   // Tutorials
   TUTORIALS: "/tutorials",
@@ -31,9 +31,9 @@ export const API_ENDPOINTS = {
   TUTORIALS_CONCEPTS: "/tutorials/concepts",
 
   // Profile
-  PROFILE_BASE: '/profile',
-  PROFILE_UPLOAD_PICTURE: '/profile/upload-picture',
-  PROFILE_PROMPT_SHOWN: '/profile/prompt-shown',
+  PROFILE_BASE: "/profile",
+  PROFILE_UPLOAD_PICTURE: "/profile/upload-picture",
+  PROFILE_PROMPT_SHOWN: "/profile/prompt-shown",
   PROFILE_PROGRESS_COURSES: "/profile/progress/courses",
   PROFILE_DASHBOARD: "/profile/dashboard",
   PROFILE_ENROLLMENTS: "/profile/enrollments",
@@ -56,11 +56,11 @@ export const API_ENDPOINTS = {
   CODEHELP_ASK_QUESTION: "/codehelp/ask-question",
 
   // Views / analytics
-  VIEWS_TUTORIAL_VIEW: '/views/tutorials/{tutorialId}/view',
-  VIEWS_COURSE_VIEW: '/views/courses/{courseId}/view',
-  VIEWS_TUTORIALS_MOST_VIEWED: '/views/tutorials/most-viewed',
-  VIEWS_COURSES_MOST_VIEWED: '/views/courses/most-viewed',
-  VIEWS_MOST_VIEWED: '/views/most-viewed',
+  VIEWS_TUTORIAL_VIEW: "/views/tutorials/{tutorialId}/view",
+  VIEWS_COURSE_VIEW: "/views/courses/{courseId}/view",
+  VIEWS_TUTORIALS_MOST_VIEWED: "/views/tutorials/most-viewed",
+  VIEWS_COURSES_MOST_VIEWED: "/views/courses/most-viewed",
+  VIEWS_MOST_VIEWED: "/views/most-viewed",
 
   // Misc
   SNIPPETS: "/snippets",
@@ -73,8 +73,12 @@ export const API_ENDPOINTS = {
   ADMIN_USERS: "/admin/users",
   ADMIN_STATS: "/admin/stats",
   ADMIN_ANALYTICS: "/admin/analytics",
-  ADMIN_RECENT_ACTIVITY: "/admin/recent-activity",  ADMIN_CERTIFICATES: '/admin/certificates',  ADMIN_CERTIFICATES_PENDING: "/admin/certificates/pending",
+  ADMIN_RECENT_ACTIVITY: "/admin/recent-activity",
+  ADMIN_CERTIFICATES: "/admin/certificates",
+  ADMIN_CERTIFICATES_PENDING: "/admin/certificates/pending",
   ADMIN_NEWSLETTER_SUBSCRIPTIONS: "/admin/newsletter-subscriptions",
+  SUBSCRIPTIONS_CREATE_SESSION: "/subscriptions/create-checkout-session",
+  SUBSCRIPTIONS_STATUS: "/subscriptions/status",
 } as const;
 
 // Routes

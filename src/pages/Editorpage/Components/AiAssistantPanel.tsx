@@ -6,6 +6,7 @@ import {
   clearCodeChats,
 } from "../../../services/codeChatAPI";
 import { formatMarkdownText } from "../../../utils/markdownFormatterHTML";
+import { getSubscriptionStatus } from "../../../services/subscriptionAPI";
 
 interface Message {
   id: string;
@@ -37,6 +38,19 @@ function AiAssistantPanel({
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [, setIsLoadingHistory] = useState(true);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const info = await getSubscriptionStatus();
+        setSubscriptionInfo(info);
+      } catch {
+        // ignore
+      }
+    };
+    fetchStatus();
+  }, []);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -168,6 +182,13 @@ function AiAssistantPanel({
         "question"
       );
       addMessage(answer, false, "question");
+      // decrement code queries remaining locally
+      if (subscriptionInfo && subscriptionInfo.plan === 'free') {
+        setSubscriptionInfo((prev: any) => ({
+          ...prev,
+          codeQueriesRemaining: Math.max((prev.codeQueriesRemaining || 1) - 1, 0)
+        }));
+      }
     } catch (err) {
       addMessage(
         `Sorry, I couldn't help with that. ${
@@ -255,6 +276,17 @@ function AiAssistantPanel({
           <span className="text-xl">🤖</span>
           <div className="flex flex-col">
             <h2 className="font-semibold text-gray-900 text-sm">AI Tutor</h2>
+            {subscriptionInfo && subscriptionInfo.plan === 'free' && (
+              <span className="text-xs text-gray-500 flex items-center gap-2">
+                Chat: {subscriptionInfo.chatQueriesRemaining}, Code: {subscriptionInfo.codeQueriesRemaining}
+                <button
+                  onClick={() => window.location.href = '/upgrade'}
+                  className="ml-2 px-2 py-1 bg-yellow-300 text-xs rounded"
+                >
+                  Upgrade
+                </button>
+              </span>
+            )}
             {code && code.trim() && (
               <span className="text-xs text-green-600 flex items-center gap-1">
                 ✓ Reading your code

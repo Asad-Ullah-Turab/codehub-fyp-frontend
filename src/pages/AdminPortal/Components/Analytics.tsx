@@ -1,26 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, ChevronDown } from "lucide-react";
+import { adminAPI } from "../../../services/adminAPI";
+import { useToast } from "../../../contexts/ToastContext";
 
 export default function AnalyticsDashboard(_props: { onError?: (msg: string) => void } = {}) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [stats, setStats] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
-  // Sample data
-  const stats = [
-    { label: "Total Users", value: "12,450", change: "+5.2%", positive: true },
-    { label: "Active Users", value: "3,120", change: "+2.1%", positive: true },
-    {
-      label: "Tutorials Published",
-      value: "256",
-      change: "+1.5%",
-      positive: true,
-    },
-    {
-      label: "AI Chatbot Queries",
-      value: "8,981",
-      change: "+8.5%",
-      positive: true,
-    },
-  ];
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const res = await adminAPI.getDashboardStats();
+        if (res.success) {
+          const d = res.data;
+          setStats([
+            { label: "Total Users", value: d.totalUsers },
+            { label: "Premium Users", value: d.premiumUsers },
+            { label: "Active Users", value: d.activeUsers },
+            { label: "Tutorials Published", value: d.totalTutorials },
+          ]);
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Could not load analytics stats", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadStats();
+  }, []);
 
   const courses = [
     {
@@ -97,21 +107,20 @@ export default function AnalyticsDashboard(_props: { onError?: (msg: string) => 
 
         {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-4 mb-6">
-          {stats.map((stat, index) => (
-            <div key={index} className="bg-gray-900 rounded-lg p-6">
-              <div className="text-xs text-gray-400 mb-2">{stat.label}</div>
-              <div className="text-3xl font-bold text-white mb-1">
-                {stat.value}
-              </div>
-              <div
-                className={`text-sm font-semibold ${
-                  stat.positive ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {stat.change}
-              </div>
+          {loading ? (
+            <div className="col-span-4 text-center text-white">
+              Loading...
             </div>
-          ))}
+          ) : (
+            stats.map((stat, index) => (
+              <div key={index} className="bg-gray-900 rounded-lg p-6">
+                <div className="text-xs text-gray-400 mb-2">{stat.label}</div>
+                <div className="text-3xl font-bold text-white mb-1">
+                  {stat.value}
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Charts Row */}

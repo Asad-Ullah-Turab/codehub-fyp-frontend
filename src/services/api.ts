@@ -40,11 +40,15 @@ export const authAPI = {
 
   // OAuth endpoints
   googleLogin: () => {
-    window.location.href = `${api.defaults.baseURL}${API_ENDPOINTS.GOOGLE_OAUTH}`;
+    const url = `${api.defaults.baseURL}${API_ENDPOINTS.GOOGLE_OAUTH}`;
+    console.log("[auth] Google login URL:", url);
+    window.location.href = url;
   },
 
   githubLogin: () => {
-    window.location.href = `${api.defaults.baseURL}${API_ENDPOINTS.GITHUB_OAUTH}`;
+    const url = `${api.defaults.baseURL}${API_ENDPOINTS.GITHUB_OAUTH}`;
+    console.log("[auth] GitHub login URL:", url);
+    window.location.href = url;
   },
 
   // Email verification endpoints

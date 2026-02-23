@@ -9,5 +9,6 @@ export const getApiUrl = (): string => {
     return "http://localhost:5000/api";
   }
 
+  console.log("[config] Using API URL:", apiUrl);
   return apiUrl;
 };

@@ -50,6 +50,7 @@ import {
   Sparkles,
   Bookmark,
   Briefcase,
+  MessageSquare,
 } from "lucide-react";
 
 const ProfilePage: React.FC = () => {
@@ -98,6 +99,7 @@ const ProfilePage: React.FC = () => {
   const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
   type ProfileTab =
     | "overview"
+    | "subscription"
     | "courses"
     | "tutorials"
     | "certificates"
@@ -106,7 +108,7 @@ const ProfilePage: React.FC = () => {
     const stored = localStorage.getItem("profileActiveTab");
     if (
       stored &&
-      ["overview", "courses", "tutorials", "certificates", "settings"].includes(
+      ["overview", "subscription", "courses", "tutorials", "certificates", "settings"].includes(
         stored,
       )
     ) {
@@ -251,6 +253,18 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    try {
+      await import("../../services/subscriptionAPI").then(m => m.cancelSubscription());
+      showToast("Subscription cancelled", "success");
+      const status = await import("../../services/subscriptionAPI").then(m => m.getSubscriptionStatus());
+      setSubscriptionInfo(status);
+    } catch (err) {
+      console.error("Error cancelling subscription:", err);
+      showToast(err instanceof Error ? err.message : "Failed to cancel subscription", "error");
+    }
+  };
+
   const handleSkipModal = async () => {
     setShowProfileModal(false);
     try {
@@ -359,6 +373,7 @@ const ProfilePage: React.FC = () => {
 
   const tabs = [
     { key: "overview", label: "Overview", icon: TrendingUp },
+    { key: "subscription", label: "Subscription", icon: Sparkles },
     { key: "courses", label: "My Courses", icon: BookOpen },
     { key: "tutorials", label: "Saved Tutorials", icon: Heart },
     { key: "certificates", label: "Certificates", icon: Award },
@@ -426,24 +441,26 @@ const ProfilePage: React.FC = () => {
                       </span>
                     )}
                     {subscriptionInfo && (
-                      <span className="flex items-center text-sm">
-                        <Sparkles className="w-4 h-4 mr-1" />
-                        Plan: {subscriptionInfo.plan}{' '}
-                        {subscriptionInfo.plan === 'free' && (
-                          <>
-                            ({subscriptionInfo.chatQueriesRemaining} chat +{' '}
-                            {subscriptionInfo.codeQueriesRemaining} code +{' '}
-                            {subscriptionInfo.tutorialGenRemaining} tutorial{' '}
-                            remaining)
-                            <button
-                              onClick={() => navigate('/upgrade')}
-                              className="ml-2 text-blue-600 text-xs"
-                            >
-                              Upgrade
-                            </button>
-                          </>
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 rounded-full text-gray-800 text-xs font-semibold">
+                          {subscriptionInfo.plan === 'free' ? 'Free' : 'Premium'}
+                        </span>
+                        {subscriptionInfo.plan === 'free' ? (
+                          <button
+                            onClick={() => navigate('/upgrade')}
+                            className="text-blue-600 text-xs hover:underline"
+                          >
+                            Upgrade
+                          </button>
+                        ) : (
+                          <button
+                            onClick={handleCancelSubscription}
+                            className="text-red-600 text-xs hover:underline"
+                          >
+                            Cancel
+                          </button>
                         )}
-                      </span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -494,6 +511,71 @@ const ProfilePage: React.FC = () => {
 
         {/* Content Panels */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition-shadow hover:shadow-md">
+          {/* Subscription Tab */}
+          {activeTab === "subscription" && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-indigo-600" />
+                Subscription
+              </h2>
+
+              {subscriptionInfo ? (
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-sm font-semibold">
+                        {subscriptionInfo.plan === 'free' ? 'Free Plan' : 'Premium Plan'}
+                      </span>
+                      <span className="text-sm text-gray-600">Status: {subscriptionInfo.status}</span>
+                    </div>
+                    <div>
+                      {subscriptionInfo.plan === 'free' ? (
+                        <button
+                          onClick={() => navigate('/upgrade')}
+                          className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm"
+                        >
+                          Upgrade to Premium
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleCancelSubscription}
+                          className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                        >
+                          Cancel Subscription
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {subscriptionInfo.plan === 'free' && (
+                    <div className="grid grid-cols-3 gap-4 text-xs text-gray-700">
+                      <div className="flex items-center gap-1">
+                        <MessageSquare className="w-4 h-4" />
+                        <span>{subscriptionInfo.chatQueriesRemaining} chats</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Code className="w-4 h-4" />
+                        <span>{subscriptionInfo.codeQueriesRemaining} code</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <BookOpen className="w-4 h-4" />
+                        <span>{subscriptionInfo.tutorialGenRemaining} tutorials</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {subscriptionInfo.plan === 'premium' && (
+                    <div className="text-sm text-green-600">
+                      <p>✅ Unlimited access to AI chat, code help, and tutorial generation.</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p>Loading subscription information…</p>
+              )}
+            </div>
+          )}
+
           {/* Overview Tab */}
           {activeTab === "overview" && (
             <div className="space-y-6">

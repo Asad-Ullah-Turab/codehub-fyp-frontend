@@ -79,6 +79,7 @@ export const API_ENDPOINTS = {
   ADMIN_NEWSLETTER_SUBSCRIPTIONS: "/admin/newsletter-subscriptions",
   SUBSCRIPTIONS_CREATE_SESSION: "/subscriptions/create-checkout-session",
   SUBSCRIPTIONS_STATUS: "/subscriptions/status",
+  SUBSCRIPTIONS_CANCEL: "/subscriptions/cancel",
 } as const;
 
 // Routes

@@ -65,3 +65,8 @@ export const getSubscriptionStatus = async (): Promise<any> => {
   const response = await api.get(API_ENDPOINTS.SUBSCRIPTIONS_STATUS);
   return response.data.data;
 };
+
+export const cancelSubscription = async (): Promise<any> => {
+  const response = await api.post(API_ENDPOINTS.SUBSCRIPTIONS_CANCEL);
+  return response.data.data;
+};

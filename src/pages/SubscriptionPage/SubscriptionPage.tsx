@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createCheckoutSession, getSubscriptionStatus } from '../../services/subscriptionAPI';
+import { createCheckoutSession, getSubscriptionStatus, cancelSubscription } from '../../services/subscriptionAPI';
 import { useToast } from '../../contexts/ToastContext';
 import { Check, Star, Zap, MessageSquare, Code, BookOpen, CreditCard, ArrowLeft } from 'lucide-react';
 
@@ -10,6 +10,7 @@ const SubscriptionPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [subscriptionInfo, setSubscriptionInfo] = useState<{plan: string; status: string; chatQueriesRemaining: number; codeQueriesRemaining: number; tutorialGenRemaining: number} | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(true);
+  const [canceling, setCanceling] = useState(false);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -17,10 +18,10 @@ const SubscriptionPage: React.FC = () => {
         const status = await getSubscriptionStatus();
         setSubscriptionInfo(status);
         
-        // If already premium, redirect to profile
+        // If already premium, show message and offer cancellation option
         if (status.plan === 'premium') {
           showToast('You already have an active premium subscription!', 'info');
-          navigate('/profile');
+          // keep page so they can cancel if desired
         }
       } catch (error) {
         console.error('Error fetching subscription status:', error);
@@ -49,6 +50,23 @@ const SubscriptionPage: React.FC = () => {
       showToast(message, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (canceling) return;
+    setCanceling(true);
+    try {
+      await cancelSubscription();
+      showToast('Subscription cancelled', 'success');
+      const status = await getSubscriptionStatus();
+      setSubscriptionInfo(status);
+      navigate('/profile');
+    } catch (err: unknown) {
+      console.error('Cancel error', err);
+      showToast(err instanceof Error ? err.message : 'Failed to cancel subscription', 'error');
+    } finally {
+      setCanceling(false);
     }
   };
 
@@ -233,7 +251,20 @@ const SubscriptionPage: React.FC = () => {
         </div>
 
         {/* Features Section */}
-        <div className="mt-16">
+{/* if premium allow cancellation */}
+          {subscriptionInfo?.plan === 'premium' && (
+            <div className="text-center mb-6">
+              <button
+                onClick={handleCancel}
+                disabled={canceling}
+                className="bg-red-600 text-white px-5 py-3 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {canceling ? 'Cancelling...' : 'Cancel Subscription'}
+              </button>
+            </div>
+          )}
+
+          <div className="mt-16">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
             Why Choose Premium?
           </h2>

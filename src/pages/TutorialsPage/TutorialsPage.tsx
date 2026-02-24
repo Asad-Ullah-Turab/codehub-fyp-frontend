@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen } from "lucide-react";
+import { BookOpen, AlertTriangle } from "lucide-react";
 import {
   fetchMainConcepts,
   getLanguageEmoji,

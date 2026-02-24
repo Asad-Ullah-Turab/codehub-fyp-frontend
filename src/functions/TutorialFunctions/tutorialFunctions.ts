@@ -173,7 +173,7 @@ export const getDifficultyColor = (difficulty: string): string => {
  * Utility placeholder (previously returned emojis, now blank). 
  * UI components render their own icons for languages.
  */
-export const getLanguageEmoji = (language: string): string => {
+export const getLanguageEmoji = (_language: string): string => {
   return '';
 };
 

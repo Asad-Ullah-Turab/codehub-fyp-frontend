@@ -406,7 +406,7 @@ export const getDifficultyColor = (difficulty: string): string => {
 };
 
 // Get language icon placeholder (emojis have been removed)
-export const getLanguageEmoji = (language: string): string => {
+export const getLanguageEmoji = (_language: string): string => {
   // currently we don't render any emoji/icon by default; the caller
   // components handle their own iconography.
   return '';

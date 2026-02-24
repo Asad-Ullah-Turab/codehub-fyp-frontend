@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { tutorialAPI } from "../../services/tutorialAPI";
@@ -98,6 +98,9 @@ const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notifRef = useRef<HTMLDivElement | null>(null);
   type ProfileTab =
     | "overview"
     | "subscription"
@@ -109,9 +112,14 @@ const ProfilePage: React.FC = () => {
     const stored = localStorage.getItem("profileActiveTab");
     if (
       stored &&
-      ["overview", "subscription", "courses", "tutorials", "certificates", "settings"].includes(
-        stored,
-      )
+      [
+        "overview",
+        "subscription",
+        "courses",
+        "tutorials",
+        "certificates",
+        "settings",
+      ].includes(stored)
     ) {
       return stored as ProfileTab;
     }
@@ -188,10 +196,22 @@ const ProfilePage: React.FC = () => {
       });
       // fetch subscription status separately
       try {
-        const status = await import("../../services/subscriptionAPI").then(m => m.getSubscriptionStatus());
+        const status = await import("../../services/subscriptionAPI").then(
+          (m) => m.getSubscriptionStatus(),
+        );
         setSubscriptionInfo(status);
       } catch (err) {
         // ignore failures
+      }
+
+      // load notifications
+      try {
+        const notifs = await import("../../services/notificationAPI").then(
+          (m) => m.getNotifications(),
+        );
+        setNotifications(notifs);
+      } catch (err) {
+        // ignore
       }
 
       if (!profileRes.data.profileCompletionPromptShown) {
@@ -230,6 +250,17 @@ const ProfilePage: React.FC = () => {
     }
   }, [activeTab]);
 
+  // close notifications when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleUpdateProfile = async () => {
     try {
       const response = await updateProfile(profileForm);
@@ -256,13 +287,20 @@ const ProfilePage: React.FC = () => {
 
   const handleCancelSubscription = async () => {
     try {
-      await import("../../services/subscriptionAPI").then(m => m.cancelSubscription());
+      await import("../../services/subscriptionAPI").then((m) =>
+        m.cancelSubscription(),
+      );
       showToast("Subscription cancelled", "success");
-      const status = await import("../../services/subscriptionAPI").then(m => m.getSubscriptionStatus());
+      const status = await import("../../services/subscriptionAPI").then((m) =>
+        m.getSubscriptionStatus(),
+      );
       setSubscriptionInfo(status);
     } catch (err) {
       console.error("Error cancelling subscription:", err);
-      showToast(err instanceof Error ? err.message : "Failed to cancel subscription", "error");
+      showToast(
+        err instanceof Error ? err.message : "Failed to cancel subscription",
+        "error",
+      );
     }
   };
 
@@ -418,7 +456,7 @@ const ProfilePage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Header Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8 transition-shadow hover:shadow-md">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-visible mb-8 transition-shadow hover:shadow-md">
           <div className="h-32 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 relative">
             <div className="absolute inset-0 bg-black/10"></div>
           </div>
@@ -427,7 +465,10 @@ const ProfilePage: React.FC = () => {
               <div className="flex-shrink-0">
                 {user.profilePicture ? (
                   <img
-                    src={getProfileImageUrl(user.profilePicture) || user.profilePicture}
+                    src={
+                      getProfileImageUrl(user.profilePicture) ||
+                      user.profilePicture
+                    }
                     alt={user.name}
                     className="w-24 h-24 rounded-xl border-4 border-white shadow-lg object-cover transition-transform hover:scale-105"
                   />
@@ -456,11 +497,13 @@ const ProfilePage: React.FC = () => {
                     {subscriptionInfo && (
                       <div className="flex items-center gap-2">
                         <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 rounded-full text-gray-800 text-xs font-semibold">
-                          {subscriptionInfo.plan === 'free' ? 'Free' : 'Premium'}
+                          {subscriptionInfo.plan === "free"
+                            ? "Free"
+                            : "Premium"}
                         </span>
-                        {subscriptionInfo.plan === 'free' && (
+                        {subscriptionInfo.plan === "free" && (
                           <button
-                            onClick={() => navigate('/upgrade')}
+                            onClick={() => navigate("/upgrade")}
                             className="text-blue-600 text-xs hover:underline"
                           >
                             Upgrade
@@ -471,10 +514,75 @@ const ProfilePage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 mt-4 sm:mt-0">
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative">
-                    <Bell className="w-5 h-5 text-gray-600" />
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowNotifications(!showNotifications)}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative"
+                    >
+                      <Bell className="w-5 h-5 text-gray-600" />
+                      {notifications.some((n) => !n.isRead) && (
+                        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                      )}
+                    </button>
+                    {showNotifications && (
+                      <div
+                        ref={notifRef}
+                        className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-60 overflow-visible max-h-80"
+                      >
+                        <div className="flex items-center justify-between p-2 text-sm font-semibold border-b">
+                          <span>Notifications</span>
+                          {notifications.some((n) => !n.isRead) && (
+                            <button
+                              className="text-xs text-blue-600 hover:underline"
+                              onClick={async () => {
+                                await import("../../services/notificationAPI").then(
+                                  (m) => m.markAllNotificationsRead(),
+                                );
+                                setNotifications((prev) =>
+                                  prev.map((x) => ({ ...x, isRead: true })),
+                                );
+                              }}
+                            >
+                              Mark all as read
+                            </button>
+                          )}
+                        </div>
+                        {notifications.length === 0 && (
+                          <div className="p-2 text-xs text-gray-500">
+                            No notifications
+                          </div>
+                        )}
+                        {notifications.map((n) => (
+                          <div
+                            key={n._id}
+                            className={`p-2 text-sm cursor-pointer hover:bg-gray-100 ${n.isRead ? "text-gray-500" : "text-gray-900 font-medium"}`}
+                            onClick={async () => {
+                              if (!n.isRead) {
+                                await import("../../services/notificationAPI").then(
+                                  (m) => m.markNotificationRead(n._id),
+                                );
+                                setNotifications((prev) =>
+                                  prev.map((x) =>
+                                    x._id === n._id
+                                      ? { ...x, isRead: true }
+                                      : x,
+                                  ),
+                                );
+                              }
+                              if (n.link) {
+                                window.location.href = n.link;
+                              }
+                            }}
+                          >
+                            <div>{n.message}</div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              {new Date(n.createdAt).toLocaleString()}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <button
                     onClick={handleLogout}
                     className="p-2 hover:bg-red-50 rounded-lg transition-colors"
@@ -530,14 +638,18 @@ const ProfilePage: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-sm font-semibold">
-                        {subscriptionInfo.plan === 'free' ? 'Free Plan' : 'Premium Plan'}
+                        {subscriptionInfo.plan === "free"
+                          ? "Free Plan"
+                          : "Premium Plan"}
                       </span>
-                      <span className="text-sm text-gray-600">Status: {subscriptionInfo.status}</span>
+                      <span className="text-sm text-gray-600">
+                        Status: {subscriptionInfo.status}
+                      </span>
                     </div>
                     <div>
-                      {subscriptionInfo.plan === 'free' ? (
+                      {subscriptionInfo.plan === "free" ? (
                         <button
-                          onClick={() => navigate('/upgrade')}
+                          onClick={() => navigate("/upgrade")}
                           className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm"
                         >
                           Upgrade to Premium
@@ -553,26 +665,35 @@ const ProfilePage: React.FC = () => {
                     </div>
                   </div>
 
-                  {subscriptionInfo.plan === 'free' && (
+                  {subscriptionInfo.plan === "free" && (
                     <div className="grid grid-cols-3 gap-4 text-xs text-gray-700">
                       <div className="flex items-center gap-1">
                         <MessageSquare className="w-4 h-4" />
-                        <span>{subscriptionInfo.chatQueriesRemaining} chats</span>
+                        <span>
+                          {subscriptionInfo.chatQueriesRemaining} chats
+                        </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Code className="w-4 h-4" />
-                        <span>{subscriptionInfo.codeQueriesRemaining} code</span>
+                        <span>
+                          {subscriptionInfo.codeQueriesRemaining} code
+                        </span>
                       </div>
                       <div className="flex items-center gap-1">
                         <BookOpen className="w-4 h-4" />
-                        <span>{subscriptionInfo.tutorialGenRemaining} tutorials</span>
+                        <span>
+                          {subscriptionInfo.tutorialGenRemaining} tutorials
+                        </span>
                       </div>
                     </div>
                   )}
 
-                  {subscriptionInfo.plan === 'premium' && (
+                  {subscriptionInfo.plan === "premium" && (
                     <div className="text-sm text-green-600">
-                      <p>✅ Unlimited access to AI chat, code help, and tutorial generation.</p>
+                      <p>
+                        ✅ Unlimited access to AI chat, code help, and tutorial
+                        generation.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -1188,7 +1309,8 @@ const ProfilePage: React.FC = () => {
                       <div className="flex-shrink-0">
                         <img
                           src={
-                            getProfileImageUrl(profileForm.profilePicture) || profileForm.profilePicture
+                            getProfileImageUrl(profileForm.profilePicture) ||
+                            profileForm.profilePicture
                           }
                           alt="Profile preview"
                           className="w-24 h-24 rounded-xl object-cover border border-gray-200 shadow-sm"

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {

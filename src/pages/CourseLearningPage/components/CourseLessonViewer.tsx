@@ -1,6 +1,6 @@
 import React from "react";
 import { Clock } from "lucide-react";
-import { Lightbulb, FileText } from "lucide-react";
+import { Lightbulb, FileText, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";

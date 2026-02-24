@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Lightbulb, AlertCircle, Trash2, FileText, Hand } from "lucide-react";
+import { Lightbulb, AlertCircle, Trash2 } from "lucide-react";
 
 import {
   sendCodeChatMessage,

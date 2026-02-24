@@ -67,6 +67,11 @@ export const API_ENDPOINTS = {
   NEWSLETTER_SUBSCRIBE: "/newsletter/subscribe",
   CONTACT: "/contact",
 
+  // Notifications
+  NOTIFICATIONS: "/notifications",
+  NOTIFICATIONS_MARK_READ: "/notifications/mark-read",
+  NOTIFICATIONS_MARK_ALL_READ: "/notifications/mark-all-read",
+
   // Admin
   ADMIN_TUTORIALS: "/admin/tutorials",
   ADMIN_COURSES: "/admin/courses",

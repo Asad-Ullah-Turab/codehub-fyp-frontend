@@ -4,6 +4,7 @@ import {
   type Course,
   type CourseEnrollment,
 } from "../../../functions/CourseFunctions/courseFunctions";
+import { Printer, Info } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
 import { STORAGE_KEYS } from "../../../constants";
 

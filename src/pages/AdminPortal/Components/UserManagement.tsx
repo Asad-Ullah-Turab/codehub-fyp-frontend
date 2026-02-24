@@ -12,6 +12,7 @@ import {
   Calendar,
   Award,
   Sparkles,
+  Star,
 } from "lucide-react";
 import { adminAPI } from "../../../services/adminAPI";
 import { useToast } from "../../../contexts/ToastContext";
@@ -308,10 +309,12 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                 users.map((user) => (
                   <tr
                     key={user._id}
-                    className={`border-b border-gray-100 hover:bg-gray-50 transition-all duration-300 ${
+                    className={`border-b border-gray-100 transition-all duration-300 ${
                       highlightedUser === user._id 
-                        ? 'bg-blue-50 border-l-4 border-l-blue-500 border-r-4 border-r-blue-500 border-t-2 border-t-blue-400 border-b-2 border-b-blue-400 shadow-lg shadow-blue-200/50 animate-pulse' 
+                        ? 'bg-blue-50 border-l-4 border-l-blue-500 shadow-lg shadow-blue-200/50 animate-pulse' 
                         : ''
+                    } ${
+                      user.subscriptionPlan === 'premium' ? 'bg-yellow-50 hover:bg-yellow-100' : 'hover:bg-gray-50'
                     }`}
                   >
                     <td className="px-4 py-4">
@@ -343,15 +346,21 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                         <option value="admin">Admin</option>
                       </select>
                     </td>
-                    <td className="px-4 py-4 text-sm text-gray-700">
+                    <td className="px-4 py-4 text-sm text-gray-700 flex items-center gap-1">
                       {user.subscriptionPlan || 'free'}
+                      {user.subscriptionPlan === 'premium' && (
+                        <span className="relative">
+                          <Star className="w-4 h-4 text-yellow-500" />
+                          <span className="sr-only">Premium user</span>
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-700">
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      {new Date(user.createdAt).toLocaleString()}
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-700">
                       {user.lastLogin
-                        ? new Date(user.lastLogin).toLocaleDateString()
+                        ? new Date(user.lastLogin).toLocaleString()
                         : "Never"}
                     </td>
                     <td className="px-4 py-4">
@@ -510,6 +519,7 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                       <div>
                         <h2 className="text-2xl font-bold text-gray-900">{selectedUser.name}</h2>
                         <p className="text-gray-600 text-sm mt-1">{selectedUser.email}</p>
+                        <p className="text-gray-500 text-xs mt-0.5">ID: {selectedUser._id}</p>
                         <div className="flex items-center gap-2 mt-2">
                           <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold capitalize">
                             {selectedUser.role}

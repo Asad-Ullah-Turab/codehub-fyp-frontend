@@ -405,24 +405,11 @@ export const getDifficultyColor = (difficulty: string): string => {
   }
 };
 
-// Get language emoji
+// Get language icon placeholder (emojis have been removed)
 export const getLanguageEmoji = (language: string): string => {
-  switch (language?.toLowerCase()) {
-    case 'python':
-      return '🐍';
-    case 'javascript':
-      return '🟨';
-    case 'cpp':
-      return '⚡';
-    case 'sql':
-      return '🗃️';
-    case 'rust':
-      return '🦀';
-    case 'haskell':
-      return 'λ';
-    default:
-      return '💻';
-  }
+  // currently we don't render any emoji/icon by default; the caller
+  // components handle their own iconography.
+  return '';
 };
 
 // ========== SAVED TUTORIALS ==========

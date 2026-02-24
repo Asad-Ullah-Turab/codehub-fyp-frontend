@@ -285,7 +285,7 @@ export default function CodeEditor({
 
       if (!input.trim() && codeNeedsInput) {
         setOutput(
-          "⚠ Your code requires input!\n\nPlease provide input in the 'Input' tab.\nEach input should be on a separate line.\n\nExample:\nAlice\n25"
+          "Your code requires input!\n\nPlease provide input in the 'Input' tab.\nEach input should be on a separate line.\n\nExample:\nAlice\n25"
         );
         setLoading(false);
         return;

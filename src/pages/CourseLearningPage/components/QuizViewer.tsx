@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "../../../contexts/ToastContext";
+import { AlertTriangle, CheckCircle, BookOpen } from "lucide-react";
 import {
   getQuizDetails,
   submitQuizAnswers,
@@ -120,7 +121,7 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
     return (
       <div className="max-w-5xl mx-auto px-8 py-8">
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 text-center">
-          <div className="text-6xl mb-4">⚠️</div>
+          <div className="text-6xl mb-4"><AlertTriangle className="w-16 h-16 text-yellow-500 inline" /></div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Quiz Not Available
           </h2>
@@ -153,7 +154,7 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
           }`}
         >
           <div className="text-center">
-            <div className="text-6xl mb-4">{passed ? "🎉" : "📚"}</div>
+            <div className="text-6xl mb-4">{passed ? <CheckCircle className="w-16 h-16 text-green-500 inline" /> : <BookOpen className="w-16 h-16 text-blue-500 inline" />}</div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
               {passed ? "Congratulations!" : "Keep Learning"}
             </h2>

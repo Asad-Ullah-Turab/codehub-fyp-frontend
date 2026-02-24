@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 import type { Tutorial } from "../../functions/TutorialFunctions/tutorialFunctions";
 
 /**
@@ -96,8 +97,9 @@ const AITutorialSuccessNotification: React.FC = () => {
         </div>
 
         {/* Title */}
-        <h3 className="text-2xl font-bold text-center text-gray-900 mb-4">
-          Tutorial Generated Successfully! 🎉
+        <h3 className="text-2xl font-bold text-center text-gray-900 mb-4 flex items-center justify-center gap-2">
+          Tutorial Generated Successfully!
+          <Sparkles className="w-6 h-6 text-green-500" />
         </h3>
 
         {/* Description */}

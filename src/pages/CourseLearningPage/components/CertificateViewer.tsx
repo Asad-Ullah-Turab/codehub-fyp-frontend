@@ -328,9 +328,10 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
           <>
             <button
               onClick={handleDownloadCertificate}
-              className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-lg transition-colors"
+              className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-lg transition-colors flex items-center justify-center gap-2"
             >
-              🖨️ Print Certificate
+              <Printer className="w-5 h-5" />
+              Print Certificate
             </button>
             <button
               onClick={handleShareCertificate}
@@ -344,8 +345,8 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
 
       {/* Info Box */}
       <div className="mt-8 bg-blue-50 border border-blue-200 rounded-2xl p-6">
-        <h4 className="font-semibold text-blue-900 mb-2">
-          ℹ️ About Your Certificate
+        <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-1">
+          <Info className="w-5 h-5" /> About Your Certificate
         </h4>
         <ul className="text-sm text-blue-800 space-y-1">
           <li>

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { Lightbulb } from "lucide-react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -513,7 +514,7 @@ const TutorialsDetailPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md mx-4">
-          <div className="text-6xl mb-4">⚠️</div>
+          <div className="text-6xl mb-4"><AlertTriangle className="w-16 h-16 text-yellow-500 inline" /></div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Something went wrong
           </h2>
@@ -1468,7 +1469,7 @@ const TutorialsDetailPage: React.FC = () => {
 
               <div className="mt-4 p-3 bg-purple-50 rounded-lg">
                 <p className="text-xs text-purple-800">
-                  <span className="font-semibold">💡 Tip:</span> The AI will
+                  <span className="font-semibold inline-flex items-center gap-1"><Lightbulb className="w-3 h-3" /> Tip:</span> The AI will
                   generate a personal tutorial with examples and code snippets.
                   This tutorial will be saved to your account and you can edit
                   it anytime.

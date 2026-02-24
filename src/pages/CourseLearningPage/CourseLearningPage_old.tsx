@@ -217,7 +217,7 @@ const CourseLearningPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md mx-4">
-          <div className="text-6xl mb-4">⚠️</div>
+          <div className="text-6xl mb-4"><AlertTriangle className="w-16 h-16 text-yellow-500 inline" /></div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Error Loading Course
           </h2>
@@ -311,7 +311,7 @@ const CourseLearningPage: React.FC = () => {
                   <span className="font-medium">{course.estimatedHours}h</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="text-2xl">📚</span>
+                  <BookOpen className="w-6 h-6" />
                   <span className="font-medium">{course.sections?.length || 0} sections</span>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -382,7 +382,7 @@ const CourseLearningPage: React.FC = () => {
             onClick={() => setShowAIChat(true)}
             className="fixed bottom-8 right-8 bg-indigo-600 text-white p-4 rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
           >
-            💬
+            <MessageCircle />
           </button>
         )}
       </div>
@@ -503,7 +503,7 @@ const CourseLearningPage: React.FC = () => {
                         }`}
                       >
                         <span className="flex items-center">
-                          <span className="mr-2">📝</span>
+                          <FileText className="mr-2 w-5 h-5" />
                           Section Quiz
                         </span>
                       </button>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { XCircle, ArrowLeft, CreditCard, MessageCircle } from 'lucide-react';
+import { XCircle, ArrowLeft, CreditCard, MessageCircle, Rocket, DollarSign } from 'lucide-react';
 
 const SubscriptionCancelled: React.FC = () => {
   const navigate = useNavigate();
@@ -67,8 +67,9 @@ const SubscriptionCancelled: React.FC = () => {
 
           {/* Why Upgrade Section */}
           <div className="pt-6 border-t border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              🚀 Join 50,000+ developers who chose Premium:
+              <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-1">
+              <Rocket className="w-4 h-4 text-blue-600" />
+              Join 50,000+ developers who chose Premium:
             </h3>
             <ul className="text-sm text-gray-600 space-y-2 text-left">
               <li className="flex items-start gap-2">
@@ -115,7 +116,7 @@ const SubscriptionCancelled: React.FC = () => {
         {/* Support Footer */}
         <div className="mt-6 text-center">
           <div className="bg-white rounded-lg p-4 shadow-sm mb-4">
-            <div className="text-2xl mb-2">💰</div>
+            <div className="text-2xl mb-2"><DollarSign className="inline w-6 h-6" /></div>
             <p className="text-sm font-medium text-gray-900 mb-1">Limited Time Offer</p>
             <p className="text-xs text-gray-600">Get 30% off your first month when you upgrade today!</p>
           </div>

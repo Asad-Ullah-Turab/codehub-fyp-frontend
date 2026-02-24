@@ -77,6 +77,7 @@ const ProfilePage: React.FC = () => {
     show: boolean;
     tutorialId?: string;
   }>({ show: false });
+  const [cancelConfirm, setCancelConfirm] = useState(false);
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(
     null,
   );
@@ -402,6 +403,18 @@ const ProfilePage: React.FC = () => {
         }}
         onCancel={() => setDeleteConfirm({ show: false })}
       />
+      <ConfirmModal
+        isOpen={cancelConfirm}
+        title="Cancel Subscription"
+        message="Are you sure you want to cancel your premium subscription? You will be downgraded to the free plan immediately."
+        confirmText="Yes, Cancel"
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
+        onConfirm={async () => {
+          setCancelConfirm(false);
+          await handleCancelSubscription();
+        }}
+        onCancel={() => setCancelConfirm(false)}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Header Card */}
@@ -445,19 +458,12 @@ const ProfilePage: React.FC = () => {
                         <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 rounded-full text-gray-800 text-xs font-semibold">
                           {subscriptionInfo.plan === 'free' ? 'Free' : 'Premium'}
                         </span>
-                        {subscriptionInfo.plan === 'free' ? (
+                        {subscriptionInfo.plan === 'free' && (
                           <button
                             onClick={() => navigate('/upgrade')}
                             className="text-blue-600 text-xs hover:underline"
                           >
                             Upgrade
-                          </button>
-                        ) : (
-                          <button
-                            onClick={handleCancelSubscription}
-                            className="text-red-600 text-xs hover:underline"
-                          >
-                            Cancel
                           </button>
                         )}
                       </div>
@@ -538,7 +544,7 @@ const ProfilePage: React.FC = () => {
                         </button>
                       ) : (
                         <button
-                          onClick={handleCancelSubscription}
+                          onClick={() => setCancelConfirm(true)}
                           className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
                         >
                           Cancel Subscription

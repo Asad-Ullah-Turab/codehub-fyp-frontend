@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createCheckoutSession, getSubscriptionStatus, cancelSubscription } from '../../services/subscriptionAPI';
 import { useToast } from '../../contexts/ToastContext';
-import { Check, Star, Zap, MessageSquare, Code, BookOpen, CreditCard, ArrowLeft } from 'lucide-react';
+import { Check, Star, Zap, MessageSquare, Code, BookOpen, CreditCard, ArrowLeft, Lightbulb } from 'lucide-react';
 
 const SubscriptionPage: React.FC = () => {
   const navigate = useNavigate();
@@ -245,7 +245,7 @@ const SubscriptionPage: React.FC = () => {
             </button>
             
             <p className="text-center text-blue-100 text-sm mt-4">
-              💡 Cancel anytime • Secure payment with Stripe
+              <Lightbulb className="inline w-4 h-4 text-yellow-500" /> Cancel anytime • Secure payment with Stripe
             </p>
           </div>
         </div>

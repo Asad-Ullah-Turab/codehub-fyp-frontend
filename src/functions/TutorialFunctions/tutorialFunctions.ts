@@ -170,21 +170,11 @@ export const getDifficultyColor = (difficulty: string): string => {
 };
 
 /**
- * Utility: Get language emoji for UI display
- * @param language - Programming language
- * @returns Emoji string
+ * Utility placeholder (previously returned emojis, now blank). 
+ * UI components render their own icons for languages.
  */
 export const getLanguageEmoji = (language: string): string => {
-  switch (language.toLowerCase()) {
-    case 'python':
-      return '🐍';
-    case 'javascript':
-      return '🟨';
-    case 'cpp':
-      return '⚙️';
-    default:
-      return '💻';
-  }
+  return '';
 };
 
 /**

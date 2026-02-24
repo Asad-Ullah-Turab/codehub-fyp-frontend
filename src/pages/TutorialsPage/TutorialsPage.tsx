@@ -114,7 +114,7 @@ const TutorialsPage: React.FC = () => {
       <div className="min-h-screen bg-white">
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center bg-white rounded-2xl shadow-xl p-8 max-w-md mx-4 border-2 border-gray-200">
-            <div className="text-6xl mb-4">⚠️</div>
+            <div className="text-6xl mb-4"><AlertTriangle className="w-16 h-16 text-yellow-500 inline" /></div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
               Something went wrong
             </h2>

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Lightbulb, AlertCircle, Trash2, FileText, Hand } from "lucide-react";
 
 import {
   sendCodeChatMessage,
@@ -95,7 +96,7 @@ function AiAssistantPanel({
           setMessages([
             {
               id: "1",
-              text: "👋 Hi! I'm your AI coding tutor. I'll help you understand errors and guide you through problems. Ask me anything!",
+              text: "Hi! I'm your AI coding tutor. I'll help you understand errors and guide you through problems. Ask me anything!",
               isUser: false,
               timestamp: new Date(),
               type: "regular",
@@ -108,7 +109,7 @@ function AiAssistantPanel({
         setMessages([
           {
             id: "1",
-            text: "👋 Hi! I'm your AI coding tutor. I'll help you understand errors and guide you through problems. Ask me anything!",
+            text: "Hi! I'm your AI coding tutor. I'll help you understand errors and guide you through problems. Ask me anything!",
             isUser: false,
             timestamp: new Date(),
             type: "regular",
@@ -157,7 +158,7 @@ function AiAssistantPanel({
     // Check if code exists
     if (!code || !code.trim()) {
       addMessage(
-        "📝 I can see your editor is empty. Write some code first, and I'll be ready to help!",
+        "I can see your editor is empty. Write some code first, and I'll be ready to help!",
         false,
         "regular"
       );
@@ -205,7 +206,7 @@ function AiAssistantPanel({
   const handleExplainError = async () => {
     if (!error) return;
 
-    addMessage(`📍 Error: ${error}`, true, "error-help");
+    addMessage(`Error: ${error}`, true, "error-help");
     setIsLoading(true);
 
     try {
@@ -354,7 +355,7 @@ function AiAssistantPanel({
             disabled={isLoading}
             className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white text-sm py-2 px-3 rounded transition-colors font-bold flex items-center justify-center gap-1"
           >
-            📍 Explain Error
+            <AlertCircle className="w-4 h-4" /> Explain Error
           </button>
         </div>
       ) : problems && problems.length > 0 ? (
@@ -367,7 +368,7 @@ function AiAssistantPanel({
             disabled={isLoading}
             className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-300 text-white text-sm py-2 px-3 rounded transition-colors font-bold flex items-center justify-center gap-1"
           >
-            💡 Ask for Hint
+            <Lightbulb className="w-4 h-4" /> Ask for Hint
           </button>
         </div>
       ) : null}
@@ -381,7 +382,7 @@ function AiAssistantPanel({
             className="text-xs text-gray-500 hover:text-red-500 disabled:text-gray-300 transition-colors flex items-center gap-1"
             title="Clear chat history"
           >
-            🗑️ Clear History
+            <Trash2 className="w-4 h-4" /> Clear History
           </button>
         </div>
       )}

@@ -1,4 +1,6 @@
 import React from "react";
+import { Clock } from "lucide-react";
+import { Lightbulb, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -71,7 +73,7 @@ const CourseLessonViewer: React.FC<CourseLessonViewerProps> = ({
           )}
           {lesson.duration && (
             <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-              ⏱️ {lesson.duration} min
+              <Clock className="w-4 h-4 inline mr-1" /> {lesson.duration} min
             </span>
           )}
         </div>
@@ -174,7 +176,7 @@ const CourseLessonViewer: React.FC<CourseLessonViewerProps> = ({
       {lesson.tips && lesson.tips.length > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <span className="text-3xl">💡</span>
+            <Lightbulb className="w-6 h-6" />
             Pro Tips
           </h2>
           <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 border-2 border-yellow-200 shadow-md">
@@ -194,10 +196,9 @@ const CourseLessonViewer: React.FC<CourseLessonViewerProps> = ({
       {lesson.notes && lesson.notes.length > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <span className="text-3xl">📝</span>
+            <FileText className="w-6 h-6" />
             Important Notes
-          </h2>
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 shadow-md">
+          </h2>          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 shadow-md">
             <ul className="space-y-3">
               {lesson.notes.map((note, index) => (
                 <li key={index} className="flex items-start gap-3">
@@ -214,7 +215,7 @@ const CourseLessonViewer: React.FC<CourseLessonViewerProps> = ({
       {lesson.resources && lesson.resources.length > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <span className="text-3xl">📚</span>
+            <BookOpen className="w-6 h-6" />
             Additional Resources
           </h2>
           <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200 shadow-md">

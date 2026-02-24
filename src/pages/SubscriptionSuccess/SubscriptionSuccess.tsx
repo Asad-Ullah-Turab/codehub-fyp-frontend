@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowRight, Sparkles, Rocket, Lightbulb } from 'lucide-react';
 import { getSubscriptionStatus } from '../../services/subscriptionAPI';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -17,7 +17,7 @@ const SubscriptionSuccess: React.FC = () => {
         setSubscription(status);
         
         // Show success toast
-        showToast('Welcome to CodeHub Premium! 🎉', 'success');
+        showToast('Welcome to CodeHub Premium!', 'success');
       } catch (error) {
         console.error('Error fetching subscription status:', error);
         showToast('There was an issue confirming your subscription. Please contact support.', 'error');
@@ -44,12 +44,15 @@ const SubscriptionSuccess: React.FC = () => {
 
           {/* Title */}
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Welcome to Premium! 🎉
+            <div className="inline-flex items-center gap-2">
+              Welcome to Premium!
+              <Sparkles className="w-6 h-6 text-yellow-500" />
+            </div>
           </h1>
 
           {/* Description */}
           <p className="text-gray-600 mb-6 leading-relaxed">
-            🎉 Welcome to the CodeHub family! Your premium subscription is now active and you have instant access to all our advanced features. Let's accelerate your coding journey together.
+            Welcome to the CodeHub family! Your premium subscription is now active and you have instant access to all our advanced features. Let's accelerate your coding journey together.
           </p>
 
           {/* Subscription Info */}
@@ -101,7 +104,10 @@ const SubscriptionSuccess: React.FC = () => {
           {/* Premium Features */}
           <div className="mt-8 pt-6 border-t border-gray-100">
             <h3 className="text-sm font-semibold text-gray-900 mb-4">
-              🚀 What's New With Premium:
+              <div className="flex items-center gap-1">
+                <Rocket className="w-5 h-5 text-blue-600" />
+                What's New With Premium:
+              </div>
             </h3>
             <div className="grid grid-cols-2 gap-3 text-sm text-gray-600">
               <div className="bg-blue-50 rounded-lg p-3 text-center">
@@ -134,7 +140,10 @@ const SubscriptionSuccess: React.FC = () => {
           </p>
           
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-xs font-medium inline-block">
-            💡 Pro Tip: Try asking the AI to "Generate a Python tutorial for beginners"
+            <div className="inline-flex items-center gap-1">
+              <Lightbulb className="w-4 h-4 text-yellow-500" />
+              Pro Tip: Try asking the AI to "Generate a Python tutorial for beginners"
+            </div>
           </div>
         </div>
       </div>

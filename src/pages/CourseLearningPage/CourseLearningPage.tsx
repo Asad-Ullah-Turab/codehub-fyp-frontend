@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Star } from "lucide-react";
 import { useToast } from "../../contexts/ToastContext";
+import { useAuth } from "../../hooks/useAuth";
 import {
   getCourseById,
   getEnrollmentDetails,
@@ -21,9 +23,11 @@ const CourseLearningPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { isAuthenticated } = useAuth();
 
   const [course, setCourse] = useState<Course | null>(null);
   const [enrollment, setEnrollment] = useState<CourseEnrollment | null>(null);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null); // plan data for premium check
   const [selectedSection, setSelectedSection] = useState<CourseSection | null>(
     null
   );
@@ -67,6 +71,9 @@ const CourseLearningPage: React.FC = () => {
         setError(null);
 
         const courseResponse = await getCourseById(courseId);
+
+        // basic premium redirect check - we may not have subscription info yet,
+        // later effect will rerun and redirect if needed
         setCourse(courseResponse.data);
         setEnrollment(courseResponse.enrollment || null);
 
@@ -110,6 +117,35 @@ const CourseLearningPage: React.FC = () => {
 
     loadCourseData();
   }, [courseId]);
+
+  // fetch subscription status for plan checks
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const info = await import("../../services/subscriptionAPI").then(m => m.getSubscriptionStatus());
+        setSubscriptionInfo(info);
+      } catch {
+        // ignore
+      }
+    };
+    if (isAuthenticated) fetchStatus();
+  }, [isAuthenticated]);
+
+  // redirect free users away from premium courses if they somehow get here
+  // allow access if user is already enrolled (downgraded after enrolling)
+  useEffect(() => {
+    if (
+      course?.isPremium &&
+      !enrollment &&
+      !(subscriptionInfo && subscriptionInfo.plan === "premium")
+    ) {
+      showToast(
+        "This course is premium. Please upgrade your plan to access it.",
+        "error"
+      );
+      navigate("/upgrade");
+    }
+  }, [course, enrollment, subscriptionInfo, navigate, showToast]);
 
   // Left sidebar resize handlers
   const handleLeftMouseDown = (e: React.MouseEvent) => {
@@ -432,7 +468,11 @@ const CourseLearningPage: React.FC = () => {
       await enrollInCourse(courseId);
       window.location.reload();
     } catch (err: any) {
-      showToast(err.message || "Failed to enroll in course", "error");
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to enroll in course";
+      showToast(msg, "error");
     }
   };
 
@@ -566,8 +606,9 @@ const CourseLearningPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             {course.title}
+            {course.isPremium && <Star className="w-6 h-6 text-yellow-500" aria-label="Premium course" />}
           </h1>
           <p className="text-gray-600 mb-6">{course.description}</p>
 
@@ -1048,8 +1089,9 @@ const CourseLearningPage: React.FC = () => {
                       Home
                     </button>
                     <span className="mx-2">/</span>
-                    <span className="hover:text-blue-600 cursor-pointer">
+                    <span className="hover:text-blue-600 cursor-pointer flex items-center gap-1">
                       {course.title}
+                      {course.isPremium && <Star className="w-4 h-4 text-yellow-500" aria-label="Premium" />}
                     </span>
                     <span className="mx-2">/</span>
                     <span className="text-gray-900 font-medium">

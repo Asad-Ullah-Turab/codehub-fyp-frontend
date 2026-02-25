@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Search,
-  Plus,
-  Trash2,
-  Edit,
-  X,
-} from "lucide-react";
+import { Search, Plus, Trash2, Edit, X, Star } from "lucide-react";
 import { adminTutorialAPI } from "../../../services/adminTutorialAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
@@ -15,7 +9,9 @@ interface TutorialManagementProps {
   highlightedTutorialId?: string;
 }
 
-export default function TutorialManagement({ highlightedTutorialId }: TutorialManagementProps) {
+export default function TutorialManagement({
+  highlightedTutorialId,
+}: TutorialManagementProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTutorial, setEditingTutorial] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -26,26 +22,32 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
   const [languages, setLanguages] = useState<string[]>([]);
   const [concepts, setConcepts] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [highlightedTutorial, setHighlightedTutorial] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; tutorialId: string | null }>({
+  const [highlightedTutorial, setHighlightedTutorial] = useState<string | null>(
+    null,
+  );
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    show: boolean;
+    tutorialId: string | null;
+  }>({
     show: false,
     tutorialId: null,
   });
   const { showToast } = useToast();
-  
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     language: "",
     concept: "",
     difficulty: "beginner",
+    isPremium: false,
     content: "",
     tags: [] as string[],
     codeExamples: [] as Array<{ code: string; explanation?: string }>,
     notes: [] as string[],
     tips: [] as string[],
   });
-  
+
   const [newLanguage, setNewLanguage] = useState("");
   const [newConcept, setNewConcept] = useState("");
   const [showNewLanguageInput, setShowNewLanguageInput] = useState(false);
@@ -72,11 +74,11 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
     try {
       setLoading(true);
       const params: any = {};
-      
+
       if (activeTab !== "all") params.language = activeTab;
       if (selectedDifficulty !== "all") params.difficulty = selectedDifficulty;
       if (searchTerm) params.search = searchTerm;
-      
+
       const response = await adminTutorialAPI.getAllTutorials(params);
       setTutorials(response.data || []);
     } catch (error) {
@@ -120,6 +122,7 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
       language: "",
       concept: "",
       difficulty: "beginner",
+      isPremium: false,
       content: "",
       tags: [],
       codeExamples: [],
@@ -142,24 +145,30 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
       codeExamples: tutorial.codeExamples || [],
       notes: tutorial.notes || [],
       tips: tutorial.tips || [],
+      isPremium: tutorial.isPremium || false,
     });
-    
+
     if (tutorial.language) {
       await fetchConcepts(tutorial.language);
     }
-    
+
     setShowAddModal(true);
   };
 
   const handleSaveTutorial = async () => {
     try {
-      if (!formData.title || !formData.content || !formData.language || !formData.concept) {
+      if (
+        !formData.title ||
+        !formData.content ||
+        !formData.language ||
+        !formData.concept
+      ) {
         showToast("Please fill in all required fields", "error");
         return;
       }
 
       setLoading(true);
-      
+
       if (editingTutorial) {
         await adminTutorialAPI.updateTutorial(editingTutorial._id, formData);
         showToast("Tutorial updated successfully", "success");
@@ -167,11 +176,14 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
         await adminTutorialAPI.createTutorial(formData);
         showToast("Tutorial created successfully", "success");
       }
-      
+
       setShowAddModal(false);
       fetchTutorials();
     } catch (error: any) {
-      showToast(error.response?.data?.message || "Failed to save tutorial", "error");
+      showToast(
+        error.response?.data?.message || "Failed to save tutorial",
+        "error",
+      );
       console.error("Error saving tutorial:", error);
     } finally {
       setLoading(false);
@@ -180,7 +192,7 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
 
   const handleDeleteTutorial = async () => {
     if (!deleteConfirm.tutorialId) return;
-    
+
     try {
       setLoading(true);
       await adminTutorialAPI.deleteTutorial(deleteConfirm.tutorialId);
@@ -241,7 +253,11 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
     });
   };
 
-  const updateCodeExample = (index: number, field: 'code' | 'explanation', value: string) => {
+  const updateCodeExample = (
+    index: number,
+    field: "code" | "explanation",
+    value: string,
+  ) => {
     const updated = [...formData.codeExamples];
     updated[index] = { ...updated[index], [field]: value };
     setFormData({ ...formData, codeExamples: updated });
@@ -378,6 +394,9 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
                   DIFFICULTY
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
+                  ACCESS
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
                   DATE
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
@@ -391,13 +410,19 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  <td
+                    colSpan={7}
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
                     Loading tutorials...
                   </td>
                 </tr>
               ) : tutorials.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  <td
+                    colSpan={7}
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
                     No tutorials found
                   </td>
                 </tr>
@@ -406,12 +431,17 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
                   <tr
                     key={tutorial._id}
                     className={`border-b border-gray-100 hover:bg-gray-50 transition-all duration-300 ${
-                      highlightedTutorial === tutorial._id 
-                        ? 'bg-blue-50 border-l-4 border-l-blue-500 border-r-4 border-r-blue-500 border-t-2 border-t-blue-400 border-b-2 border-b-blue-400 shadow-lg shadow-blue-200/50 animate-pulse' 
-                        : ''
+                      highlightedTutorial === tutorial._id
+                        ? "bg-blue-50 border-l-4 border-l-blue-500 border-r-4 border-r-blue-500 border-t-2 border-t-blue-400 border-b-2 border-b-blue-400 shadow-lg shadow-blue-200/50 animate-pulse"
+                        : ""
                     }`}
                   >
-                    <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+                    <td className="px-6 py-4 text-sm text-gray-900 font-medium flex items-center gap-2">
+                      {tutorial.tags?.some((tag: string) => tag.toLowerCase().includes("ai")) && (
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
+                          AI
+                        </span>
+                      )}
                       {tutorial.title}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
@@ -426,29 +456,45 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
                           tutorial.difficulty === "beginner"
                             ? "bg-green-50 text-green-700"
                             : tutorial.difficulty === "intermediate"
-                            ? "bg-yellow-50 text-yellow-700"
-                            : "bg-red-50 text-red-700"
+                              ? "bg-yellow-50 text-yellow-700"
+                              : "bg-red-50 text-red-700"
                         }`}
                       >
                         {tutorial.difficulty}
                       </span>
                     </td>
+                    <td className="px-6 py-4 text-sm text-gray-700 flex items-center gap-1">
+                      {tutorial.isPremium ? (
+                        <>
+                          <Star className="w-4 h-4 text-yellow-500" />
+                          <span className="text-xs uppercase">Premium</span>
+                        </>
+                      ) : (
+                        <span className="text-xs uppercase">Free</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {new Date(tutorial.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
-                      {tutorial.language.charAt(0).toUpperCase() + tutorial.language.slice(1)}
+                      {tutorial.language.charAt(0).toUpperCase() +
+                        tutorial.language.slice(1)}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button 
+                        <button
                           onClick={() => openEditModal(tutorial)}
                           className="p-1.5 hover:bg-gray-100 rounded text-blue-600"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button 
-                          onClick={() => setDeleteConfirm({ show: true, tutorialId: tutorial._id })}
+                        <button
+                          onClick={() =>
+                            setDeleteConfirm({
+                              show: true,
+                              tutorialId: tutorial._id,
+                            })
+                          }
                           className="p-1.5 hover:bg-gray-100 rounded text-red-600"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -466,7 +512,8 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
         {tutorials.length > 0 && (
           <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
             <div>
-              Showing {tutorials.length} tutorial{tutorials.length !== 1 ? "s" : ""}
+              Showing {tutorials.length} tutorial
+              {tutorials.length !== 1 ? "s" : ""}
             </div>
           </div>
         )}
@@ -480,19 +527,24 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <div>
                 <div className="text-sm text-gray-500 mb-1">
-                  Admin Panel / Tutorials / {editingTutorial ? "Edit" : "Create New"}
+                  Admin Panel / Tutorials /{" "}
+                  {editingTutorial ? "Edit" : "Create New"}
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">
                   {editingTutorial ? "Edit Tutorial" : "Create New Tutorial"}
                 </h2>
               </div>
               <div className="flex items-center gap-3">
-                <button 
+                <button
                   onClick={handleSaveTutorial}
                   disabled={loading}
                   className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 disabled:opacity-50"
                 >
-                  {loading ? "Saving..." : editingTutorial ? "Update Tutorial" : "Create Tutorial"}
+                  {loading
+                    ? "Saving..."
+                    : editingTutorial
+                      ? "Update Tutorial"
+                      : "Create Tutorial"}
                 </button>
                 <button
                   onClick={() => setShowAddModal(false)}
@@ -533,7 +585,10 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
                       placeholder="Brief description of the tutorial"
                       value={formData.description}
                       onChange={(e) =>
-                        setFormData({ ...formData, description: e.target.value })
+                        setFormData({
+                          ...formData,
+                          description: e.target.value,
+                        })
                       }
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       rows={3}
@@ -613,7 +668,10 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
                         <select
                           value={formData.concept}
                           onChange={(e) =>
-                            setFormData({ ...formData, concept: e.target.value })
+                            setFormData({
+                              ...formData,
+                              concept: e.target.value,
+                            })
                           }
                           disabled={!formData.language}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
@@ -691,6 +749,25 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
                       <option value="intermediate">Intermediate</option>
                       <option value="advanced">Advanced</option>
                     </select>
+                  </div>
+
+                  {/* Premium flag */}
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="premium-checkbox"
+                      type="checkbox"
+                      checked={!!formData.isPremium}
+                      onChange={(e) =>
+                        setFormData({ ...formData, isPremium: e.target.checked })
+                      }
+                      className="h-4 w-4 text-yellow-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="premium-checkbox"
+                      className="text-sm font-medium text-gray-900"
+                    >
+                      Premium tutorial
+                    </label>
                   </div>
 
                   {/* Tags */}
@@ -817,7 +894,10 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
                           placeholder="Write the tutorial content here. You can use markdown formatting."
                           value={formData.content}
                           onChange={(e) =>
-                            setFormData({ ...formData, content: e.target.value })
+                            setFormData({
+                              ...formData,
+                              content: e.target.value,
+                            })
                           }
                           className="w-full h-full min-h-[280px] text-sm text-gray-700 focus:outline-none resize-none"
                         />
@@ -842,10 +922,13 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
                         Add Example
                       </button>
                     </div>
-                    
+
                     <div className="space-y-3">
                       {formData.codeExamples.map((example, idx) => (
-                        <div key={idx} className="border border-gray-300 rounded-md p-3 bg-gray-50">
+                        <div
+                          key={idx}
+                          className="border border-gray-300 rounded-md p-3 bg-gray-50"
+                        >
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-semibold text-gray-700">
                               Example {idx + 1}
@@ -857,12 +940,14 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
                               <X className="w-4 h-4" />
                             </button>
                           </div>
-                          
+
                           <div className="space-y-2">
                             <textarea
                               placeholder="Enter code example..."
                               value={example.code}
-                              onChange={(e) => updateCodeExample(idx, 'code', e.target.value)}
+                              onChange={(e) =>
+                                updateCodeExample(idx, "code", e.target.value)
+                              }
                               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                               rows={4}
                             />
@@ -870,16 +955,23 @@ export default function TutorialManagement({ highlightedTutorialId }: TutorialMa
                               type="text"
                               placeholder="Explanation (optional)"
                               value={example.explanation || ""}
-                              onChange={(e) => updateCodeExample(idx, 'explanation', e.target.value)}
+                              onChange={(e) =>
+                                updateCodeExample(
+                                  idx,
+                                  "explanation",
+                                  e.target.value,
+                                )
+                              }
                               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                             />
                           </div>
                         </div>
                       ))}
-                      
+
                       {formData.codeExamples.length === 0 && (
                         <p className="text-xs text-gray-500 text-center py-4">
-                          No code examples added yet. Click "Add Example" to add one.
+                          No code examples added yet. Click "Add Example" to add
+                          one.
                         </p>
                       )}
                     </div>

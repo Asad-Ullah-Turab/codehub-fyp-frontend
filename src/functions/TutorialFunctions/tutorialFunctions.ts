@@ -18,6 +18,7 @@ export interface Tutorial {
   notes: string[];
   tips: string[];
   tags: string[];
+  isPremium?: boolean;
   codeExamples: Array<{
     title: string;
     description: string;

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { Lightbulb, AlertTriangle } from "lucide-react";
+import { Lightbulb, AlertTriangle, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -178,6 +178,31 @@ const TutorialsDetailPage: React.FC = () => {
   };
 
   const handleTutorialSelect = async (tutorial: Tutorial) => {
+    // If tutorial is premium we need to know subscription status first
+    if (tutorial.isPremium) {
+      let planInfo = subscriptionInfo;
+      // if we don't already have it, fetch now
+      if (!planInfo) {
+        try {
+          planInfo = await import("../../../services/subscriptionAPI").then(
+            (m) => m.getSubscriptionStatus()
+          );
+          setSubscriptionInfo(planInfo);
+        } catch {
+          // ignore - we'll treat as free below
+        }
+      }
+
+      if (planInfo && planInfo.plan !== "premium") {
+        showToast(
+          "This tutorial is premium. Please upgrade your plan to access it.",
+          "error"
+        );
+        navigate("/upgrade");
+        return;
+      }
+    }
+
     try {
       setTutorialLoading(true);
 
@@ -272,24 +297,8 @@ const TutorialsDetailPage: React.FC = () => {
 
         // Auto-select tutorial (either from URL or first one)
         if (allTutorials.length > 0 && tutorialToSelect) {
-          setTutorialLoading(true);
-          setSelectedTutorial(tutorialToSelect);
-
-          // Check if tutorial is saved
-          if (isAuthenticated) {
-            try {
-              const savedTutorials = await getSavedTutorials();
-              const isCurrentTutorialSaved = savedTutorials.data?.some(
-                (saved) => saved.tutorial?._id === tutorialToSelect._id
-              );
-              setIsSaved(!!isCurrentTutorialSaved);
-            } catch (saveCheckError) {
-              setIsSaved(false);
-            }
-          } else {
-            setIsSaved(false);
-          }
-          setTutorialLoading(false);
+          // delegate to same handler so we apply premium checks, saved state, etc.
+          await handleTutorialSelect(tutorialToSelect);
         }
       } catch (err) {
         console.error("Error loading tutorials:", err);
@@ -314,7 +323,23 @@ const TutorialsDetailPage: React.FC = () => {
       tutorial.difficulty?.toLowerCase().includes(searchFilter.toLowerCase())
   );
 
-  const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null); // contains plan info (free/premium)
+
+  // if subscription info arrives after a premium tutorial was selected, redirect free users
+  React.useEffect(() => {
+    if (
+      selectedTutorial &&
+      selectedTutorial.isPremium &&
+      subscriptionInfo &&
+      subscriptionInfo.plan !== "premium"
+    ) {
+      showToast(
+        "This tutorial is premium. Please upgrade your plan to access it.",
+        "error"
+      );
+      navigate("/upgrade");
+    }
+  }, [selectedTutorial, subscriptionInfo, navigate, showToast]);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -676,6 +701,9 @@ const TutorialsDetailPage: React.FC = () => {
                         >
                           <div className="font-medium mb-1 flex items-center gap-2">
                             <span className="text-slate-700">{tutorial.title}</span>
+                            {tutorial.isPremium && (
+                              <Star className="w-4 h-4 text-yellow-500" aria-label="Premium tutorial" />
+                            )}
                             {isPersonal && (
                               <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">
                                 My
@@ -789,8 +817,11 @@ const TutorialsDetailPage: React.FC = () => {
                     <>
                       {/* Tutorial Header */}
                       <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                        <h1 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                           {selectedTutorial.title}
+                          {selectedTutorial.isPremium && (
+                            <Star className="w-6 h-6 text-yellow-500" aria-label="Premium tutorial" />
+                          )}
                         </h1>
 
                         {selectedTutorial.description && (

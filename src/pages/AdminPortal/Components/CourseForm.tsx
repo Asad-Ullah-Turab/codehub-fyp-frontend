@@ -15,6 +15,7 @@ interface CourseFormProps {
     certificateTemplate: "standard" | "distinguished" | "excellence";
     tags: string[];
     prerequisites: string[];
+    isPremium?: boolean;
   };
   setFormData: (data: any) => void;
   loading: boolean;
@@ -181,6 +182,18 @@ export default function CourseForm({
               </select>
             </div>
 
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={!!formData.isPremium}
+                onChange={(e) => setFormData({ ...formData, isPremium: e.target.checked })}
+                id="premium-checkbox"
+                className="h-4 w-4 text-yellow-500 border-gray-300 rounded"
+              />
+              <label htmlFor="premium-checkbox" className="text-sm font-medium text-gray-700">
+                Premium course (only premium users can enroll)
+              </label>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Tags

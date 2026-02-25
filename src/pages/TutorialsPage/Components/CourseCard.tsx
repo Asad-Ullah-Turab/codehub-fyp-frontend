@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Clock, ChevronRight, Code, Cpu, Zap } from "lucide-react";
+import { BookOpen, Clock, ChevronRight, Code, Cpu, Zap, Star } from "lucide-react";
 import type { Course } from "../../../functions/CourseFunctions/courseFunctions";
 
 interface CourseCardProps {
@@ -65,7 +65,10 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
         </div>
 
         {/* Title */}
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{course.title}</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 flex items-center gap-2">
+          {course.title}
+          {course.isPremium && <Star className="w-4 h-4 text-yellow-500" aria-label="Premium course" />}
+        </h3>
 
         {/* Difficulty Badge */}
         <span className="inline-block bg-slate-100 text-slate-800 text-xs font-semibold px-3 py-1 rounded-full mb-3">
@@ -98,7 +101,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
               onClick();
             }}
           >
-            <span>Start Learning</span>
+            <span>{course.isPremium ? "Upgrade" : "Start Learning"}</span>
             <ChevronRight className="w-4 h-4 opacity-90" />
           </button>
         </div>

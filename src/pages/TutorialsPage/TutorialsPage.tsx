@@ -12,21 +12,37 @@ import {
 } from "../../functions/CourseFunctions/courseFunctions";
 import { getProfile } from "../../functions/ProfileFunctions/profileFunctions";
 import { useAuth } from "../../hooks/useAuth";
+import { useToast } from "../../contexts/ToastContext";
 import LanguageCard from "./Components/LanguageCard";
 import CourseCard from "./Components/CourseCard";
 
 const TutorialsPage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const [mainConcepts, setMainConcepts] = useState<MainConcepts>({
     python: [],
     javascript: [],
     cpp: [],
   });
+  const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [userLanguages, setUserLanguages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // subscription information for plan checks
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const info = await import("../../services/subscriptionAPI").then(m => m.getSubscriptionStatus());
+        setSubscriptionInfo(info);
+      } catch {
+        // ignore
+      }
+    };
+    if (isAuthenticated) fetchStatus();
+  }, [isAuthenticated]);
 
   useEffect(() => {
     loadPageData();
@@ -70,7 +86,28 @@ const TutorialsPage: React.FC = () => {
     navigate(`/tutorials/${language}`);
   };
 
-  const handleCourseClick = (courseId: string) => {
+  const handleCourseClick = async (courseId: string, isPremium?: boolean) => {
+    if (isPremium) {
+      let planInfo = subscriptionInfo;
+      if (!planInfo) {
+        try {
+          planInfo = await import("../../services/subscriptionAPI").then(m => m.getSubscriptionStatus());
+          setSubscriptionInfo(planInfo);
+        } catch {
+          // ignore
+        }
+      }
+
+      if (planInfo && planInfo.plan !== "premium") {
+        showToast(
+          "This course is premium. Please upgrade to access.",
+          "error"
+        );
+        navigate("/upgrade");
+        return;
+      }
+    }
+
     navigate(`/courses/${courseId}`);
   };
 
@@ -181,7 +218,7 @@ const TutorialsPage: React.FC = () => {
                 <CourseCard
                   key={course._id}
                   course={course}
-                  onClick={() => handleCourseClick(course._id)}
+                  onClick={() => handleCourseClick(course._id, course.isPremium)}
                 />
               ))}
             </div>

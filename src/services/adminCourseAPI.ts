@@ -25,6 +25,7 @@ export interface Course {
   enrollmentCount: number;
   isPublished: boolean;
   isArchived: boolean;
+  isPremium?: boolean;
   createdAt: string;
   updatedAt: string;
   finalQuiz?: string;
@@ -153,6 +154,7 @@ export const adminCourseAPI = {
     certificateTemplate?: string;
     tags?: string[];
     prerequisites?: string[];
+    isPremium?: boolean;
   }) => {
     const response = await api.post(API_ENDPOINTS.ADMIN_COURSES, courseData);
     return response.data.data;
@@ -172,6 +174,7 @@ export const adminCourseAPI = {
       certificateTemplate?: string;
       tags?: string[];
       prerequisites?: string[];
+      isPremium?: boolean;
     }
   ) => {
     const response = await api.put(`${API_ENDPOINTS.ADMIN_COURSES}/${courseId}`, courseData);

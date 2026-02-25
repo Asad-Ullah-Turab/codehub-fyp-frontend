@@ -33,6 +33,7 @@ export const adminTutorialAPI = {
     notes?: string[];
     tips?: string[];
     tags?: string[];
+    isPremium?: boolean;
   }) => {
     const response = await api.post(API_ENDPOINTS.ADMIN_TUTORIALS, tutorialData);
     return response.data;
@@ -52,6 +53,7 @@ export const adminTutorialAPI = {
       notes?: string[];
       tips?: string[];
       tags?: string[];
+      isPremium?: boolean;
     }
   ) => {
     const response = await api.put(`${API_ENDPOINTS.ADMIN_TUTORIALS}/${id}`, tutorialData);
@@ -72,7 +74,8 @@ export const adminTutorialAPI = {
 
   // Get concepts by language
   getConcepts: async (language: string) => {
-    const response = await api.get(`${API_ENDPOINTS.TUTORIALS_LANGUAGES}/${language}/concepts`);
+    // backend route defined as /tutorials/concepts/:language
+    const response = await api.get(`${API_ENDPOINTS.TUTORIALS_CONCEPTS}/${language}`);
     return response.data;
   },
 };

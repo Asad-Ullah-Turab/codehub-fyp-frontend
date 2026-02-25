@@ -16,6 +16,7 @@ export interface Course {
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   estimatedHours: number;
   price?: number;
+  isPremium?: boolean;
   instructor: {
     _id: string;
     name: string;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Edit, Trash2, Search } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Star } from "lucide-react";
 import { adminCourseAPI, type Course } from "../../../services/adminCourseAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
@@ -64,6 +64,7 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
     certificateTemplate: "standard" | "distinguished" | "excellence";
     tags: string[];
     prerequisites: string[];
+    isPremium?: boolean;
   }>({
     title: "",
     description: "",
@@ -75,6 +76,7 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
     certificateTemplate: "standard",
     tags: [],
     prerequisites: [],
+    isPremium: false,
   });
 
   const { showToast } = useToast();
@@ -144,6 +146,7 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
       certificateTemplate: course.certificateTemplate,
       tags: course.tags || [],
       prerequisites: course.prerequisites || [],
+      isPremium: course.isPremium || false,
     });
     setEditingCourse(course);
     setShowAddModal(true);
@@ -348,6 +351,9 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
                   DIFFICULTY
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
+                  ACCESS
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
                   LANGUAGE
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
@@ -365,7 +371,7 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
               {loading ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-6 py-8 text-center text-gray-500"
                   >
                     Loading courses...
@@ -374,7 +380,7 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
               ) : courses.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-6 py-8 text-center text-gray-500"
                   >
                     No courses found
@@ -419,6 +425,16 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
                       >
                         {course.difficulty}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700 flex items-center gap-1">
+                      {course.isPremium ? (
+                        <>
+                          <Star className="w-4 h-4 text-yellow-500" />
+                          <span className="text-xs uppercase">Premium</span>
+                        </>
+                      ) : (
+                        <span className="text-xs uppercase">Free</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {course.language === "cpp"

@@ -219,6 +219,7 @@ const TutorialsPage: React.FC = () => {
                   key={course._id}
                   course={course}
                   onClick={() => handleCourseClick(course._id, course.isPremium)}
+                  userHasPremium={subscriptionInfo?.plan === "premium"}
                 />
               ))}
             </div>

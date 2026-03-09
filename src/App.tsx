@@ -21,11 +21,13 @@ import SubscriptionPage from "./pages/SubscriptionPage/SubscriptionPage";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess/SubscriptionSuccess";
 import SubscriptionCancelled from "./pages/SubscriptionCancelled/SubscriptionCancelled";
 import AITutorialSuccessNotification from "./components/AITutorialSuccessNotification/AITutorialSuccessNotification";
+import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <AITutorialSuccessNotification />
         <Routes>
           <Route path="/" element={<Layout />}>

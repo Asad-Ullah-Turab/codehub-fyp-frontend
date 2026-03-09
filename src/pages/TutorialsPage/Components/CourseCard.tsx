@@ -6,9 +6,10 @@ import type { Course } from "../../../functions/CourseFunctions/courseFunctions"
 interface CourseCardProps {
   course: Course;
   onClick: () => void;
+  userHasPremium?: boolean;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
+const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, userHasPremium = false }) => {
   // Color palette selection for subtle accents
   const getRandomGradient = (id: string) => {
     const palettes = [
@@ -67,7 +68,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
         {/* Title */}
         <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 flex items-center gap-2">
           {course.title}
-          {course.isPremium && <Star className="w-4 h-4 text-yellow-500" aria-label="Premium course" />}
+          {course.isPremium && <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 flex-shrink-0" aria-label="Premium course" />}
         </h3>
 
         {/* Difficulty Badge */}
@@ -101,7 +102,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
               onClick();
             }}
           >
-            <span>{course.isPremium ? "Upgrade" : "Start Learning"}</span>
+            <span>{course.isPremium && !userHasPremium ? "Upgrade to Access" : "Start Learning"}</span>
             <ChevronRight className="w-4 h-4 opacity-90" />
           </button>
         </div>

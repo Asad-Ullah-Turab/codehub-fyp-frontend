@@ -392,7 +392,7 @@ const TutorialsDetailPage: React.FC = () => {
         tags: ["AI-generated", "personal", language],
       };
 
-      // Call the API to create the tutorial - backend will use OpenAI to generate content
+      // Call the API to create the tutorial - backend will use Gemini to generate content
       const response = await tutorialAPI.createTutorial(tutorialData);
 
       if (response.success) {

@@ -8,14 +8,13 @@ import {
 import { useToast } from "../../contexts/ToastContext";
 import {
   Check,
-  Star,
-  Zap,
-  MessageSquare,
-  Code,
-  BookOpen,
   CreditCard,
   ArrowLeft,
-  Lightbulb,
+  Award,
+  Shield,
+  Sparkles,
+  Clock,
+  Infinity,
 } from "lucide-react";
 
 const SubscriptionPage: React.FC = () => {
@@ -98,143 +97,226 @@ const SubscriptionPage: React.FC = () => {
 
   if (checkingStatus) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Checking subscription status...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">
+            Checking subscription status...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div className="absolute inset-0 bg-black opacity-20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 py-16">
+    <div className="min-h-screen bg-gray-50">
+      {/* Simple Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 py-6">
           <button
             onClick={() => navigate(-1)}
-            className="mb-6 inline-flex items-center gap-2 text-blue-100 hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors group"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <span className="font-medium">Back</span>
           </button>
-
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Unlock Your Coding Potential
-            </h1>
-            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Join thousands of developers who've accelerated their coding
-              journey with CodeHub Premium.
-            </p>
-          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-          {/* Current Plan */}
-          <div className="bg-white rounded-2xl shadow-lg p-8 border relative">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+            Choose Your Plan
+          </h1>
+          <p className="text-lg text-gray-600">
+            Select the plan that works best for you
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          {/* Free Plan */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 hover:shadow-md transition-shadow">
+            <div className="text-center mb-8">
+              <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-7 h-7 text-gray-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">
                 Free Plan
-              </h2>
-              <p className="text-gray-600">Your current plan</p>
-              <div className="mt-4 text-3xl font-bold text-gray-900">
-                $0{" "}
-                <span className="text-lg font-normal text-gray-500">
+              </h3>
+              <p className="text-gray-600 mb-4">Perfect for getting started</p>
+              <div className="text-4xl font-bold text-gray-900">
+                $0
+                <span className="text-lg font-normal text-gray-500 ml-1">
                   /month
                 </span>
               </div>
             </div>
 
-            <ul className="space-y-3 mb-6 text-sm text-gray-700">
-              <li className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-green-500" />
-                Basic courses & tutorials (≈10)
-              </li>
-              <li className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-gray-400" />5 AI chat/code queries
-                per day
-              </li>
-              <li className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-gray-400" />
-                Up to 5 tutorial generations/day
-              </li>
-            </ul>
+            <div className="space-y-4 mb-8">
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check className="w-3 h-3 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    5 AI Chat Queries
+                  </p>
+                  <p className="text-sm text-gray-600">per month</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check className="w-3 h-3 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    5 Code Help Queries
+                  </p>
+                  <p className="text-sm text-gray-600">per month</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check className="w-3 h-3 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    5 Tutorial Generations
+                  </p>
+                  <p className="text-sm text-gray-600">per month</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check className="w-3 h-3 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    Basic Course Access
+                  </p>
+                  <p className="text-sm text-gray-600">Community support</p>
+                </div>
+              </div>
+            </div>
 
-            <p className="text-center text-gray-500 text-xs">
-              Upgrade for unlimited access, premium content, and more tools.
-            </p>
+            <div className="text-center">
+              <p className="text-sm text-gray-500 font-medium">
+                {subscriptionInfo?.plan === "free"
+                  ? "Your Current Plan"
+                  : "Always Free"}
+              </p>
+            </div>
           </div>
 
           {/* Premium Plan */}
-          <div className="bg-gradient-to-br from-blue-700 to-indigo-800 rounded-3xl shadow-2xl p-10 text-white relative hover:shadow-3xl transition-shadow duration-300">
-            <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-              <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-5 py-2 rounded-full text-base font-bold flex items-center gap-2">
-                <Star className="w-5 h-5" />
-                BEST VALUE
+          <div className="bg-indigo-600 rounded-2xl shadow-lg p-8 text-white relative">
+            {/* Popular Badge */}
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <div className="bg-yellow-400 text-gray-900 px-4 py-1 rounded-full font-bold text-sm shadow-md">
+                MOST POPULAR
               </div>
             </div>
 
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-extrabold mb-2 flex items-center justify-center gap-2">
-                <span className="inline-block w-8 h-8 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center">
-                  <Zap className="w-5 h-5" />
+              <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Award className="w-7 h-7 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2">Premium Plan</h3>
+              <p className="text-indigo-200 mb-4">Unlimited everything</p>
+              <div className="text-4xl font-bold">
+                $9.99
+                <span className="text-lg font-normal text-indigo-200 ml-1">
+                  /month
                 </span>
-                Premium Plan
-              </h2>
-              <p className="text-blue-100">Full access, no limits</p>
-              <div className="mt-4">
-                <div className="text-3xl font-bold">
-                  $9.99{" "}
-                  <span className="text-lg font-normal text-blue-200">
-                    /month
-                  </span>
+              </div>
+              <p className="text-sm text-indigo-200 mt-2">
+                Cancel anytime
+              </p>
+            </div>
+
+            <div className="space-y-4 mb-8">
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Infinity className="w-3 h-3 text-indigo-600" />
                 </div>
-                <p className="text-sm text-blue-200 mt-1">
-                  Access 200+ premium courses & 1k+ tutorials
-                </p>
+                <div>
+                  <p className="font-semibold text-white">
+                    Unlimited AI Chat
+                  </p>
+                  <p className="text-sm text-indigo-200">
+                    Ask unlimited questions
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Infinity className="w-3 h-3 text-indigo-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-white">
+                    Unlimited Code Help
+                  </p>
+                  <p className="text-sm text-indigo-200">
+                    Get instant debugging assistance
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Infinity className="w-3 h-3 text-indigo-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-white">
+                    Unlimited Tutorials
+                  </p>
+                  <p className="text-sm text-indigo-200">
+                    Generate personalized learning content
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check className="w-3 h-3 text-indigo-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-white">Priority Support</p>
+                  <p className="text-sm text-indigo-200">
+                    Fast response times
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Check className="w-3 h-3 text-indigo-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-white">
+                    Certificates & Portfolio
+                  </p>
+                  <p className="text-sm text-indigo-200">
+                    Showcase your achievements
+                  </p>
+                </div>
               </div>
             </div>
 
-            <ul className="space-y-4 mb-8 text-white text-sm">
-              <li className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-yellow-400" />
-                Unlimited AI chat & code help
-              </li>
-              <li className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-yellow-400" />
-                Unlimited premium courses & tutorials
-              </li>
-              <li className="flex items-center gap-2">
-                <Code className="w-5 h-5 text-yellow-400" />
-                Unlimited tutorial generation
-              </li>
-              <li className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-yellow-400" />
-                Priority 24/7 support
-              </li>
-              <li className="flex items-center gap-2">
-                <Check className="w-5 h-5 text-yellow-400" />
-                Certificates & downloadable materials
-              </li>
-            </ul>
-
-            {subscriptionInfo?.plan === 'premium' ? (
+            {subscriptionInfo?.plan === "premium" ? (
               <div className="space-y-4">
-                <div className="text-center text-blue-200 font-semibold">
-                  You are already on the Premium Plan
+                <div className="text-center bg-white/10 rounded-xl p-4">
+                  <p className="font-semibold text-white mb-2">
+                    ✨ You're Already Premium!
+                  </p>
+                  <p className="text-sm text-indigo-200">
+                    Enjoying unlimited access
+                  </p>
                 </div>
                 <button
                   onClick={handleCancel}
                   disabled={canceling}
-                  className="w-full bg-red-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-white/10 border border-white/30 text-white font-semibold py-3 px-6 rounded-xl hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {canceling ? 'Cancelling...' : 'Cancel Subscription'}
+                  {canceling ? "Cancelling..." : "Manage Subscription"}
                 </button>
               </div>
             ) : (
@@ -242,25 +324,31 @@ const SubscriptionPage: React.FC = () => {
                 <button
                   onClick={handleUpgradeToPremium}
                   disabled={loading}
-                  className="w-full bg-white text-blue-600 font-bold py-4 px-6 rounded-lg hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                  className="w-full bg-white text-indigo-600 font-bold py-3 px-6 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md mb-4"
                 >
                   {loading ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                      Processing...
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
+                      <span>Processing...</span>
                     </>
                   ) : (
                     <>
                       <CreditCard className="w-5 h-5" />
-                      Start Your Premium Journey
+                      <span>Upgrade to Premium</span>
                     </>
                   )}
                 </button>
 
-                <p className="text-center text-blue-100 text-sm mt-4">
-                  <Lightbulb className="inline w-4 h-4 text-yellow-500" /> Cancel
-                  anytime • Secure payment with Stripe
-                </p>
+                <div className="text-center space-y-1">
+                  <p className="text-indigo-200 text-xs flex items-center justify-center gap-2">
+                    <Shield className="w-3 h-3" />
+                    <span>Secure payment with Stripe</span>
+                  </p>
+                  <p className="text-indigo-200 text-xs flex items-center justify-center gap-2">
+                    <Clock className="w-3 h-3" />
+                    <span>Cancel anytime</span>
+                  </p>
+                </div>
               </>
             )}
           </div>

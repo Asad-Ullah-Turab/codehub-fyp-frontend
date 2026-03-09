@@ -82,6 +82,7 @@ export const API_ENDPOINTS = {
   ADMIN_CERTIFICATES: "/admin/certificates",
   ADMIN_CERTIFICATES_PENDING: "/admin/certificates/pending",
   ADMIN_NEWSLETTER_SUBSCRIPTIONS: "/admin/newsletter-subscriptions",
+  ADMIN_TRIGGER_MONTHLY_RESET: "/admin/trigger-monthly-reset",
   SUBSCRIPTIONS_CREATE_SESSION: "/subscriptions/create-checkout-session",
   SUBSCRIPTIONS_STATUS: "/subscriptions/status",
   SUBSCRIPTIONS_CANCEL: "/subscriptions/cancel",

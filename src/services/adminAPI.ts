@@ -241,4 +241,15 @@ export const adminAPI = {
       throw error;
     }
   },
+
+  // System management
+  triggerMonthlyReset: async () => {
+    try {
+      const response = await api.post(API_ENDPOINTS.ADMIN_TRIGGER_MONTHLY_RESET);
+      return response.data;
+    } catch (error) {
+      console.error("Error triggering monthly reset:", error);
+      throw error;
+    }
+  },
 };

@@ -13,6 +13,12 @@ import {
   Award,
   Sparkles,
   Star,
+  MapPin,
+  Globe,
+  Github,
+  Linkedin,
+  ExternalLink,
+  RotateCcw,
 } from "lucide-react";
 import { adminAPI } from "../../../services/adminAPI";
 import { useToast } from "../../../contexts/ToastContext";
@@ -187,6 +193,24 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
     }
   };
 
+  const handleTriggerMonthlyReset = async () => {
+    try {
+      setLoading(true);
+      const response = await adminAPI.triggerMonthlyReset();
+      showToast(
+        `Monthly reset completed successfully. ${response.data.updatedUsers} users updated.`,
+        "success"
+      );
+    } catch (error: any) {
+      showToast(
+        error.response?.data?.message || "Failed to trigger monthly reset",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
@@ -202,6 +226,36 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
             <p className="text-sm text-gray-600 mt-1">
               Manage users, suspend accounts, and send notifications
             </p>
+          </div>
+        </div>
+
+        {/* System Management Actions */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg shadow-sm border border-purple-200 p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                System Management
+              </h2>
+              <p className="text-sm text-gray-600">
+                Perform system-wide maintenance and administrative tasks
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleTriggerMonthlyReset}
+                disabled={loading}
+                className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg
+                         hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500
+                         disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                {loading ? "Processing..." : "Trigger Monthly Reset"}
+              </button>
+            </div>
+          </div>
+          <div className="mt-3 p-3 bg-white/50 rounded-md text-xs text-gray-600">
+            <strong>Monthly Reset:</strong> Resets query limits for all free users to 5 queries each (Chat, Code, Tutorial Generation).
+            This normally runs automatically on the 1st of each month.
           </div>
         </div>
 
@@ -580,6 +634,16 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                       <p className="text-base font-semibold text-gray-900 capitalize">{selectedUser.experience}</p>
                     </div>
                   )}
+                  
+                  {selectedUser.location && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 text-gray-500 mb-1">
+                        <MapPin className="w-4 h-4" />
+                        <span className="text-xs font-medium uppercase">Location</span>
+                      </div>
+                      <p className="text-base font-semibold text-gray-900">{selectedUser.location}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Bio Section */}
@@ -587,6 +651,74 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <h3 className="text-sm font-semibold text-gray-900 mb-2">About</h3>
                     <p className="text-sm text-gray-700 leading-relaxed">{selectedUser.bio}</p>
+                  </div>
+                )}
+
+                {/* Social Links Section */}
+                {(selectedUser.github || selectedUser.linkedin || selectedUser.website) && (
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Social Links</h3>
+                    <div className="space-y-3">
+                      {selectedUser.github && (
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center">
+                            <Github className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-gray-500 uppercase">GitHub Profile</p>
+                            <a 
+                              href={selectedUser.github}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                            >
+                              {selectedUser.github}
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {selectedUser.linkedin && (
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                            <Linkedin className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-gray-500 uppercase">LinkedIn Profile</p>
+                            <a 
+                              href={selectedUser.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                            >
+                              {selectedUser.linkedin}
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {selectedUser.website && (
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+                            <Globe className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-gray-500 uppercase">Website</p>
+                            <a 
+                              href={selectedUser.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                            >
+                              {selectedUser.website}
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -600,9 +732,11 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                           selectedUser.name && selectedUser.email,
                           selectedUser.bio,
                           selectedUser.experience,
+                          selectedUser.location,
                           selectedUser.programmingLanguages?.length > 0,
                           selectedUser.skills?.length > 0,
-                        ].filter(Boolean).length / 5) * 100
+                          selectedUser.github || selectedUser.linkedin || selectedUser.website,
+                        ].filter(Boolean).length / 7) * 100
                       )}%
                     </span>
                   </div>
@@ -615,9 +749,11 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                             selectedUser.name && selectedUser.email,
                             selectedUser.bio,
                             selectedUser.experience,
+                            selectedUser.location,
                             selectedUser.programmingLanguages?.length > 0,
                             selectedUser.skills?.length > 0,
-                          ].filter(Boolean).length / 5) * 100
+                            selectedUser.github || selectedUser.linkedin || selectedUser.website,
+                          ].filter(Boolean).length / 7) * 100
                         )}%`
                       }}
                     />
@@ -648,6 +784,14 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                       )}
                     </div>
                     <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-700">Location</span>
+                      {selectedUser.location ? (
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-700">Programming Languages</span>
                       {selectedUser.programmingLanguages?.length > 0 ? (
                         <CheckCircle className="w-4 h-4 text-green-600" />
@@ -658,6 +802,14 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-700">Skills</span>
                       {selectedUser.skills?.length > 0 ? (
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-700">Social Links</span>
+                      {(selectedUser.github || selectedUser.linkedin || selectedUser.website) ? (
                         <CheckCircle className="w-4 h-4 text-green-600" />
                       ) : (
                         <div className="w-4 h-4 rounded-full border-2 border-gray-300" />

@@ -51,6 +51,8 @@ import {
   Bookmark,
   Briefcase,
   MessageSquare,
+  Calendar,
+  RotateCcw,
 } from "lucide-react";
 
 const ProfilePage: React.FC = () => {
@@ -83,6 +85,12 @@ const ProfilePage: React.FC = () => {
   );
   const [courseProgress, setCourseProgress] = useState<CourseProgress[]>([]);
   const [savedTutorials, setSavedTutorials] = useState<SavedTutorial[]>([]);
+  const [timeUntilReset, setTimeUntilReset] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
   const [createdTutorials, setCreatedTutorials] = useState<
     {
       _id: string;
@@ -230,6 +238,37 @@ const ProfilePage: React.FC = () => {
   useEffect(() => {
     loadProfileData();
   }, [loadProfileData]);
+
+  // Update countdown timer every second
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const nextMonth = new Date(
+        now.getFullYear(),
+        now.getMonth() + 1,
+        1,
+        0,
+        0,
+        0,
+      );
+      const diffMs = nextMonth.getTime() - now.getTime();
+
+      setTimeUntilReset({
+        days: Math.floor(diffMs / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        minutes: Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60)),
+        seconds: Math.floor((diffMs % (1000 * 60)) / 1000),
+      });
+    };
+
+    // Update immediately
+    updateCountdown();
+
+    // Then update every second
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
@@ -495,7 +534,7 @@ const ProfilePage: React.FC = () => {
                       </span>
                     )}
                     {user.website && (
-                      <a 
+                      <a
                         href={user.website}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -578,8 +617,8 @@ const ProfilePage: React.FC = () => {
                             <div
                               key={n._id}
                               className={`p-4 text-sm cursor-pointer transition-all duration-200 border-b border-gray-100 last:border-b-0 ${
-                                n.isRead 
-                                  ? "text-gray-500 bg-white hover:bg-gray-50" 
+                                n.isRead
+                                  ? "text-gray-500 bg-white hover:bg-gray-50"
                                   : "text-gray-900 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-l-4 border-l-blue-500 font-medium"
                               }`}
                               onClick={async () => {
@@ -600,14 +639,16 @@ const ProfilePage: React.FC = () => {
                                 }
                               }}
                             >
-                              <div className="leading-relaxed">
-                                {n.message}
-                              </div>
+                              <div className="leading-relaxed">{n.message}</div>
                               <div className="text-xs text-gray-400 mt-2 flex items-center justify-between">
-                                <span>{new Date(n.createdAt).toLocaleString()}</span>
+                                <span>
+                                  {new Date(n.createdAt).toLocaleString()}
+                                </span>
                                 {!n.isRead && (
                                   <div className="flex items-center gap-1">
-                                    <span className="text-xs text-blue-600">New</span>
+                                    <span className="text-xs text-blue-600">
+                                      New
+                                    </span>
                                     <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
                                   </div>
                                 )}
@@ -671,7 +712,7 @@ const ProfilePage: React.FC = () => {
                 {subscriptionInfo?.plan === "free" && (
                   <button
                     onClick={() => navigate("/upgrade")}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors shadow-md"
                   >
                     <Sparkles className="w-4 h-4" />
                     Upgrade Now
@@ -682,23 +723,29 @@ const ProfilePage: React.FC = () => {
               {subscriptionInfo ? (
                 <div className="space-y-6">
                   {/* Current Plan Card */}
-                  <div className={`rounded-2xl border-2 overflow-hidden ${
-                    subscriptionInfo.plan === "premium" 
-                      ? "border-gradient-to-r from-yellow-400 to-orange-500 bg-gradient-to-br from-yellow-50 to-orange-50" 
-                      : "border-gray-200 bg-white"
-                  }`}>
-                    <div className={`px-6 py-4 border-b ${
-                      subscriptionInfo.plan === "premium" 
-                        ? "bg-gradient-to-r from-yellow-100 to-orange-100 border-yellow-200" 
-                        : "bg-gray-50 border-gray-200"
-                    }`}>
+                  <div
+                    className={`rounded-2xl border overflow-hidden bg-white shadow-sm ${
+                      subscriptionInfo.plan === "premium"
+                        ? "border-indigo-200"
+                        : "border-gray-200"
+                    }`}
+                  >
+                    <div
+                      className={`px-6 py-4 border-b ${
+                        subscriptionInfo.plan === "premium"
+                          ? "bg-indigo-50 border-indigo-100"
+                          : "bg-gray-50 border-gray-200"
+                      }`}
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                            subscriptionInfo.plan === "premium" 
-                              ? "bg-gradient-to-r from-yellow-400 to-orange-500" 
-                              : "bg-gradient-to-r from-gray-400 to-gray-500"
-                          }`}>
+                          <div
+                            className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                              subscriptionInfo.plan === "premium"
+                                ? "bg-indigo-600"
+                                : "bg-gray-500"
+                            }`}
+                          >
                             {subscriptionInfo.plan === "premium" ? (
                               <Award className="w-6 h-6 text-white" />
                             ) : (
@@ -707,27 +754,32 @@ const ProfilePage: React.FC = () => {
                           </div>
                           <div>
                             <h3 className="text-xl font-bold text-gray-900">
-                              {subscriptionInfo.plan === "free" ? "Free Plan" : "Premium Plan"}
+                              {subscriptionInfo.plan === "free"
+                                ? "Free Plan"
+                                : "Premium Plan"}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              Status: <span className={`font-semibold ${
-                                subscriptionInfo.status === "active" 
-                                  ? "text-green-600" 
-                                  : "text-gray-600"
-                              }`}>
+                              Status:{" "}
+                              <span
+                                className={`font-semibold ${
+                                  subscriptionInfo.status === "active"
+                                    ? "text-green-600"
+                                    : "text-gray-600"
+                                }`}
+                              >
                                 {subscriptionInfo.status}
                               </span>
                             </p>
                           </div>
                         </div>
                         {subscriptionInfo.plan === "premium" && (
-                          <span className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full text-sm font-bold shadow-md">
+                          <span className="px-3 py-1 bg-indigo-600 text-white rounded-full text-sm font-bold shadow-sm">
                             PREMIUM
                           </span>
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="p-6">
                       {subscriptionInfo.plan === "free" ? (
                         <>
@@ -739,8 +791,12 @@ const ProfilePage: React.FC = () => {
                                   <MessageSquare className="w-5 h-5 text-blue-600" />
                                 </div>
                                 <div>
-                                  <h4 className="font-semibold text-gray-900">AI Chat</h4>
-                                  <p className="text-xs text-gray-600">Questions remaining</p>
+                                  <h4 className="font-semibold text-gray-900">
+                                    AI Chat
+                                  </h4>
+                                  <p className="text-xs text-gray-600">
+                                    Questions remaining
+                                  </p>
                                 </div>
                               </div>
                               <div className="space-y-2">
@@ -748,12 +804,16 @@ const ProfilePage: React.FC = () => {
                                   <span className="text-2xl font-bold text-gray-900">
                                     {subscriptionInfo.chatQueriesRemaining}
                                   </span>
-                                  <span className="text-sm text-gray-500">/ 10</span>
+                                  <span className="text-sm text-gray-500">
+                                    / 5
+                                  </span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
-                                  <div 
+                                  <div
                                     className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${(subscriptionInfo.chatQueriesRemaining / 10) * 100}%` }}
+                                    style={{
+                                      width: `${(subscriptionInfo.chatQueriesRemaining / 5) * 100}%`,
+                                    }}
                                   />
                                 </div>
                               </div>
@@ -765,8 +825,12 @@ const ProfilePage: React.FC = () => {
                                   <Code className="w-5 h-5 text-green-600" />
                                 </div>
                                 <div>
-                                  <h4 className="font-semibold text-gray-900">Code Help</h4>
-                                  <p className="text-xs text-gray-600">Questions remaining</p>
+                                  <h4 className="font-semibold text-gray-900">
+                                    Code Help
+                                  </h4>
+                                  <p className="text-xs text-gray-600">
+                                    Questions remaining
+                                  </p>
                                 </div>
                               </div>
                               <div className="space-y-2">
@@ -774,12 +838,16 @@ const ProfilePage: React.FC = () => {
                                   <span className="text-2xl font-bold text-gray-900">
                                     {subscriptionInfo.codeQueriesRemaining}
                                   </span>
-                                  <span className="text-sm text-gray-500">/ 5</span>
+                                  <span className="text-sm text-gray-500">
+                                    / 5
+                                  </span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
-                                  <div 
+                                  <div
                                     className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${(subscriptionInfo.codeQueriesRemaining / 5) * 100}%` }}
+                                    style={{
+                                      width: `${(subscriptionInfo.codeQueriesRemaining / 5) * 100}%`,
+                                    }}
                                   />
                                 </div>
                               </div>
@@ -791,8 +859,12 @@ const ProfilePage: React.FC = () => {
                                   <BookOpen className="w-5 h-5 text-purple-600" />
                                 </div>
                                 <div>
-                                  <h4 className="font-semibold text-gray-900">Tutorials</h4>
-                                  <p className="text-xs text-gray-600">Generations remaining</p>
+                                  <h4 className="font-semibold text-gray-900">
+                                    Tutorials
+                                  </h4>
+                                  <p className="text-xs text-gray-600">
+                                    Generations remaining
+                                  </p>
                                 </div>
                               </div>
                               <div className="space-y-2">
@@ -800,34 +872,93 @@ const ProfilePage: React.FC = () => {
                                   <span className="text-2xl font-bold text-gray-900">
                                     {subscriptionInfo.tutorialGenRemaining}
                                   </span>
-                                  <span className="text-sm text-gray-500">/ 3</span>
+                                  <span className="text-sm text-gray-500">
+                                    / 5
+                                  </span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
-                                  <div 
+                                  <div
                                     className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${(subscriptionInfo.tutorialGenRemaining / 3) * 100}%` }}
+                                    style={{
+                                      width: `${(subscriptionInfo.tutorialGenRemaining / 5) * 100}%`,
+                                    }}
                                   />
                                 </div>
                               </div>
                             </div>
                           </div>
 
+                          {/* Monthly Reset Information */}
+                          <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                            <div className="flex items-start gap-4">
+                              <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                                <RotateCcw className="w-6 h-6 text-indigo-600" />
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+                                  Monthly Query Reset
+                                  <Calendar className="w-4 h-4 text-indigo-600" />
+                                </h4>
+                                <p className="text-sm text-gray-600 mb-3">
+                                  Your queries automatically reset to{" "}
+                                  <span className="font-semibold text-indigo-600">
+                                    5 per category
+                                  </span>{" "}
+                                  on the 1st of every month at{" "}
+                                  <span className="font-semibold">
+                                    00:00 UTC
+                                  </span>
+                                  .
+                                </p>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Clock className="w-4 h-4 text-indigo-600" />
+                                  <span className="text-gray-600">
+                                    Next reset:{" "}
+                                    <span className="font-semibold text-gray-900">
+                                      {timeUntilReset.days}d{" "}
+                                      {timeUntilReset.hours}h{" "}
+                                      {timeUntilReset.minutes}m{" "}
+                                      {timeUntilReset.seconds}s
+                                    </span>
+                                  </span>
+                                </div>
+                                <div className="mt-3 pt-3 border-t border-gray-200">
+                                  <p className="text-xs text-gray-600">
+                                    💡 <span className="font-medium">Tip:</span>{" "}
+                                    Upgrade to Premium for unlimited queries
+                                    with no monthly resets!
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
                           {/* Upgrade CTA */}
-                          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200 p-6">
+                          <div className="bg-white rounded-xl border border-indigo-200 p-6 shadow-sm mt-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                <h4 className="text-lg font-bold text-gray-900 mb-2">Ready to unlock unlimited potential?</h4>
-                                <p className="text-gray-600 mb-4">Get unlimited access to all AI features and premium content.</p>
+                                <h4 className="text-lg font-bold text-gray-900 mb-2">
+                                  Ready to unlock unlimited potential?
+                                </h4>
+                                <p className="text-gray-600 mb-4">
+                                  Get unlimited access to all AI features and
+                                  premium content.
+                                </p>
                                 <div className="flex flex-wrap gap-3">
                                   {[
                                     "Unlimited AI chat & code help",
-                                    "Unlimited tutorial generation", 
+                                    "Unlimited tutorial generation",
                                     "Priority support",
-                                    "Advanced learning analytics"
+                                    "Advanced learning analytics",
                                   ].map((feature, idx) => (
-                                    <div key={idx} className="flex items-center gap-2">
+                                    <div
+                                      key={idx}
+                                      className="flex items-center gap-2"
+                                    >
                                       <CheckCircle className="w-4 h-4 text-green-600" />
-                                      <span className="text-sm text-gray-700">{feature}</span>
+                                      <span className="text-sm text-gray-700">
+                                        {feature}
+                                      </span>
                                     </div>
                                   ))}
                                 </div>
@@ -835,12 +966,14 @@ const ProfilePage: React.FC = () => {
                               <div className="text-center">
                                 <button
                                   onClick={() => navigate("/upgrade")}
-                                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg"
+                                  className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-md"
                                 >
                                   <Sparkles className="w-5 h-5" />
                                   Upgrade to Premium
                                 </button>
-                                <p className="text-xs text-gray-500 mt-2">Starting at $9.99/month</p>
+                                <p className="text-xs text-gray-500 mt-2">
+                                  Starting at $9.99/month
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -849,50 +982,67 @@ const ProfilePage: React.FC = () => {
                         /* Premium Plan Benefits */
                         <div className="space-y-6">
                           <div className="text-center">
-                            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center mx-auto mb-4">
-                              <Award className="w-8 h-8 text-white" />
+                            <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center mx-auto mb-4">
+                              <Award className="w-8 h-8 text-indigo-600" />
                             </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">You're a Premium Member!</h3>
-                            <p className="text-gray-600 mb-6">Enjoy unlimited access to all CodeHub features</p>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                              You're a Premium Member!
+                            </h3>
+                            <p className="text-gray-600 mb-6">
+                              Enjoy unlimited access to all CodeHub features
+                            </p>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
-                              { 
-                                icon: MessageSquare, 
-                                title: "Unlimited AI Chat", 
-                                description: "Ask unlimited questions to our AI assistant",
-                                color: "from-blue-500 to-blue-600"
+                              {
+                                icon: MessageSquare,
+                                title: "Unlimited AI Chat",
+                                description:
+                                  "Ask unlimited questions to our AI assistant",
+                                color: "from-blue-500 to-blue-600",
                               },
-                              { 
-                                icon: Code, 
-                                title: "Unlimited Code Help", 
-                                description: "Get code reviews, debugging help, and explanations",
-                                color: "from-green-500 to-green-600"
+                              {
+                                icon: Code,
+                                title: "Unlimited Code Help",
+                                description:
+                                  "Get code reviews, debugging help, and explanations",
+                                color: "from-green-500 to-green-600",
                               },
-                              { 
-                                icon: BookOpen, 
-                                title: "Unlimited Tutorials", 
-                                description: "Generate personalized tutorials on any topic",
-                                color: "from-purple-500 to-purple-600"
+                              {
+                                icon: BookOpen,
+                                title: "Unlimited Tutorials",
+                                description:
+                                  "Generate personalized tutorials on any topic",
+                                color: "from-purple-500 to-purple-600",
                               },
-                              { 
-                                icon: TrendingUp, 
-                                title: "Priority Support", 
-                                description: "Get faster responses and dedicated assistance",
-                                color: "from-orange-500 to-red-500"
-                              }
+                              {
+                                icon: TrendingUp,
+                                title: "Priority Support",
+                                description:
+                                  "Get faster responses and dedicated assistance",
+                                color: "from-indigo-500 to-indigo-600",
+                              },
                             ].map((benefit, idx) => {
                               const Icon = benefit.icon;
                               return (
-                                <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all">
+                                <div
+                                  key={idx}
+                                  className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all"
+                                >
                                   <div className="flex items-center gap-3 mb-2">
-                                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${benefit.color} flex items-center justify-center`}>
+                                    <div
+                                      className={`w-10 h-10 rounded-lg bg-gradient-to-r ${benefit.color} flex items-center justify-center`}
+                                    >
                                       <Icon className="w-5 h-5 text-white" />
                                     </div>
-                                    <h4 className="font-semibold text-gray-900">{benefit.title}</h4>
+                                    <h4 className="font-semibold text-gray-900">
+                                      {benefit.title}
+                                    </h4>
                                   </div>
-                                  <p className="text-sm text-gray-600">{benefit.description}</p>
+                                  <p className="text-sm text-gray-600">
+                                    {benefit.description}
+                                  </p>
                                 </div>
                               );
                             })}
@@ -901,8 +1051,12 @@ const ProfilePage: React.FC = () => {
                           <div className="bg-red-50 rounded-xl border border-red-200 p-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                <h4 className="font-semibold text-red-900 mb-1">Manage Subscription</h4>
-                                <p className="text-sm text-red-700">Cancel anytime with no questions asked</p>
+                                <h4 className="font-semibold text-red-900 mb-1">
+                                  Manage Subscription
+                                </h4>
+                                <p className="text-sm text-red-700">
+                                  Cancel anytime with no questions asked
+                                </p>
                               </div>
                               <button
                                 onClick={() => setCancelConfirm(true)}
@@ -920,7 +1074,9 @@ const ProfilePage: React.FC = () => {
               ) : (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading subscription information...</p>
+                  <p className="text-gray-600">
+                    Loading subscription information...
+                  </p>
                 </div>
               )}
             </div>
@@ -1427,7 +1583,9 @@ const ProfilePage: React.FC = () => {
                         <UserIcon className="w-5 h-5 text-indigo-600" />
                         Your Profile Information
                       </h3>
-                      <p className="text-sm text-gray-600 mt-1">Information you've added to your profile</p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Information you've added to your profile
+                      </p>
                     </div>
                     <div className="p-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1438,8 +1596,14 @@ const ProfilePage: React.FC = () => {
                               <Clock className="w-4 h-4 text-blue-600" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900">Birth Date</p>
-                              <p className="text-sm text-gray-600">{new Date(user.dateOfBirth).toLocaleDateString()}</p>
+                              <p className="text-sm font-medium text-gray-900">
+                                Birth Date
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {new Date(
+                                  user.dateOfBirth,
+                                ).toLocaleDateString()}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -1450,8 +1614,12 @@ const ProfilePage: React.FC = () => {
                               <MapPin className="w-4 h-4 text-green-600" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900">Location</p>
-                              <p className="text-sm text-gray-600">{user.location}</p>
+                              <p className="text-sm font-medium text-gray-900">
+                                Location
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {user.location}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -1462,8 +1630,12 @@ const ProfilePage: React.FC = () => {
                               <Target className="w-4 h-4 text-purple-600" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900">Experience Level</p>
-                              <p className="text-sm text-gray-600 capitalize">{user.experience}</p>
+                              <p className="text-sm font-medium text-gray-900">
+                                Experience Level
+                              </p>
+                              <p className="text-sm text-gray-600 capitalize">
+                                {user.experience}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -1474,8 +1646,12 @@ const ProfilePage: React.FC = () => {
                               <MessageSquare className="w-4 h-4 text-indigo-600" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900">Bio</p>
-                              <p className="text-sm text-gray-600 leading-relaxed">{user.bio}</p>
+                              <p className="text-sm font-medium text-gray-900">
+                                Bio
+                              </p>
+                              <p className="text-sm text-gray-600 leading-relaxed">
+                                {user.bio}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -1530,8 +1706,9 @@ const ProfilePage: React.FC = () => {
                       )}
 
                       {/* Skills & Languages Section */}
-                      {((user.programmingLanguages && user.programmingLanguages.length > 0) || 
-                        (user.skills && user.skills.length > 0) || 
+                      {((user.programmingLanguages &&
+                        user.programmingLanguages.length > 0) ||
+                        (user.skills && user.skills.length > 0) ||
                         (user.interests && user.interests.length > 0)) && (
                         <div className="mt-6 pt-6 border-t border-gray-100">
                           <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
@@ -1539,25 +1716,32 @@ const ProfilePage: React.FC = () => {
                             Skills & Expertise
                           </h4>
                           <div className="space-y-3">
-                            {user.programmingLanguages && user.programmingLanguages.length > 0 && (
-                              <div>
-                                <p className="text-xs font-medium text-gray-700 mb-2">Programming Languages</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {user.programmingLanguages.map((lang, index) => (
-                                    <span
-                                      key={index}
-                                      className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-md text-xs font-medium"
-                                    >
-                                      {lang}
-                                    </span>
-                                  ))}
+                            {user.programmingLanguages &&
+                              user.programmingLanguages.length > 0 && (
+                                <div>
+                                  <p className="text-xs font-medium text-gray-700 mb-2">
+                                    Programming Languages
+                                  </p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {user.programmingLanguages.map(
+                                      (lang, index) => (
+                                        <span
+                                          key={index}
+                                          className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-md text-xs font-medium"
+                                        >
+                                          {lang}
+                                        </span>
+                                      ),
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              )}
 
                             {user.skills && user.skills.length > 0 && (
                               <div>
-                                <p className="text-xs font-medium text-gray-700 mb-2">Skills</p>
+                                <p className="text-xs font-medium text-gray-700 mb-2">
+                                  Skills
+                                </p>
                                 <div className="flex flex-wrap gap-2">
                                   {user.skills.map((skill, index) => (
                                     <span
@@ -1573,7 +1757,9 @@ const ProfilePage: React.FC = () => {
 
                             {user.interests && user.interests.length > 0 && (
                               <div>
-                                <p className="text-xs font-medium text-gray-700 mb-2">Interests</p>
+                                <p className="text-xs font-medium text-gray-700 mb-2">
+                                  Interests
+                                </p>
                                 <div className="flex flex-wrap gap-2">
                                   {user.interests.map((interest, index) => (
                                     <span
@@ -1593,16 +1779,25 @@ const ProfilePage: React.FC = () => {
                   </div>
 
                   {/* Complete Your Profile Section */}
-                  {(!user.dateOfBirth || !user.location || !user.experience || !user.bio || 
-                    !user.github || !user.linkedin || !user.website ||
-                    !user.programmingLanguages?.length || !user.skills?.length || !user.interests?.length) && (
+                  {(!user.dateOfBirth ||
+                    !user.location ||
+                    !user.experience ||
+                    !user.bio ||
+                    !user.github ||
+                    !user.linkedin ||
+                    !user.website ||
+                    !user.programmingLanguages?.length ||
+                    !user.skills?.length ||
+                    !user.interests?.length) && (
                     <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200 overflow-hidden">
                       <div className="bg-gradient-to-r from-amber-100 to-orange-100 px-6 py-4 border-b border-amber-200">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <Sparkles className="w-5 h-5 text-amber-600" />
                           Complete Your Profile
                         </h3>
-                        <p className="text-sm text-gray-600 mt-1">Add more information to showcase yourself better</p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Add more information to showcase yourself better
+                        </p>
                       </div>
                       <div className="p-6">
                         <div className="grid grid-cols-1 gap-4">
@@ -1610,8 +1805,12 @@ const ProfilePage: React.FC = () => {
                             <div className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
                               <Clock className="w-5 h-5 text-amber-600" />
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900">Add your birth date</p>
-                                <p className="text-xs text-gray-600">Help others know more about you</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  Add your birth date
+                                </p>
+                                <p className="text-xs text-gray-600">
+                                  Help others know more about you
+                                </p>
                               </div>
                               <button
                                 onClick={() => setEditingProfile(true)}
@@ -1626,8 +1825,12 @@ const ProfilePage: React.FC = () => {
                             <div className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
                               <MapPin className="w-5 h-5 text-amber-600" />
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900">Add your location</p>
-                                <p className="text-xs text-gray-600">Show where you're based</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  Add your location
+                                </p>
+                                <p className="text-xs text-gray-600">
+                                  Show where you're based
+                                </p>
                               </div>
                               <button
                                 onClick={() => setEditingProfile(true)}
@@ -1642,8 +1845,12 @@ const ProfilePage: React.FC = () => {
                             <div className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
                               <MessageSquare className="w-5 h-5 text-amber-600" />
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900">Add a bio</p>
-                                <p className="text-xs text-gray-600">Tell others about yourself</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  Add a bio
+                                </p>
+                                <p className="text-xs text-gray-600">
+                                  Tell others about yourself
+                                </p>
                               </div>
                               <button
                                 onClick={() => setEditingProfile(true)}
@@ -1654,12 +1861,18 @@ const ProfilePage: React.FC = () => {
                             </div>
                           )}
 
-                          {(!user.github || !user.linkedin || !user.website) && (
+                          {(!user.github ||
+                            !user.linkedin ||
+                            !user.website) && (
                             <div className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
                               <Globe className="w-5 h-5 text-amber-600" />
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900">Add social links</p>
-                                <p className="text-xs text-gray-600">Connect your GitHub, LinkedIn, or website</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  Add social links
+                                </p>
+                                <p className="text-xs text-gray-600">
+                                  Connect your GitHub, LinkedIn, or website
+                                </p>
                               </div>
                               <button
                                 onClick={() => setEditingProfile(true)}
@@ -1670,12 +1883,17 @@ const ProfilePage: React.FC = () => {
                             </div>
                           )}
 
-                          {(!user.programmingLanguages?.length || !user.skills?.length) && (
+                          {(!user.programmingLanguages?.length ||
+                            !user.skills?.length) && (
                             <div className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
                               <Briefcase className="w-5 h-5 text-amber-600" />
                               <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900">Add skills & languages</p>
-                                <p className="text-xs text-gray-600">Showcase your technical expertise</p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  Add skills & languages
+                                </p>
+                                <p className="text-xs text-gray-600">
+                                  Showcase your technical expertise
+                                </p>
                               </div>
                               <button
                                 onClick={() => setEditingProfile(true)}
@@ -1698,539 +1916,546 @@ const ProfilePage: React.FC = () => {
                       <Edit3 className="w-5 h-5 text-indigo-600" />
                       Edit Profile Information
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">Update your profile details and settings</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Update your profile details and settings
+                    </p>
                   </div>
                   <div className="p-6 space-y-6">
-                    
                     {/* Basic Information */}
                     <div className="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow">
                       <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                         <UserIcon className="w-5 h-5 text-indigo-600" />
                         Basic Information
                       </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        value={profileForm.name}
-                        onChange={(e) =>
-                          setProfileForm((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
-                        disabled={!editingProfile}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Date of Birth
-                      </label>
-                      <input
-                        type="date"
-                        value={profileForm.dateOfBirth}
-                        onChange={(e) =>
-                          setProfileForm((prev) => ({
-                            ...prev,
-                            dateOfBirth: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
-                        disabled={!editingProfile}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Location
-                      </label>
-                      <input
-                        type="text"
-                        value={profileForm.location}
-                        onChange={(e) =>
-                          setProfileForm((prev) => ({
-                            ...prev,
-                            location: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
-                        disabled={!editingProfile}
-                        placeholder="City, Country"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Experience Level
-                      </label>
-                      <select
-                        value={profileForm.experience}
-                        onChange={(e) =>
-                          setProfileForm((prev) => ({
-                            ...prev,
-                            experience: e.target.value as
-                              | ""
-                              | "beginner"
-                              | "intermediate"
-                              | "advanced"
-                              | "expert",
-                          }))
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
-                        disabled={!editingProfile}
-                      >
-                        <option value="">Select experience</option>
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
-                        <option value="expert">Expert</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Bio{" "}
-                      <span className="text-gray-500">
-                        ({profileForm.bio.length}/500)
-                      </span>
-                    </label>
-                    <textarea
-                      value={profileForm.bio}
-                      onChange={(e) => {
-                        if (e.target.value.length <= 500) {
-                          setProfileForm((prev) => ({
-                            ...prev,
-                            bio: e.target.value,
-                          }));
-                        }
-                      }}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm resize-none transition-shadow"
-                      disabled={!editingProfile}
-                      rows={3}
-                      placeholder="Tell us about yourself..."
-                    />
-                  </div>
-                </div>
-
-                {/* Profile Picture */}
-                <div className="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <UserIcon className="w-5 h-5 text-indigo-600" />
-                    Profile Picture
-                  </h3>
-                  <div className="flex flex-col sm:flex-row items-start gap-6">
-                    {profileForm.profilePicture && (
-                      <div className="flex-shrink-0">
-                        <img
-                          src={
-                            getProfileImageUrl(profileForm.profilePicture) ||
-                            profileForm.profilePicture
-                          }
-                          alt="Profile preview"
-                          className="w-24 h-24 rounded-xl object-cover border border-gray-200 shadow-sm"
-                        />
-                        {editingProfile && (
-                          <button
-                            type="button"
-                            onClick={() =>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Full Name
+                          </label>
+                          <input
+                            type="text"
+                            value={profileForm.name}
+                            onChange={(e) =>
                               setProfileForm((prev) => ({
                                 ...prev,
-                                profilePicture: "",
+                                name: e.target.value,
                               }))
                             }
-                            className="mt-2 text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1 transition-colors"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
+                            disabled={!editingProfile}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Date of Birth
+                          </label>
+                          <input
+                            type="date"
+                            value={profileForm.dateOfBirth}
+                            onChange={(e) =>
+                              setProfileForm((prev) => ({
+                                ...prev,
+                                dateOfBirth: e.target.value,
+                              }))
+                            }
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
+                            disabled={!editingProfile}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Location
+                          </label>
+                          <input
+                            type="text"
+                            value={profileForm.location}
+                            onChange={(e) =>
+                              setProfileForm((prev) => ({
+                                ...prev,
+                                location: e.target.value,
+                              }))
+                            }
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
+                            disabled={!editingProfile}
+                            placeholder="City, Country"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Experience Level
+                          </label>
+                          <select
+                            value={profileForm.experience}
+                            onChange={(e) =>
+                              setProfileForm((prev) => ({
+                                ...prev,
+                                experience: e.target.value as
+                                  | ""
+                                  | "beginner"
+                                  | "intermediate"
+                                  | "advanced"
+                                  | "expert",
+                              }))
+                            }
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
+                            disabled={!editingProfile}
                           >
-                            <X className="w-4 h-4" /> Remove
-                          </button>
-                        )}
+                            <option value="">Select experience</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                            <option value="expert">Expert</option>
+                          </select>
+                        </div>
                       </div>
-                    )}
 
-                    <div className="flex-1 space-y-4">
-                      {editingProfile && (
-                        <>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Upload from Device
-                            </label>
-                            <input
-                              type="file"
-                              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  try {
-                                    const response =
-                                      await uploadProfilePicture(file);
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Bio{" "}
+                          <span className="text-gray-500">
+                            ({profileForm.bio.length}/500)
+                          </span>
+                        </label>
+                        <textarea
+                          value={profileForm.bio}
+                          onChange={(e) => {
+                            if (e.target.value.length <= 500) {
+                              setProfileForm((prev) => ({
+                                ...prev,
+                                bio: e.target.value,
+                              }));
+                            }
+                          }}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm resize-none transition-shadow"
+                          disabled={!editingProfile}
+                          rows={3}
+                          placeholder="Tell us about yourself..."
+                        />
+                      </div>
+                    </div>
+
+                    {/* Profile Picture */}
+                    <div className="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <UserIcon className="w-5 h-5 text-indigo-600" />
+                        Profile Picture
+                      </h3>
+                      <div className="flex flex-col sm:flex-row items-start gap-6">
+                        {profileForm.profilePicture && (
+                          <div className="flex-shrink-0">
+                            <img
+                              src={
+                                getProfileImageUrl(
+                                  profileForm.profilePicture,
+                                ) || profileForm.profilePicture
+                              }
+                              alt="Profile preview"
+                              className="w-24 h-24 rounded-xl object-cover border border-gray-200 shadow-sm"
+                            />
+                            {editingProfile && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setProfileForm((prev) => ({
+                                    ...prev,
+                                    profilePicture: "",
+                                  }))
+                                }
+                                className="mt-2 text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1 transition-colors"
+                              >
+                                <X className="w-4 h-4" /> Remove
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex-1 space-y-4">
+                          {editingProfile && (
+                            <>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Upload from Device
+                                </label>
+                                <input
+                                  type="file"
+                                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      try {
+                                        const response =
+                                          await uploadProfilePicture(file);
+                                        setProfileForm((prev) => ({
+                                          ...prev,
+                                          profilePicture: response.data.fileUrl,
+                                        }));
+                                        setUser(response.data.user);
+                                      } catch (err) {
+                                        console.error(
+                                          "Error uploading picture:",
+                                          err,
+                                        );
+                                        setError(
+                                          err instanceof Error
+                                            ? err.message
+                                            : "Failed to upload picture",
+                                        );
+                                      }
+                                    }
+                                  }}
+                                  className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer transition-colors"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Max size: 5MB. JPG, PNG, GIF, WebP
+                                </p>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Or use Image URL
+                                </label>
+                                <input
+                                  type="url"
+                                  value={
+                                    profileForm.profilePicture.startsWith(
+                                      "http",
+                                    )
+                                      ? profileForm.profilePicture
+                                      : ""
+                                  }
+                                  onChange={(e) =>
                                     setProfileForm((prev) => ({
                                       ...prev,
-                                      profilePicture: response.data.fileUrl,
-                                    }));
-                                    setUser(response.data.user);
-                                  } catch (err) {
-                                    console.error(
-                                      "Error uploading picture:",
-                                      err,
-                                    );
-                                    setError(
-                                      err instanceof Error
-                                        ? err.message
-                                        : "Failed to upload picture",
-                                    );
+                                      profilePicture: e.target.value,
+                                    }))
                                   }
+                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
+                                  placeholder="https://example.com/avatar.jpg"
+                                />
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Social Links */}
+                    <div className="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <Globe className="w-5 h-5 text-indigo-600" />
+                        Social Links
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            GitHub
+                          </label>
+                          <input
+                            type="url"
+                            value={profileForm.github}
+                            onChange={(e) =>
+                              setProfileForm((prev) => ({
+                                ...prev,
+                                github: e.target.value,
+                              }))
+                            }
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
+                            disabled={!editingProfile}
+                            placeholder="https://github.com/username"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            LinkedIn
+                          </label>
+                          <input
+                            type="url"
+                            value={profileForm.linkedin}
+                            onChange={(e) =>
+                              setProfileForm((prev) => ({
+                                ...prev,
+                                linkedin: e.target.value,
+                              }))
+                            }
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
+                            disabled={!editingProfile}
+                            placeholder="https://linkedin.com/in/username"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Website
+                          </label>
+                          <input
+                            type="url"
+                            value={profileForm.website}
+                            onChange={(e) =>
+                              setProfileForm((prev) => ({
+                                ...prev,
+                                website: e.target.value,
+                              }))
+                            }
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
+                            disabled={!editingProfile}
+                            placeholder="https://yourwebsite.com"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Skills & Interests */}
+                    <div className="bg-gray-50 rounded-xl p-6 space-y-4 hover:shadow-md transition-shadow">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <Briefcase className="w-5 h-5 text-indigo-600" />
+                        Skills & Interests
+                      </h3>
+
+                      {/* Programming Languages */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Programming Languages
+                        </label>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {profileForm.programmingLanguages.map(
+                            (lang, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium"
+                              >
+                                {lang}
+                                {editingProfile && (
+                                  <button
+                                    onClick={() => {
+                                      setProfileForm((prev) => ({
+                                        ...prev,
+                                        programmingLanguages:
+                                          prev.programmingLanguages.filter(
+                                            (_, i) => i !== index,
+                                          ),
+                                      }));
+                                    }}
+                                    className="ml-1 hover:text-indigo-900"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                )}
+                              </span>
+                            ),
+                          )}
+                        </div>
+                        {editingProfile && (
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="Add a language... (press Enter)"
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === "Enter" &&
+                                  e.currentTarget.value.trim()
+                                ) {
+                                  const value = e.currentTarget.value.trim();
+                                  e.currentTarget.value = "";
+                                  e.preventDefault();
+                                  setProfileForm((prev) => ({
+                                    ...prev,
+                                    programmingLanguages: [
+                                      ...prev.programmingLanguages,
+                                      value,
+                                    ],
+                                  }));
                                 }
                               }}
-                              className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer transition-colors"
+                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
-                              Max size: 5MB. JPG, PNG, GIF, WebP
-                            </p>
                           </div>
+                        )}
+                      </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Or use Image URL
-                            </label>
+                      {/* Skills */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Skills
+                        </label>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {profileForm.skills.map((skill, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium"
+                            >
+                              {skill}
+                              {editingProfile && (
+                                <button
+                                  onClick={() => {
+                                    setProfileForm((prev) => ({
+                                      ...prev,
+                                      skills: prev.skills.filter(
+                                        (_, i) => i !== index,
+                                      ),
+                                    }));
+                                  }}
+                                  className="ml-1 hover:text-purple-900"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                        {editingProfile && (
+                          <div className="flex gap-2">
                             <input
-                              type="url"
-                              value={
-                                profileForm.profilePicture.startsWith("http")
-                                  ? profileForm.profilePicture
-                                  : ""
-                              }
-                              onChange={(e) =>
-                                setProfileForm((prev) => ({
-                                  ...prev,
-                                  profilePicture: e.target.value,
-                                }))
-                              }
-                              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
-                              placeholder="https://example.com/avatar.jpg"
+                              type="text"
+                              placeholder="Add a skill... (press Enter)"
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === "Enter" &&
+                                  e.currentTarget.value.trim()
+                                ) {
+                                  const value = e.currentTarget.value.trim();
+                                  e.currentTarget.value = "";
+                                  e.preventDefault();
+                                  setProfileForm((prev) => ({
+                                    ...prev,
+                                    skills: [...prev.skills, value],
+                                  }));
+                                }
+                              }}
+                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
                             />
                           </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Social Links */}
-                <div className="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Globe className="w-5 h-5 text-indigo-600" />
-                    Social Links
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        GitHub
-                      </label>
-                      <input
-                        type="url"
-                        value={profileForm.github}
-                        onChange={(e) =>
-                          setProfileForm((prev) => ({
-                            ...prev,
-                            github: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
-                        disabled={!editingProfile}
-                        placeholder="https://github.com/username"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        LinkedIn
-                      </label>
-                      <input
-                        type="url"
-                        value={profileForm.linkedin}
-                        onChange={(e) =>
-                          setProfileForm((prev) => ({
-                            ...prev,
-                            linkedin: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
-                        disabled={!editingProfile}
-                        placeholder="https://linkedin.com/in/username"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Website
-                      </label>
-                      <input
-                        type="url"
-                        value={profileForm.website}
-                        onChange={(e) =>
-                          setProfileForm((prev) => ({
-                            ...prev,
-                            website: e.target.value,
-                          }))
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
-                        disabled={!editingProfile}
-                        placeholder="https://yourwebsite.com"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Skills & Interests */}
-                <div className="bg-gray-50 rounded-xl p-6 space-y-4 hover:shadow-md transition-shadow">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                    <Briefcase className="w-5 h-5 text-indigo-600" />
-                    Skills & Interests
-                  </h3>
-
-                  {/* Programming Languages */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Programming Languages
-                    </label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {profileForm.programmingLanguages.map((lang, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium"
-                        >
-                          {lang}
-                          {editingProfile && (
-                            <button
-                              onClick={() => {
-                                setProfileForm((prev) => ({
-                                  ...prev,
-                                  programmingLanguages:
-                                    prev.programmingLanguages.filter(
-                                      (_, i) => i !== index,
-                                    ),
-                                }));
-                              }}
-                              className="ml-1 hover:text-indigo-900"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-                    {editingProfile && (
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Add a language... (press Enter)"
-                          onKeyDown={(e) => {
-                            if (
-                              e.key === "Enter" &&
-                              e.currentTarget.value.trim()
-                            ) {
-                              const value = e.currentTarget.value.trim();
-                              e.currentTarget.value = "";
-                              e.preventDefault();
-                              setProfileForm((prev) => ({
-                                ...prev,
-                                programmingLanguages: [
-                                  ...prev.programmingLanguages,
-                                  value,
-                                ],
-                              }));
-                            }
-                          }}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
-                        />
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Skills */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Skills
-                    </label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {profileForm.skills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium"
-                        >
-                          {skill}
-                          {editingProfile && (
-                            <button
-                              onClick={() => {
-                                setProfileForm((prev) => ({
-                                  ...prev,
-                                  skills: prev.skills.filter(
-                                    (_, i) => i !== index,
-                                  ),
-                                }));
-                              }}
-                              className="ml-1 hover:text-purple-900"
+                      {/* Interests */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Interests
+                        </label>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {profileForm.interests.map((interest, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
                             >
-                              <X className="w-3 h-3" />
-                            </button>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-                    {editingProfile && (
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Add a skill... (press Enter)"
-                          onKeyDown={(e) => {
-                            if (
-                              e.key === "Enter" &&
-                              e.currentTarget.value.trim()
-                            ) {
-                              const value = e.currentTarget.value.trim();
-                              e.currentTarget.value = "";
-                              e.preventDefault();
-                              setProfileForm((prev) => ({
-                                ...prev,
-                                skills: [...prev.skills, value],
-                              }));
-                            }
-                          }}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Interests */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Interests
-                    </label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {profileForm.interests.map((interest, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
-                        >
-                          {interest}
-                          {editingProfile && (
-                            <button
-                              onClick={() => {
-                                setProfileForm((prev) => ({
-                                  ...prev,
-                                  interests: prev.interests.filter(
-                                    (_, i) => i !== index,
-                                  ),
-                                }));
+                              {interest}
+                              {editingProfile && (
+                                <button
+                                  onClick={() => {
+                                    setProfileForm((prev) => ({
+                                      ...prev,
+                                      interests: prev.interests.filter(
+                                        (_, i) => i !== index,
+                                      ),
+                                    }));
+                                  }}
+                                  className="ml-1 hover:text-green-900"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                        {editingProfile && (
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="Add an interest... (press Enter)"
+                              onKeyDown={(e) => {
+                                if (
+                                  e.key === "Enter" &&
+                                  e.currentTarget.value.trim()
+                                ) {
+                                  const value = e.currentTarget.value.trim();
+                                  e.currentTarget.value = "";
+                                  e.preventDefault();
+                                  setProfileForm((prev) => ({
+                                    ...prev,
+                                    interests: [...prev.interests, value],
+                                  }));
+                                }
                               }}
-                              className="ml-1 hover:text-green-900"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-                    {editingProfile && (
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="Add an interest... (press Enter)"
-                          onKeyDown={(e) => {
-                            if (
-                              e.key === "Enter" &&
-                              e.currentTarget.value.trim()
-                            ) {
-                              const value = e.currentTarget.value.trim();
-                              e.currentTarget.value = "";
-                              e.preventDefault();
-                              setProfileForm((prev) => ({
-                                ...prev,
-                                interests: [...prev.interests, value],
-                              }));
-                            }
-                          }}
-                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
-                        />
+                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow"
+                            />
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Email Notifications */}
-                <div className="bg-gray-50 rounded-xl p-6 flex items-center justify-between hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                      <Bell className="w-5 h-5 text-indigo-600" />
                     </div>
-                    <div>
-                      <label
-                        htmlFor="notifications"
-                        className="block text-sm font-medium text-gray-900"
+
+                    {/* Email Notifications */}
+                    <div className="bg-gray-50 rounded-xl p-6 flex items-center justify-between hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+                          <Bell className="w-5 h-5 text-indigo-600" />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor="notifications"
+                            className="block text-sm font-medium text-gray-900"
+                          >
+                            Email Notifications
+                          </label>
+                          <p className="text-xs text-gray-600">
+                            Receive updates about your courses
+                          </p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          id="notifications"
+                          checked={profileForm.preferences.emailNotifications}
+                          onChange={(e) =>
+                            setProfileForm((prev) => ({
+                              ...prev,
+                              preferences: {
+                                ...prev.preferences,
+                                emailNotifications: e.target.checked,
+                              },
+                            }))
+                          }
+                          className="sr-only peer"
+                          disabled={!editingProfile}
+                        />
+                        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                      </label>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                      <button
+                        onClick={handleUpdateProfile}
+                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold shadow-sm transition-colors"
                       >
-                        Email Notifications
-                      </label>
-                      <p className="text-xs text-gray-600">
-                        Receive updates about your courses
-                      </p>
+                        Save Changes
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingProfile(false);
+                          if (user) {
+                            setProfileForm({
+                              name: user.name,
+                              profilePicture: user.profilePicture || "",
+                              dateOfBirth: user.dateOfBirth || "",
+                              bio: user.bio || "",
+                              location: user.location || "",
+                              github: user.github || "",
+                              linkedin: user.linkedin || "",
+                              website: user.website || "",
+                              programmingLanguages:
+                                user.programmingLanguages || [],
+                              skills: user.skills || [],
+                              interests: user.interests || [],
+                              experience: user.experience || "",
+                              preferences: user.preferences,
+                            });
+                          }
+                        }}
+                        className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-semibold transition-colors"
+                      >
+                        Cancel
+                      </button>
                     </div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      id="notifications"
-                      checked={profileForm.preferences.emailNotifications}
-                      onChange={(e) =>
-                        setProfileForm((prev) => ({
-                          ...prev,
-                          preferences: {
-                            ...prev.preferences,
-                            emailNotifications: e.target.checked,
-                          },
-                        }))
-                      }
-                      className="sr-only peer"
-                      disabled={!editingProfile}
-                    />
-                    <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                  </label>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                  <button
-                    onClick={handleUpdateProfile}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold shadow-sm transition-colors"
-                  >
-                    Save Changes
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEditingProfile(false);
-                      if (user) {
-                        setProfileForm({
-                          name: user.name,
-                          profilePicture: user.profilePicture || "",
-                          dateOfBirth: user.dateOfBirth || "",
-                          bio: user.bio || "",
-                          location: user.location || "",
-                          github: user.github || "",
-                          linkedin: user.linkedin || "",
-                          website: user.website || "",
-                          programmingLanguages: user.programmingLanguages || [],
-                          skills: user.skills || [],
-                          interests: user.interests || [],
-                          experience: user.experience || "",
-                          preferences: user.preferences,
-                        });
-                      }
-                    }}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-semibold transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
                   </div>
                 </div>
               )}

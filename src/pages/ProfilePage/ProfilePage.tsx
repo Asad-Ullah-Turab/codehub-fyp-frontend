@@ -527,13 +527,16 @@ const ProfilePage: React.FC = () => {
                     {showNotifications && (
                       <div
                         ref={notifRef}
-                        className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-60 overflow-visible max-h-80"
+                        className="absolute right-0 mt-2 w-80 max-w-[90vw] sm:max-w-sm bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-96 overflow-hidden animate-in slide-in-from-top-2 fade-in-0 duration-200"
                       >
-                        <div className="flex items-center justify-between p-2 text-sm font-semibold border-b">
-                          <span>Notifications</span>
+                        <div className="flex items-center justify-between p-4 text-sm font-semibold border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100">
+                          <span className="text-gray-800 flex items-center gap-2">
+                            <Bell className="w-4 h-4" />
+                            Notifications
+                          </span>
                           {notifications.some((n) => !n.isRead) && (
                             <button
-                              className="text-xs text-blue-600 hover:underline"
+                              className="text-xs text-blue-600 hover:text-blue-800 hover:underline transition-colors px-2 py-1 rounded-md hover:bg-blue-50"
                               onClick={async () => {
                                 await import("../../services/notificationAPI").then(
                                   (m) => m.markAllNotificationsRead(),
@@ -547,39 +550,59 @@ const ProfilePage: React.FC = () => {
                             </button>
                           )}
                         </div>
-                        {notifications.length === 0 && (
-                          <div className="p-2 text-xs text-gray-500">
-                            No notifications
-                          </div>
-                        )}
-                        {notifications.map((n) => (
-                          <div
-                            key={n._id}
-                            className={`p-2 text-sm cursor-pointer hover:bg-gray-100 ${n.isRead ? "text-gray-500" : "text-gray-900 font-medium"}`}
-                            onClick={async () => {
-                              if (!n.isRead) {
-                                await import("../../services/notificationAPI").then(
-                                  (m) => m.markNotificationRead(n._id),
-                                );
-                                setNotifications((prev) =>
-                                  prev.map((x) =>
-                                    x._id === n._id
-                                      ? { ...x, isRead: true }
-                                      : x,
-                                  ),
-                                );
-                              }
-                              if (n.link) {
-                                window.location.href = n.link;
-                              }
-                            }}
-                          >
-                            <div>{n.message}</div>
-                            <div className="text-xs text-gray-400 mt-1">
-                              {new Date(n.createdAt).toLocaleString()}
+                        <div className="overflow-y-auto max-h-80 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                          {notifications.length === 0 && (
+                            <div className="p-6 text-center">
+                              <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                              <div className="text-sm text-gray-500">
+                                No notifications yet
+                              </div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                You'll see important updates here
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          )}
+                          {notifications.map((n, index) => (
+                            <div
+                              key={n._id}
+                              className={`p-4 text-sm cursor-pointer transition-all duration-200 border-b border-gray-100 last:border-b-0 ${
+                                n.isRead 
+                                  ? "text-gray-500 bg-white hover:bg-gray-50" 
+                                  : "text-gray-900 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-l-4 border-l-blue-500 font-medium"
+                              }`}
+                              onClick={async () => {
+                                if (!n.isRead) {
+                                  await import("../../services/notificationAPI").then(
+                                    (m) => m.markNotificationRead(n._id),
+                                  );
+                                  setNotifications((prev) =>
+                                    prev.map((x) =>
+                                      x._id === n._id
+                                        ? { ...x, isRead: true }
+                                        : x,
+                                    ),
+                                  );
+                                }
+                                if (n.link) {
+                                  window.location.href = n.link;
+                                }
+                              }}
+                            >
+                              <div className="leading-relaxed">
+                                {n.message}
+                              </div>
+                              <div className="text-xs text-gray-400 mt-2 flex items-center justify-between">
+                                <span>{new Date(n.createdAt).toLocaleString()}</span>
+                                {!n.isRead && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-xs text-blue-600">New</span>
+                                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>

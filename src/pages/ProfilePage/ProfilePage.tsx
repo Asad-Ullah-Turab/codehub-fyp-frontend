@@ -494,6 +494,18 @@ const ProfilePage: React.FC = () => {
                         {user.location}
                       </span>
                     )}
+                    {user.website && (
+                      <a 
+                        href={user.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                      >
+                        <Globe className="w-4 h-4 mr-1" />
+                        Website
+                        <ExternalLink className="w-3 h-3 ml-1" />
+                      </a>
+                    )}
                     {subscriptionInfo && (
                       <div className="flex items-center gap-2">
                         <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 rounded-full text-gray-800 text-xs font-semibold">
@@ -651,78 +663,265 @@ const ProfilePage: React.FC = () => {
           {/* Subscription Tab */}
           {activeTab === "subscription" && (
             <div className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-indigo-600" />
-                Subscription
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-indigo-600" />
+                  Subscription & Usage
+                </h2>
+                {subscriptionInfo?.plan === "free" && (
+                  <button
+                    onClick={() => navigate("/upgrade")}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Upgrade Now
+                  </button>
+                )}
+              </div>
 
               {subscriptionInfo ? (
                 <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-sm font-semibold">
-                        {subscriptionInfo.plan === "free"
-                          ? "Free Plan"
-                          : "Premium Plan"}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        Status: {subscriptionInfo.status}
-                      </span>
+                  {/* Current Plan Card */}
+                  <div className={`rounded-2xl border-2 overflow-hidden ${
+                    subscriptionInfo.plan === "premium" 
+                      ? "border-gradient-to-r from-yellow-400 to-orange-500 bg-gradient-to-br from-yellow-50 to-orange-50" 
+                      : "border-gray-200 bg-white"
+                  }`}>
+                    <div className={`px-6 py-4 border-b ${
+                      subscriptionInfo.plan === "premium" 
+                        ? "bg-gradient-to-r from-yellow-100 to-orange-100 border-yellow-200" 
+                        : "bg-gray-50 border-gray-200"
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                            subscriptionInfo.plan === "premium" 
+                              ? "bg-gradient-to-r from-yellow-400 to-orange-500" 
+                              : "bg-gradient-to-r from-gray-400 to-gray-500"
+                          }`}>
+                            {subscriptionInfo.plan === "premium" ? (
+                              <Award className="w-6 h-6 text-white" />
+                            ) : (
+                              <UserIcon className="w-6 h-6 text-white" />
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900">
+                              {subscriptionInfo.plan === "free" ? "Free Plan" : "Premium Plan"}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Status: <span className={`font-semibold ${
+                                subscriptionInfo.status === "active" 
+                                  ? "text-green-600" 
+                                  : "text-gray-600"
+                              }`}>
+                                {subscriptionInfo.status}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                        {subscriptionInfo.plan === "premium" && (
+                          <span className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full text-sm font-bold shadow-md">
+                            PREMIUM
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div>
+                    
+                    <div className="p-6">
                       {subscriptionInfo.plan === "free" ? (
-                        <button
-                          onClick={() => navigate("/upgrade")}
-                          className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm"
-                        >
-                          Upgrade to Premium
-                        </button>
+                        <>
+                          {/* Free Plan Usage */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                  <MessageSquare className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900">AI Chat</h4>
+                                  <p className="text-xs text-gray-600">Questions remaining</p>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-2xl font-bold text-gray-900">
+                                    {subscriptionInfo.chatQueriesRemaining}
+                                  </span>
+                                  <span className="text-sm text-gray-500">/ 10</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${(subscriptionInfo.chatQueriesRemaining / 10) * 100}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                                  <Code className="w-5 h-5 text-green-600" />
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900">Code Help</h4>
+                                  <p className="text-xs text-gray-600">Questions remaining</p>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-2xl font-bold text-gray-900">
+                                    {subscriptionInfo.codeQueriesRemaining}
+                                  </span>
+                                  <span className="text-sm text-gray-500">/ 5</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${(subscriptionInfo.codeQueriesRemaining / 5) * 100}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                                  <BookOpen className="w-5 h-5 text-purple-600" />
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900">Tutorials</h4>
+                                  <p className="text-xs text-gray-600">Generations remaining</p>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-2xl font-bold text-gray-900">
+                                    {subscriptionInfo.tutorialGenRemaining}
+                                  </span>
+                                  <span className="text-sm text-gray-500">/ 3</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+                                    style={{ width: `${(subscriptionInfo.tutorialGenRemaining / 3) * 100}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Upgrade CTA */}
+                          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200 p-6">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="text-lg font-bold text-gray-900 mb-2">Ready to unlock unlimited potential?</h4>
+                                <p className="text-gray-600 mb-4">Get unlimited access to all AI features and premium content.</p>
+                                <div className="flex flex-wrap gap-3">
+                                  {[
+                                    "Unlimited AI chat & code help",
+                                    "Unlimited tutorial generation", 
+                                    "Priority support",
+                                    "Advanced learning analytics"
+                                  ].map((feature, idx) => (
+                                    <div key={idx} className="flex items-center gap-2">
+                                      <CheckCircle className="w-4 h-4 text-green-600" />
+                                      <span className="text-sm text-gray-700">{feature}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <button
+                                  onClick={() => navigate("/upgrade")}
+                                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-105 shadow-lg"
+                                >
+                                  <Sparkles className="w-5 h-5" />
+                                  Upgrade to Premium
+                                </button>
+                                <p className="text-xs text-gray-500 mt-2">Starting at $9.99/month</p>
+                              </div>
+                            </div>
+                          </div>
+                        </>
                       ) : (
-                        <button
-                          onClick={() => setCancelConfirm(true)}
-                          className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-                        >
-                          Cancel Subscription
-                        </button>
+                        /* Premium Plan Benefits */
+                        <div className="space-y-6">
+                          <div className="text-center">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 flex items-center justify-center mx-auto mb-4">
+                              <Award className="w-8 h-8 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2">You're a Premium Member!</h3>
+                            <p className="text-gray-600 mb-6">Enjoy unlimited access to all CodeHub features</p>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {[
+                              { 
+                                icon: MessageSquare, 
+                                title: "Unlimited AI Chat", 
+                                description: "Ask unlimited questions to our AI assistant",
+                                color: "from-blue-500 to-blue-600"
+                              },
+                              { 
+                                icon: Code, 
+                                title: "Unlimited Code Help", 
+                                description: "Get code reviews, debugging help, and explanations",
+                                color: "from-green-500 to-green-600"
+                              },
+                              { 
+                                icon: BookOpen, 
+                                title: "Unlimited Tutorials", 
+                                description: "Generate personalized tutorials on any topic",
+                                color: "from-purple-500 to-purple-600"
+                              },
+                              { 
+                                icon: TrendingUp, 
+                                title: "Priority Support", 
+                                description: "Get faster responses and dedicated assistance",
+                                color: "from-orange-500 to-red-500"
+                              }
+                            ].map((benefit, idx) => {
+                              const Icon = benefit.icon;
+                              return (
+                                <div key={idx} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${benefit.color} flex items-center justify-center`}>
+                                      <Icon className="w-5 h-5 text-white" />
+                                    </div>
+                                    <h4 className="font-semibold text-gray-900">{benefit.title}</h4>
+                                  </div>
+                                  <p className="text-sm text-gray-600">{benefit.description}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          <div className="bg-red-50 rounded-xl border border-red-200 p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-semibold text-red-900 mb-1">Manage Subscription</h4>
+                                <p className="text-sm text-red-700">Cancel anytime with no questions asked</p>
+                              </div>
+                              <button
+                                onClick={() => setCancelConfirm(true)}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                              >
+                                Cancel Subscription
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
-
-                  {subscriptionInfo.plan === "free" && (
-                    <div className="grid grid-cols-3 gap-4 text-xs text-gray-700">
-                      <div className="flex items-center gap-1">
-                        <MessageSquare className="w-4 h-4" />
-                        <span>
-                          {subscriptionInfo.chatQueriesRemaining} chats
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Code className="w-4 h-4" />
-                        <span>
-                          {subscriptionInfo.codeQueriesRemaining} code
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <BookOpen className="w-4 h-4" />
-                        <span>
-                          {subscriptionInfo.tutorialGenRemaining} tutorials
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {subscriptionInfo.plan === "premium" && (
-                    <div className="text-sm text-green-600 flex items-center">
-                      <CheckCircle className="w-5 h-5 mr-1" />
-                      <p>
-                        Unlimited access to AI chat, code help, and tutorial
-                        generation.
-                      </p>
-                    </div>
-                  )}
                 </div>
               ) : (
-                <p>Loading subscription information…</p>
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading subscription information...</p>
+                </div>
               )}
             </div>
           )}
@@ -1203,18 +1402,312 @@ const ProfilePage: React.FC = () => {
           {/* Settings Tab */}
           {activeTab === "settings" && (
             <div className="space-y-6">
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <Settings className="w-5 h-5 text-indigo-600" />
-                Account Settings
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-indigo-600" />
+                  Profile Settings
+                </h2>
+                {!editingProfile && (
+                  <button
+                    onClick={() => setEditingProfile(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    Edit Profile
+                  </button>
+                )}
+              </div>
 
-              <div className="space-y-6">
-                {/* Basic Info */}
-                <div className="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <UserIcon className="w-5 h-5 text-indigo-600" />
-                    Basic Information
-                  </h3>
+              {!editingProfile ? (
+                <>
+                  {/* Profile Information Showcase */}
+                  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4 border-b border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <UserIcon className="w-5 h-5 text-indigo-600" />
+                        Your Profile Information
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">Information you've added to your profile</p>
+                    </div>
+                    <div className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* Display only filled fields */}
+                        {user.dateOfBirth && (
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                              <Clock className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">Birth Date</p>
+                              <p className="text-sm text-gray-600">{new Date(user.dateOfBirth).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {user.location && (
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                              <MapPin className="w-4 h-4 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">Location</p>
+                              <p className="text-sm text-gray-600">{user.location}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {user.experience && (
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                              <Target className="w-4 h-4 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">Experience Level</p>
+                              <p className="text-sm text-gray-600 capitalize">{user.experience}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {user.bio && (
+                          <div className="md:col-span-2 lg:col-span-3 flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                              <MessageSquare className="w-4 h-4 text-indigo-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">Bio</p>
+                              <p className="text-sm text-gray-600 leading-relaxed">{user.bio}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Social Links Section */}
+                      {(user.github || user.linkedin || user.website) && (
+                        <div className="mt-6 pt-6 border-t border-gray-100">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <Globe className="w-4 h-4 text-indigo-600" />
+                            Social Links
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {user.github && (
+                              <a
+                                href={user.github}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-3 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+                              >
+                                <Code className="w-4 h-4" />
+                                GitHub
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                            {user.linkedin && (
+                              <a
+                                href={user.linkedin}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                              >
+                                <Briefcase className="w-4 h-4" />
+                                LinkedIn
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                            {user.website && (
+                              <a
+                                href={user.website}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+                              >
+                                <Globe className="w-4 h-4" />
+                                Website
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Skills & Languages Section */}
+                      {((user.programmingLanguages && user.programmingLanguages.length > 0) || 
+                        (user.skills && user.skills.length > 0) || 
+                        (user.interests && user.interests.length > 0)) && (
+                        <div className="mt-6 pt-6 border-t border-gray-100">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <Briefcase className="w-4 h-4 text-indigo-600" />
+                            Skills & Expertise
+                          </h4>
+                          <div className="space-y-3">
+                            {user.programmingLanguages && user.programmingLanguages.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium text-gray-700 mb-2">Programming Languages</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {user.programmingLanguages.map((lang, index) => (
+                                    <span
+                                      key={index}
+                                      className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-md text-xs font-medium"
+                                    >
+                                      {lang}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {user.skills && user.skills.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium text-gray-700 mb-2">Skills</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {user.skills.map((skill, index) => (
+                                    <span
+                                      key={index}
+                                      className="px-2 py-1 bg-purple-100 text-purple-800 rounded-md text-xs font-medium"
+                                    >
+                                      {skill}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {user.interests && user.interests.length > 0 && (
+                              <div>
+                                <p className="text-xs font-medium text-gray-700 mb-2">Interests</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {user.interests.map((interest, index) => (
+                                    <span
+                                      key={index}
+                                      className="px-2 py-1 bg-green-100 text-green-800 rounded-md text-xs font-medium"
+                                    >
+                                      {interest}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Complete Your Profile Section */}
+                  {(!user.dateOfBirth || !user.location || !user.experience || !user.bio || 
+                    !user.github || !user.linkedin || !user.website ||
+                    !user.programmingLanguages?.length || !user.skills?.length || !user.interests?.length) && (
+                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200 overflow-hidden">
+                      <div className="bg-gradient-to-r from-amber-100 to-orange-100 px-6 py-4 border-b border-amber-200">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <Sparkles className="w-5 h-5 text-amber-600" />
+                          Complete Your Profile
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">Add more information to showcase yourself better</p>
+                      </div>
+                      <div className="p-6">
+                        <div className="grid grid-cols-1 gap-4">
+                          {!user.dateOfBirth && (
+                            <div className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
+                              <Clock className="w-5 h-5 text-amber-600" />
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900">Add your birth date</p>
+                                <p className="text-xs text-gray-600">Help others know more about you</p>
+                              </div>
+                              <button
+                                onClick={() => setEditingProfile(true)}
+                                className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          )}
+
+                          {!user.location && (
+                            <div className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
+                              <MapPin className="w-5 h-5 text-amber-600" />
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900">Add your location</p>
+                                <p className="text-xs text-gray-600">Show where you're based</p>
+                              </div>
+                              <button
+                                onClick={() => setEditingProfile(true)}
+                                className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          )}
+
+                          {!user.bio && (
+                            <div className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
+                              <MessageSquare className="w-5 h-5 text-amber-600" />
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900">Add a bio</p>
+                                <p className="text-xs text-gray-600">Tell others about yourself</p>
+                              </div>
+                              <button
+                                onClick={() => setEditingProfile(true)}
+                                className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          )}
+
+                          {(!user.github || !user.linkedin || !user.website) && (
+                            <div className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
+                              <Globe className="w-5 h-5 text-amber-600" />
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900">Add social links</p>
+                                <p className="text-xs text-gray-600">Connect your GitHub, LinkedIn, or website</p>
+                              </div>
+                              <button
+                                onClick={() => setEditingProfile(true)}
+                                className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          )}
+
+                          {(!user.programmingLanguages?.length || !user.skills?.length) && (
+                            <div className="flex items-center gap-3 p-4 bg-white rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
+                              <Briefcase className="w-5 h-5 text-amber-600" />
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-900">Add skills & languages</p>
+                                <p className="text-xs text-gray-600">Showcase your technical expertise</p>
+                              </div>
+                              <button
+                                onClick={() => setEditingProfile(true)}
+                                className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* Edit Profile Section - Shows when in edit mode */
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <Edit3 className="w-5 h-5 text-indigo-600" />
+                      Edit Profile Information
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">Update your profile details and settings</p>
+                  </div>
+                  <div className="p-6 space-y-6">
+                    
+                    {/* Basic Information */}
+                    <div className="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-shadow">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <UserIcon className="w-5 h-5 text-indigo-600" />
+                        Basic Information
+                      </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1706,52 +2199,41 @@ const ProfilePage: React.FC = () => {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                  {editingProfile ? (
-                    <>
-                      <button
-                        onClick={handleUpdateProfile}
-                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold shadow-sm transition-colors"
-                      >
-                        Save Changes
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingProfile(false);
-                          if (user) {
-                            setProfileForm({
-                              name: user.name,
-                              profilePicture: user.profilePicture || "",
-                              dateOfBirth: user.dateOfBirth || "",
-                              bio: user.bio || "",
-                              location: user.location || "",
-                              github: user.github || "",
-                              linkedin: user.linkedin || "",
-                              website: user.website || "",
-                              programmingLanguages:
-                                user.programmingLanguages || [],
-                              skills: user.skills || [],
-                              interests: user.interests || [],
-                              experience: user.experience || "",
-                              preferences: user.preferences,
-                            });
-                          }
-                        }}
-                        className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-semibold transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => setEditingProfile(true)}
-                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-sm transition-colors"
-                    >
-                      <Edit3 className="w-5 h-5" />
-                      Edit Profile
-                    </button>
-                  )}
+                  <button
+                    onClick={handleUpdateProfile}
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold shadow-sm transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingProfile(false);
+                      if (user) {
+                        setProfileForm({
+                          name: user.name,
+                          profilePicture: user.profilePicture || "",
+                          dateOfBirth: user.dateOfBirth || "",
+                          bio: user.bio || "",
+                          location: user.location || "",
+                          github: user.github || "",
+                          linkedin: user.linkedin || "",
+                          website: user.website || "",
+                          programmingLanguages: user.programmingLanguages || [],
+                          skills: user.skills || [],
+                          interests: user.interests || [],
+                          experience: user.experience || "",
+                          preferences: user.preferences,
+                        });
+                      }
+                    }}
+                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-semibold transition-colors"
+                  >
+                    Cancel
+                  </button>
                 </div>
-              </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -545,6 +545,80 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           ) : null}
         </div>
 
+        {/* Earnings Section */}
+        {stats && (
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Subscription Revenue
+            </h2>
+            <div className="grid grid-cols-4 gap-4">
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-5 shadow-sm border border-green-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">$</span>
+                  </div>
+                  <div className="text-xs text-green-700 font-medium">Monthly Revenue</div>
+                </div>
+                <div className="text-2xl font-bold text-green-900">
+                  ${(stats.monthlyRecurringRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-green-600 mt-1">
+                  MRR from {stats.premiumUsers || 0} premium users
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-5 shadow-sm border border-blue-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">$</span>
+                  </div>
+                  <div className="text-xs text-blue-700 font-medium">Annual Revenue</div>
+                </div>
+                <div className="text-2xl font-bold text-blue-900">
+                  ${(stats.annualRecurringRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-blue-600 mt-1">
+                  ARR projection
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-lg p-5 shadow-sm border border-purple-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">$</span>
+                  </div>
+                  <div className="text-xs text-purple-700 font-medium">Total Revenue</div>
+                </div>
+                <div className="text-2xl font-bold text-purple-900">
+                  ${(stats.totalRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-purple-600 mt-1">
+                  {stats.totalTransactions || 0} transactions
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-5 shadow-sm border border-orange-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">📈</span>
+                  </div>
+                  <div className="text-xs text-orange-700 font-medium">30-Day Growth</div>
+                </div>
+                <div className="text-2xl font-bold text-orange-900">
+                  ${(stats.revenueGrowth || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className={`text-xs font-semibold mt-1 ${
+                  parseFloat(stats.revenueGrowthRate || "0") >= 0 
+                    ? "text-green-600" 
+                    : "text-red-600"
+                }`}>
+                  {stats.revenueGrowthRate || "0.0"}% change
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-3 gap-6 mb-6">
           {/* User Growth Chart */}
           <div className="col-span-2 bg-white rounded-lg p-5 shadow-sm border border-gray-100">

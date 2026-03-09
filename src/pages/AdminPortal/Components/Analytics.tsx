@@ -25,12 +25,25 @@ interface UserGrowthData {
 
 interface StatData {
   label: string;
-  value: number;
+  value: number | string;
 }
 
 interface ChatbotCategory {
   _id: string;
   count: number;
+}
+
+interface RevenueData {
+  date: string;
+  newSubscriptions: number;
+  revenue: number;
+  cumulativeRevenue: number;
+}
+
+interface TransactionData {
+  type: string;
+  count: number;
+  totalAmount: number;
 }
 
 export default function AnalyticsDashboard() {
@@ -40,6 +53,14 @@ export default function AnalyticsDashboard() {
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [chatCategories, setChatCategories] = useState<ChatCategory[]>([]);
   const [userGrowthData, setUserGrowthData] = useState<UserGrowthData[]>([]);
+  const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
+  const [transactionData, setTransactionData] = useState<TransactionData[]>([]);
+  const [earningsStats, setEarningsStats] = useState({
+    monthlyRevenue: 0,
+    annualRevenue: 0,
+    totalRevenue: 0,
+    premiumUsers: 0,
+  });
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -112,6 +133,25 @@ export default function AnalyticsDashboard() {
             { label: "Active Users", value: d.activeUsers || 0 },
             { label: "Total Tutorials", value: d.totalTutorials || 0 },
           ]);
+
+          // Set earnings data
+          setEarningsStats({
+            monthlyRevenue: d.monthlyRecurringRevenue || 0,
+            annualRevenue: d.annualRecurringRevenue || 0,
+            totalRevenue: d.totalRevenue || 0,
+            premiumUsers: d.premiumUsers || 0,
+          });
+        }
+
+        // Load revenue over time and transaction data from analytics endpoint
+        const analyticsRes = await adminAPI.getAnalytics();
+        if (analyticsRes.success && analyticsRes.data) {
+          if (analyticsRes.data.revenueOverTime) {
+            setRevenueData(analyticsRes.data.revenueOverTime);
+          }
+          if (analyticsRes.data.transactionsByType) {
+            setTransactionData(analyticsRes.data.transactionsByType);
+          }
         }
       } catch (err) {
         console.error(err);
@@ -175,6 +215,195 @@ export default function AnalyticsDashboard() {
                 </div>
               </div>
             ))
+          )}
+        </div>
+
+        {/* Revenue Section */}
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
+            Subscription Revenue Tracking
+          </h2>
+          
+          {/* Revenue Stats Cards */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-6 text-white">
+              <div className="text-xs text-green-100 mb-2">Monthly Recurring Revenue</div>
+              <div className="text-3xl font-bold mb-1">
+                ${earningsStats.monthlyRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div className="text-xs text-green-100">
+                From {earningsStats.premiumUsers} active subscriptions
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg p-6 text-white">
+              <div className="text-xs text-blue-100 mb-2">Annual Revenue Projection</div>
+              <div className="text-3xl font-bold mb-1">
+                ${earningsStats.annualRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div className="text-xs text-blue-100">
+                ARR (12 × MRR)
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg p-6 text-white">
+              <div className="text-xs text-purple-100 mb-2">Total Revenue Earned</div>
+              <div className="text-3xl font-bold mb-1">
+                ${earningsStats.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div className="text-xs text-purple-100">
+                All-time earnings
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg p-6 text-white">
+              <div className="text-xs text-orange-100 mb-2">Premium Users</div>
+              <div className="text-3xl font-bold mb-1">
+                {earningsStats.premiumUsers}
+              </div>
+              <div className="text-xs text-orange-100">
+                Active subscriptions
+              </div>
+            </div>
+          </div>
+
+          {/* Revenue Chart */}
+          {revenueData.length > 0 && (
+            <div className="bg-white rounded-lg p-6 border border-gray-200">
+              <div className="mb-4">
+                <h3 className="text-gray-900 font-semibold text-base">
+                  Revenue Over Time (Last 30 Days)
+                </h3>
+                <p className="text-gray-600 text-xs">
+                  Daily subscription revenue and cumulative growth
+                </p>
+              </div>
+              <div className="relative h-64">
+                <svg
+                  className="w-full h-full"
+                  viewBox="0 0 400 200"
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    <linearGradient
+                      id="revenueGradient"
+                      x1="0%"
+                      y1="0%"
+                      x2="0%"
+                      y2="100%"
+                    >
+                      <stop
+                        offset="0%"
+                        style={{ stopColor: "#10b981", stopOpacity: 0.4 }}
+                      />
+                      <stop
+                        offset="100%"
+                        style={{ stopColor: "#10b981", stopOpacity: 0 }}
+                      />
+                    </linearGradient>
+                  </defs>
+                  {(() => {
+                    const maxRevenue = Math.max(
+                      ...revenueData.map((d) => d.cumulativeRevenue),
+                      1,
+                    );
+                    const scaleFactor = 150 / maxRevenue;
+                    const xStep = 400 / Math.max(revenueData.length - 1, 1);
+
+                    const points = revenueData.map((d, i) => ({
+                      x: i * xStep,
+                      y: 200 - 20 - d.cumulativeRevenue * scaleFactor,
+                    }));
+
+                    const pathData = points
+                      .map((p, i) =>
+                        i === 0 ? `M ${p.x},${p.y}` : `L ${p.x},${p.y}`,
+                      )
+                      .join(" ");
+
+                    const areaPath = `${pathData} L 400,200 L 0,200 Z`;
+
+                    return (
+                      <>
+                        <path d={areaPath} fill="url(#revenueGradient)" />
+                        <path
+                          d={pathData}
+                          fill="none"
+                          stroke="#10b981"
+                          strokeWidth="2"
+                        />
+                      </>
+                    );
+                  })()}
+                </svg>
+                <div className="absolute bottom-0 left-0 text-xs text-gray-500">
+                  {revenueData.length > 0 && (
+                    <span>
+                      {new Date(revenueData[0].date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  )}
+                </div>
+                <div className="absolute bottom-0 right-0 text-xs text-gray-500">
+                  {revenueData.length > 0 && (
+                    <span>
+                      {new Date(
+                        revenueData[revenueData.length - 1].date
+                      ).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Transaction Types Breakdown */}
+          {transactionData.length > 0 && (
+            <div className="bg-white rounded-lg p-6 border border-gray-200 mt-4">
+              <h3 className="text-gray-900 font-semibold text-base mb-4">
+                Transaction Breakdown (Last 30 Days)
+              </h3>
+              <div className="grid grid-cols-4 gap-4">
+                {transactionData.map((transaction, index) => {
+                  const typeLabels: { [key: string]: string } = {
+                    subscription_created: "New Subscriptions",
+                    subscription_renewed: "Renewals",
+                    subscription_cancelled: "Cancellations",
+                    payment_failed: "Failed Payments",
+                  };
+                  const typeColors: { [key: string]: string } = {
+                    subscription_created: "bg-green-100 text-green-700 border-green-200",
+                    subscription_renewed: "bg-blue-100 text-blue-700 border-blue-200",
+                    subscription_cancelled: "bg-red-100 text-red-700 border-red-200",
+                    payment_failed: "bg-orange-100 text-orange-700 border-orange-200",
+                  };
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={`rounded-lg p-4 border ${typeColors[transaction.type] || "bg-gray-100 text-gray-700 border-gray-200"}`}
+                    >
+                      <div className="text-xs font-medium mb-2">
+                        {typeLabels[transaction.type] || transaction.type}
+                      </div>
+                      <div className="text-2xl font-bold mb-1">
+                        {transaction.count}
+                      </div>
+                      {transaction.totalAmount > 0 && (
+                        <div className="text-xs">
+                          ${transaction.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           )}
         </div>
 

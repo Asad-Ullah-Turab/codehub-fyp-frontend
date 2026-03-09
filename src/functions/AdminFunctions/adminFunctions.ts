@@ -11,16 +11,30 @@ export interface DashboardStats {
   activeUsers: number;
   suspendedUsers: number;
   totalAdmins: number;
+  premiumUsers: number;
   totalTutorials: number;
   totalChats: number;
   totalCourses: number;
   totalEnrollments: number;
   newUsersLast30Days: number;
+  newPremiumUsersLast30Days: number;
   suspensionRate: string;
   userGrowthRate: string;
   enrollmentGrowthRate: string;
   tutorialGrowthRate: string;
   chatGrowthRate: string;
+  // Earnings data from actual transactions
+  monthlyRecurringRevenue: number;
+  annualRecurringRevenue: number;
+  revenueGrowth: number;
+  revenueGrowthRate: string;
+  totalRevenue: number;
+  totalTransactions: number;
+  revenueByDate?: Array<{
+    date: string;
+    revenue: number;
+    count: number;
+  }>;
 }
 
 export interface User {

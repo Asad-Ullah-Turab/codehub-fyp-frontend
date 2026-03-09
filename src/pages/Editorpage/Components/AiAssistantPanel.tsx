@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Lightbulb, AlertCircle, Trash2 } from "lucide-react";
+import { Lightbulb, AlertCircle, Trash2, CheckCircle } from "lucide-react";
 
 import {
   sendCodeChatMessage,
@@ -241,7 +241,7 @@ function AiAssistantPanel({
       .map((p) => `Line ${p.line}: ${p.message}`)
       .join(", ");
 
-    addMessage(`❓ I need help with: ${problemText}`, true, "problem-help");
+    addMessage(`I need help with: ${problemText}`, true, "problem-help");
     setIsLoading(true);
 
     try {
@@ -290,7 +290,7 @@ function AiAssistantPanel({
             )}
             {code && code.trim() && (
               <span className="text-xs text-green-600 flex items-center gap-1">
-                ✓ Reading your code
+                <CheckCircle className="inline w-4 h-4 mr-1" />Reading your code
               </span>
             )}
           </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, ArrowRight, Sparkles, Rocket, Lightbulb } from 'lucide-react';
+import { CheckCircle, ArrowRight, Sparkles, Rocket, Lightbulb, Infinity, Zap } from 'lucide-react';
 import { getSubscriptionStatus } from '../../services/subscriptionAPI';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -111,19 +111,19 @@ const SubscriptionSuccess: React.FC = () => {
             </h3>
             <div className="grid grid-cols-2 gap-3 text-sm text-gray-600">
               <div className="bg-blue-50 rounded-lg p-3 text-center">
-                <div className="font-medium text-blue-800">∞</div>
+                <Infinity className="w-6 h-6 text-blue-800 mx-auto" />
                 <div className="text-xs">AI Assistance</div>
               </div>
               <div className="bg-green-50 rounded-lg p-3 text-center">
-                <div className="font-medium text-green-800">∞</div>
+                <Infinity className="w-6 h-6 text-green-800 mx-auto" />
                 <div className="text-xs">Code Help</div>
               </div>
               <div className="bg-purple-50 rounded-lg p-3 text-center">
-                <div className="font-medium text-purple-800">∞</div>
+                <Infinity className="w-6 h-6 text-purple-800 mx-auto" />
                 <div className="text-xs">Tutorials</div>
               </div>
               <div className="bg-yellow-50 rounded-lg p-3 text-center">
-                <div className="font-medium text-yellow-800">⚡</div>
+                <Zap className="w-6 h-6 text-yellow-800 mx-auto" />
                 <div className="text-xs">Priority Support</div>
               </div>
             </div>

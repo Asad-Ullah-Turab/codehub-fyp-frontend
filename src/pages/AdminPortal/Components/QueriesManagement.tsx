@@ -6,6 +6,7 @@ import {
   Calendar,
   Users,
   MessageSquare,
+  X,
 } from "lucide-react";
 
 interface ContactType {
@@ -397,7 +398,7 @@ export default function QueriesManagement() {
                 onClick={() => setShowViewModal(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <span className="text-2xl">×</span>
+                <X className="w-6 h-6" />
               </button>
             </div>
 
@@ -478,7 +479,7 @@ export default function QueriesManagement() {
                 onClick={() => setShowReplyModal(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <span className="text-2xl">×</span>
+                <X className="w-6 h-6" />
               </button>
             </div>
 

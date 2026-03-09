@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { Lightbulb, AlertTriangle, Star } from "lucide-react";
+import { Lightbulb, AlertTriangle, Star, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -1200,8 +1200,8 @@ const TutorialsDetailPage: React.FC = () => {
                                   key={index}
                                   className="flex items-start bg-white rounded-lg p-3 shadow-sm"
                                 >
-                                  <span className="text-indigo-600 mr-3 text-lg font-bold">
-                                    ✓
+                                  <span className="text-indigo-600 mr-3">
+                                    <Check className="w-5 h-5" />
                                   </span>
                                   <span className="text-gray-800 font-medium">
                                     {note}

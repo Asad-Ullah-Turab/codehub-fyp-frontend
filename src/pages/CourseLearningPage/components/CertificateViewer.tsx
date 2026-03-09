@@ -4,7 +4,7 @@ import {
   type Course,
   type CourseEnrollment,
 } from "../../../functions/CourseFunctions/courseFunctions";
-import { Printer, Info } from "lucide-react";
+import { Printer, Info, Hourglass, Trophy, XCircle } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
 import { STORAGE_KEYS } from "../../../constants";
 
@@ -62,7 +62,7 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
       return {
         status: "pending",
         color: "yellow",
-        icon: "⏳",
+        icon: <Hourglass className="w-6 h-6" />,
         title: "Certificate Pending",
         message:
           "Your certificate is being generated. Please wait for admin approval.",
@@ -73,7 +73,7 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
       return {
         status: "approved",
         color: "green",
-        icon: "🏆",
+        icon: <Trophy className="w-6 h-6" />,
         title: "Certificate Issued!",
         message:
           "Congratulations! Your certificate has been approved and is ready for download.",
@@ -84,7 +84,7 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
       return {
         status: "rejected",
         color: "red",
-        icon: "❌",
+        icon: <XCircle className="w-6 h-6" />,
         title: "Certificate Not Approved",
         message:
           "Your certificate request was not approved. Please contact support for more information.",
@@ -94,7 +94,7 @@ const CertificateViewer: React.FC<CertificateViewerProps> = ({
     return {
       status: "pending",
       color: "yellow",
-      icon: "⏳",
+      icon: <Hourglass className="w-6 h-6" />,
       title: "Certificate Pending Approval",
       message: "Your certificate is awaiting admin approval.",
     };

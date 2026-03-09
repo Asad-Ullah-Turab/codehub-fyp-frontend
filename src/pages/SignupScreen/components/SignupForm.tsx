@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Check, X } from "lucide-react";
 
 interface SignupFormProps {
   formData: {
@@ -180,23 +181,23 @@ export default function SignupForm({
                   <p className="mb-1 font-medium">Password must contain:</p>
                   <ul className="space-y-0.5">
                     <li className={`flex items-center gap-1 ${formData.password.length >= 8 ? 'text-green-600' : 'text-red-600'}`}>
-                      <span>{formData.password.length >= 8 ? '✓' : '×'}</span>
+                      <span>{formData.password.length >= 8 ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}</span>
                       At least 8 characters
                     </li>
                     <li className={`flex items-center gap-1 ${/[a-z]/.test(formData.password) ? 'text-green-600' : 'text-red-600'}`}>
-                      <span>{/[a-z]/.test(formData.password) ? '✓' : '×'}</span>
+                      <span>{/[a-z]/.test(formData.password) ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}</span>
                       One lowercase letter
                     </li>
                     <li className={`flex items-center gap-1 ${/[A-Z]/.test(formData.password) ? 'text-green-600' : 'text-red-600'}`}>
-                      <span>{/[A-Z]/.test(formData.password) ? '✓' : '×'}</span>
+                      <span>{/[A-Z]/.test(formData.password) ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}</span>
                       One uppercase letter
                     </li>
                     <li className={`flex items-center gap-1 ${/[0-9]/.test(formData.password) ? 'text-green-600' : 'text-red-600'}`}>
-                      <span>{/[0-9]/.test(formData.password) ? '✓' : '×'}</span>
+                      <span>{/[0-9]/.test(formData.password) ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}</span>
                       One number
                     </li>
                     <li className={`flex items-center gap-1 ${/[@$!%*?&]/.test(formData.password) ? 'text-green-600' : 'text-red-600'}`}>
-                      <span>{/[@$!%*?&]/.test(formData.password) ? '✓' : '×'}</span>
+                      <span>{/[@$!%*?&]/.test(formData.password) ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}</span>
                       One special character (@$!%*?&)
                     </li>
                   </ul>

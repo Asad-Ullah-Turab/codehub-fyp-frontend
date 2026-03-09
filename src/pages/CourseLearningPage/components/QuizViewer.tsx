@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "../../../contexts/ToastContext";
-import { AlertTriangle, CheckCircle, BookOpen } from "lucide-react";
+import { AlertTriangle, CheckCircle, BookOpen, XCircle } from "lucide-react";
 import {
   getQuizDetails,
   submitQuizAnswers,
@@ -212,7 +212,17 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
                         : "bg-red-600 text-white"
                     }`}
                   >
-                    {questionResult.isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                    {questionResult.isCorrect ? (
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4" />
+                        Correct
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <XCircle className="w-4 h-4" />
+                        Incorrect
+                      </div>
+                    )}
                   </span>
                 </div>
                 <p className="text-gray-700 mb-2">

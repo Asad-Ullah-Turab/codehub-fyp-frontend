@@ -11,6 +11,7 @@ import {
   BookOpen,
   Edit,
   X,
+  Star,
 } from "lucide-react";
 import {
   fetchDashboardStats,
@@ -150,6 +151,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const [mostViewedContent, setMostViewedContent] = useState<ContentDataItem[]>(
     []
   );
+  const [userGrowthData, setUserGrowthData] = useState<Array<{date: string, count: number}>>([]);
 
   const loadAnalytics = async () => {
     try {
@@ -235,12 +237,29 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     }
   };
 
+  const loadUserGrowthData = async () => {
+    try {
+      const response = await adminAPI.getAnalytics();
+      if (response.success && response.data.userGrowth) {
+        // Format user growth data for chart
+        const formattedData = response.data.userGrowth.map((item: any) => ({
+          date: item._id,
+          count: item.count
+        }));
+        setUserGrowthData(formattedData);
+      }
+    } catch (err) {
+      console.error("Error fetching user growth data:", err);
+    }
+  };
+
   useEffect(() => {
     loadAnalytics();
     loadLatestTutorials();
     loadLatestCourses();
     loadMostViewedContent();
     loadRecentActivity();
+    loadUserGrowthData();
   }, []);
 
   const languageColors: { [key: string]: string } = {
@@ -345,8 +364,11 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                             >
                               <BookOpen className="w-4 h-4 text-blue-600" />
                               <div className="flex-1">
-                                <div className="text-sm text-gray-900">
+                                <div className="text-sm text-gray-900 flex items-center gap-2">
                                   {tutorial.title}
+                                  {tutorial.isPremium && (
+                                    <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                                  )}
                                 </div>
                                 <div className="text-xs text-gray-500">
                                   {tutorial.language}
@@ -374,8 +396,11 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                             >
                               <FileText className="w-4 h-4 text-purple-600" />
                               <div className="flex-1">
-                                <div className="text-sm text-gray-900">
+                                <div className="text-sm text-gray-900 flex items-center gap-2">
                                   {course.title}
+                                  {course.isPremium && (
+                                    <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                                  )}
                                 </div>
                                 <div className="text-xs text-gray-500">
                                   {course.language}
@@ -403,8 +428,11 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                             >
                               <User className="w-4 h-4 text-green-600" />
                               <div className="flex-1">
-                                <div className="text-sm text-gray-900">
+                                <div className="text-sm text-gray-900 flex items-center gap-2">
                                   {user.name}
+                                  {user.subscriptionPlan === 'premium' && (
+                                    <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                                  )}
                                 </div>
                                 <div className="text-xs text-gray-500">
                                   {user.email}
@@ -534,44 +562,68 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               User Growth (Last 30 Days)
             </h2>
             <div className="relative h-64 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-lg overflow-hidden">
-              <svg
-                className="w-full h-full p-8"
-                viewBox="0 0 100 100"
-                preserveAspectRatio="none"
-              >
-                <defs>
-                  <linearGradient
-                    id="lineGradient"
-                    x1="0%"
-                    y1="0%"
-                    x2="100%"
-                    y2="0%"
-                  >
-                    <stop
-                      offset="0%"
-                      style={{ stopColor: "#60a5fa", stopOpacity: 1 }}
-                    />
-                    <stop
-                      offset="100%"
-                      style={{ stopColor: "#a78bfa", stopOpacity: 1 }}
-                    />
-                  </linearGradient>
-                </defs>
-                <polyline
-                  points="5,75 20,65 35,55 50,70 65,45 80,35 95,25"
-                  fill="none"
-                  stroke="url(#lineGradient)"
-                  strokeWidth="0.5"
-                  vectorEffect="non-scaling-stroke"
-                />
-                <circle cx="5" cy="75" r="1.5" fill="#60a5fa" />
-                <circle cx="20" cy="65" r="1.5" fill="#60a5fa" />
-                <circle cx="35" cy="55" r="1.5" fill="#60a5fa" />
-                <circle cx="50" cy="70" r="1.5" fill="#60a5fa" />
-                <circle cx="65" cy="45" r="1.5" fill="#60a5fa" />
-                <circle cx="80" cy="35" r="1.5" fill="#60a5fa" />
-                <circle cx="95" cy="25" r="1.5" fill="#a78bfa" />
-              </svg>
+              {userGrowthData.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                  No user growth data available
+                </div>
+              ) : (
+                <svg
+                  className="w-full h-full p-8"
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    <linearGradient
+                      id="lineGradient"
+                      x1="0%"
+                      y1="0%"
+                      x2="100%"
+                      y2="0%"
+                    >
+                      <stop
+                        offset="0%"
+                        style={{ stopColor: "#60a5fa", stopOpacity: 1 }}
+                      />
+                      <stop
+                        offset="100%"
+                        style={{ stopColor: "#a78bfa", stopOpacity: 1 }}
+                      />
+                    </linearGradient>
+                  </defs>
+                  {(() => {
+                    const maxCount = Math.max(...userGrowthData.map(d => d.count), 1);
+                    const xStep = 100 / (userGrowthData.length - 1 || 1);
+                    
+                    const points = userGrowthData.map((d, i) => ({
+                      x: i * xStep,
+                      y: 90 - ((d.count / maxCount) * 70)
+                    }));
+
+                    const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+
+                    return (
+                      <>
+                        <polyline
+                          points={polylinePoints}
+                          fill="none"
+                          stroke="url(#lineGradient)"
+                          strokeWidth="0.5"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                        {points.map((p, i) => (
+                          <circle
+                            key={i}
+                            cx={p.x}
+                            cy={p.y}
+                            r="1.5"
+                            fill={i === points.length - 1 ? "#a78bfa" : "#60a5fa"}
+                          />
+                        ))}
+                      </>
+                    );
+                  })()}
+                </svg>
+              )}
               <div className="absolute bottom-3 right-4 text-gray-500 text-xs tracking-wider">
                 STRATEGY
               </div>
@@ -585,20 +637,14 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             </h2>
             <div className="space-y-2">
               <button
-                onClick={() => {
-                  setEditingItem(null);
-                  setShowTutorialModal(true);
-                }}
+                onClick={() => onNavigate?.("tutorials")}
                 className="w-full px-4 py-2.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm font-medium flex items-center justify-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 Add New Tutorial
               </button>
               <button
-                onClick={() => {
-                  setEditingItem(null);
-                  setShowCourseModal(true);
-                }}
+                onClick={() => onNavigate?.("courses")}
                 className="w-full px-4 py-2.5 bg-purple-500 text-white rounded-md hover:bg-purple-600 text-sm font-medium flex items-center justify-center gap-2"
               >
                 <Plus className="w-4 h-4" />
@@ -774,7 +820,12 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                           </span>
                         </td>
                         <td className="px-5 py-4 text-sm text-gray-900">
-                          {tutorial.title}
+                          <div className="flex items-center gap-2">
+                            {tutorial.title}
+                            {tutorial.isPremium && (
+                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                            )}
+                          </div>
                         </td>
                         <td className="px-5 py-4 text-sm text-gray-600">
                           {tutorial.language?.toUpperCase() || "N/A"}
@@ -812,7 +863,12 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                           </span>
                         </td>
                         <td className="px-5 py-4 text-sm text-gray-900">
-                          {course.title}
+                          <div className="flex items-center gap-2">
+                            {course.title}
+                            {course.isPremium && (
+                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                            )}
+                          </div>
                         </td>
                         <td className="px-5 py-4 text-sm text-gray-600">
                           {course.language?.toUpperCase() || "N/A"}

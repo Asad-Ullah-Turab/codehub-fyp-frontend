@@ -1,5 +1,5 @@
 import { type Course } from "../../../services/adminCourseAPI";
-import { Edit, Trash2, Layers, Eye, EyeOff } from "lucide-react";
+import { Edit, Trash2, Layers, Eye, EyeOff, Star } from "lucide-react";
 
 interface CourseListProps {
   courses: Course[];
@@ -42,6 +42,9 @@ export default function CourseList({ courses, loading, onEdit, onDelete, onManag
                 <div className="flex-1">
                   <div className="flex items-center gap-3">
                     <h3 className="text-lg font-medium text-gray-900">{course.title}</h3>
+                    {course.isPremium && (
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" title="Premium Course" />
+                    )}
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       course.isPublished
                         ? "bg-green-100 text-green-800"

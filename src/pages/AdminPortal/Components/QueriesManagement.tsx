@@ -7,6 +7,7 @@ import {
   Users,
   MessageSquare,
   X,
+  Star,
 } from "lucide-react";
 
 interface ContactType {
@@ -17,6 +18,12 @@ interface ContactType {
   message?: string;
   createdAt?: string;
   status?: string;
+  userId?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    subscriptionPlan?: string;
+  };
 }
 
 interface SubscriptionType {
@@ -237,8 +244,11 @@ export default function QueriesManagement() {
                       className="border-b border-gray-100 hover:bg-gray-50"
                     >
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 font-medium">
+                        <div className="text-sm text-gray-900 font-medium flex items-center gap-2">
                           {contact.fullName}
+                          {contact.userId?.subscriptionPlan === 'premium' && (
+                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" title="Premium User" />
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4">

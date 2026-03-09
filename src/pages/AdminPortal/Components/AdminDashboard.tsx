@@ -1,8 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import {
   Search,
-  Bell,
-  HelpCircle,
   User,
   Plus,
   Users,
@@ -457,14 +455,6 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                 </div>
               )}
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="p-2 hover:bg-gray-100 rounded-md">
-              <Bell className="w-5 h-5 text-gray-600" />
-            </button>
-            <button className="p-2 hover:bg-gray-100 rounded-md">
-              <HelpCircle className="w-5 h-5 text-gray-600" />
-            </button>
           </div>
         </div>
       </header>

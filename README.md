@@ -45,3 +45,13 @@ npm run dev
 ```
 
 The application will be available at `http://localhost:3000`
+
+## **Contact**
+
+For any questions or feedback, feel free to reach out:
+
+## **Authors: Israr Ahmad,Asadullah Turab, Muhammad Saad**
+
+## **GitHub: israrahmad831 ,Asad-Ullah-Turab, Saadimehar**
+
+## **LinkedIn: https://www.linkedin.com/in/israrahmad2004/,https://www.linkedin.com/in/asadullah-turab-6946b2236/ ,https://www.linkedin.com/in/muhammad-saad-a58a891a2/**

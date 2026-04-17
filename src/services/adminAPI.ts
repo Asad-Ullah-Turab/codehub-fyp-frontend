@@ -206,6 +206,29 @@ export const adminAPI = {
     }
   },
 
+  getPendingCreatorApplications: async (page = 1, limit = 5) => {
+    try {
+      const response = await api.get(`${API_ENDPOINTS.ADMIN_CREATOR_APPLICATIONS_PENDING}?page=${page}&limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching pending creator applications:", error);
+      throw error;
+    }
+  },
+
+  reviewCreatorApplication: async (userId: string, action: string, comment?: string) => {
+    try {
+      const response = await api.put(`${API_ENDPOINTS.ADMIN_CREATOR_APPLICATIONS}/${userId}/review`, {
+        action,
+        comment,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error reviewing creator application:", error);
+      throw error;
+    }
+  },
+
   approveCertificate: async (certificateId: string) => {
     try {
       const response = await api.put(`${API_ENDPOINTS.ADMIN_CERTIFICATES}/${certificateId}/approve`);

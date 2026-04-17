@@ -47,8 +47,14 @@ export interface User {
   name: string;
   email: string;
   profilePicture?: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'creator' | 'admin';
   accountStatus: 'pending' | 'active' | 'suspended';
+  creatorApplication?: {
+    status: 'none' | 'pending' | 'approved' | 'rejected';
+    submittedAt?: string;
+    reviewedAt?: string;
+    reviewComment?: string;
+  };
   
   // Profile Information
   dateOfBirth?: string;
@@ -219,6 +225,7 @@ export const updateProfile = async (profileData: {
  */
 export const uploadProfilePicture = async (file: File): Promise<{
   success: boolean;
+  message: string;
   data: {
     user: User;
     fileUrl: string;
@@ -231,9 +238,36 @@ export const uploadProfilePicture = async (file: File): Promise<{
     }
 
     const resp = await profileAPI.uploadProfilePicture(file);
-    return resp; 
+    return resp;
   } catch (error) {
     console.error('Error uploading profile picture:', error);
+    throw error;
+  }
+};
+
+export interface CreatorApplicationInput {
+  message: string;
+  portfolioLink?: string;
+  experienceSummary?: string;
+}
+
+export const applyForCreatorRole = async (
+  applicationData: CreatorApplicationInput,
+): Promise<{
+  success: boolean;
+  message: string;
+  data: User;
+}> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('Authentication required');
+    }
+
+    const resp = await profileAPI.applyForCreatorRole(applicationData);
+    return resp;
+  } catch (error) {
+    console.error('Error submitting creator application:', error);
     throw error;
   }
 };

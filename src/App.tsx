@@ -14,6 +14,7 @@ import TutorialsPage from "./pages/TutorialsPage/TutorialsPage";
 import TutorialsDetailPage from "./pages/TutorialsPage/Components/TutorialsDetailPage";
 import CourseLearningPage from "./pages/CourseLearningPage/CourseLearningPage";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
+import CreatorApplicationPage from "./pages/CreatorApplicationPage/CreatorApplicationPage";
 import AdminPortal from "./pages/AdminPortal/AdminPortal";
 import AboutPage from "./pages/AboutPage/AboutPage";
 import ContactPage from "./pages/ContactPage/ContactPage";
@@ -79,6 +80,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/creator-application"
+              element={
+                <ProtectedRoute>
+                  <CreatorApplicationPage />
                 </ProtectedRoute>
               }
             />

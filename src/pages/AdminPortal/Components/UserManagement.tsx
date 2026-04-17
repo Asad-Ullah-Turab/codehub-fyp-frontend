@@ -283,6 +283,7 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
               >
                 <option value="">User Role: All</option>
                 <option value="admin">Admin</option>
+                <option value="creator">Creator</option>
                 <option value="user">User</option>
               </select>
             </div>
@@ -397,6 +398,7 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                         className="text-sm border border-gray-300 rounded px-2 py-1"
                       >
                         <option value="user">User</option>
+                        <option value="creator">Creator</option>
                         <option value="admin">Admin</option>
                       </select>
                     </td>

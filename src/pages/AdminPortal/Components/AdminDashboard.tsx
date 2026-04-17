@@ -25,6 +25,7 @@ import {
 import { adminCourseAPI, type Course } from "../../../services/adminCourseAPI";
 import { adminAPI } from "../../../services/adminAPI";
 import viewTrackingAPI from "../../../services/viewTrackingAPI";
+import { useToast } from "../../../contexts/ToastContext";
 
 interface ContentDataItem {
   name: string;
@@ -56,6 +57,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   });
   const [searchLoading, setSearchLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useToast();
 
   // Modal states
   const [showTutorialModal, setShowTutorialModal] = useState(false);
@@ -259,6 +261,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     loadRecentActivity();
     loadUserGrowthData();
   }, []);
+
 
   const languageColors: { [key: string]: string } = {
     python: "#14b8a6",

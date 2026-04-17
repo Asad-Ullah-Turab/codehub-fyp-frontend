@@ -41,10 +41,32 @@ export interface User {
   _id: string;
   name: string;
   email: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'creator' | 'admin';
   accountStatus: 'active' | 'suspended' | 'pending';
   createdAt: string;
   updatedAt: string;
+  creatorApplication?: {
+    status: 'none' | 'pending' | 'approved' | 'rejected';
+    submittedAt?: string;
+    reviewedAt?: string;
+    reviewComment?: string;
+  };
+}
+
+export interface CreatorApplication {
+  _id: string;
+  name: string;
+  email: string;
+  role: 'user' | 'creator' | 'admin';
+  accountStatus: 'active' | 'suspended' | 'pending';
+  creatorApplication: {
+    status: 'pending' | 'approved' | 'rejected' | 'none';
+    submittedAt?: string;
+    reviewedAt?: string;
+    reviewComment?: string;
+  };
+  createdAt: string;
+  lastLogin?: string;
 }
 
 export interface Tutorial {
@@ -109,6 +131,33 @@ export const searchUsersByQuery = async (query: string): Promise<User[]> => {
     return response.data;
   }
   throw new Error(response.message || 'Failed to search users');
+};
+
+export const fetchPendingCreatorApplications = async (
+  page: number = 1,
+  limit: number = 5
+): Promise<{ applications: CreatorApplication[]; total: number; pages: number }> => {
+  const response = await adminAPI.getPendingCreatorApplications(page, limit);
+  if (response.success) {
+    return {
+      applications: response.data,
+      total: response.pagination.total,
+      pages: response.pagination.pages,
+    };
+  }
+  throw new Error(response.message || 'Failed to fetch creator applications');
+};
+
+export const reviewCreatorApplication = async (
+  userId: string,
+  action: 'approve' | 'reject',
+  comment?: string,
+): Promise<CreatorApplication> => {
+  const response = await adminAPI.reviewCreatorApplication(userId, action, comment);
+  if (response.success) {
+    return response.data;
+  }
+  throw new Error(response.message || 'Failed to review creator application');
 };
 
 export const updateUserAccountStatus = async (
@@ -206,7 +255,14 @@ export const formatUserStatus = (status: string): string => {
 };
 
 export const formatUserRole = (role: string): string => {
-  return role === 'admin' ? 'Administrator' : 'User';
+  switch (role) {
+    case 'admin':
+      return 'Administrator';
+    case 'creator':
+      return 'Content Creator';
+    default:
+      return 'User';
+  }
 };
 
 export const formatDate = (dateString: string): string => {

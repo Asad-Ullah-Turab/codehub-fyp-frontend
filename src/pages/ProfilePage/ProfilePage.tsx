@@ -56,7 +56,8 @@ import {
 } from "lucide-react";
 
 const ProfilePage: React.FC = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user: authUser } = useAuth();
+  const isAdmin = authUser?.role === "admin";
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
@@ -73,6 +74,14 @@ const ProfilePage: React.FC = () => {
         "error",
       );
     }
+  };
+
+  const handleApplyCreatorRole = () => {
+    if (!isAuthenticated) {
+      navigate("/signin");
+      return;
+    }
+    navigate("/creator-application");
   };
 
   const [deleteConfirm, setDeleteConfirm] = useState<{
@@ -108,6 +117,7 @@ const ProfilePage: React.FC = () => {
   const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [creatorApplicationStatus, setCreatorApplicationStatus] = useState<"none" | "pending" | "approved" | "rejected" | null>(null);
   const notifRef = useRef<HTMLDivElement | null>(null);
   type ProfileTab =
     | "overview"
@@ -115,6 +125,7 @@ const ProfilePage: React.FC = () => {
     | "courses"
     | "tutorials"
     | "certificates"
+    | "applications"
     | "settings";
   const [activeTab, setActiveTab] = useState<ProfileTab>(() => {
     const stored = localStorage.getItem("profileActiveTab");
@@ -126,6 +137,7 @@ const ProfilePage: React.FC = () => {
         "courses",
         "tutorials",
         "certificates",
+        "applications",
         "settings",
       ].includes(stored)
     ) {
@@ -202,6 +214,10 @@ const ProfilePage: React.FC = () => {
             profileRes.data.preferences?.emailNotifications !== false,
         },
       });
+
+      setCreatorApplicationStatus(
+        profileRes.data.creatorApplication?.status || "none"
+      );
       // fetch subscription status separately
       try {
         const status = await import("../../services/subscriptionAPI").then(
@@ -272,22 +288,28 @@ const ProfilePage: React.FC = () => {
 
   useEffect(() => {
     const tabParam = searchParams.get("tab");
-    if (
-      tabParam &&
-      ["overview", "courses", "tutorials", "settings", "certificates"].includes(
-        tabParam,
-      )
-    ) {
-      setActiveTab(tabParam as typeof activeTab);
-      localStorage.setItem("profileActiveTab", tabParam);
+    const validTabs = ["overview", "courses", "tutorials", "settings", "certificates", "applications"];
+    if (tabParam && validTabs.includes(tabParam)) {
+      if (tabParam === "applications" && isAdmin) {
+        setActiveTab("overview");
+        localStorage.setItem("profileActiveTab", "overview");
+      } else {
+        setActiveTab(tabParam as typeof activeTab);
+        localStorage.setItem("profileActiveTab", tabParam);
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, isAdmin]);
 
   useEffect(() => {
+    if (isAdmin && activeTab === "applications") {
+      setActiveTab("overview");
+      return;
+    }
+
     if (activeTab) {
       localStorage.setItem("profileActiveTab", activeTab);
     }
-  }, [activeTab]);
+  }, [activeTab, isAdmin]);
 
   // close notifications when clicking outside
   useEffect(() => {
@@ -455,8 +477,9 @@ const ProfilePage: React.FC = () => {
     { key: "courses", label: "My Courses", icon: BookOpen },
     { key: "tutorials", label: "Saved Tutorials", icon: Heart },
     { key: "certificates", label: "Certificates", icon: Award },
+    { key: "applications", label: "Applications", icon: Briefcase },
     { key: "settings", label: "Settings", icon: Settings },
-  ];
+  ].filter((tab) => tab.key !== "applications" || !isAdmin);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -701,6 +724,81 @@ const ProfilePage: React.FC = () => {
 
         {/* Content Panels */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition-shadow hover:shadow-md">
+          {/* Applications Tab */}
+          {!isAdmin && activeTab === "applications" && (
+            <div className="space-y-6">
+              <div className="rounded-3xl border border-gray-200 bg-gray-50 p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-600">
+                      Creator Applications
+                    </p>
+                    <h2 className="mt-3 text-2xl font-bold text-gray-900">
+                      {creatorApplicationStatus === "approved"
+                        ? "Creator access granted"
+                        : creatorApplicationStatus === "pending"
+                        ? "Application pending review"
+                        : creatorApplicationStatus === "rejected"
+                        ? "Application rejected"
+                        : "Start your creator application"}
+                    </h2>
+                    <p className="mt-2 text-sm text-gray-600">
+                      {creatorApplicationStatus === "approved"
+                        ? "Your creator application has been approved. Creator features will be available soon."
+                        : creatorApplicationStatus === "pending"
+                        ? "We have received your application and the team is reviewing it."
+                        : creatorApplicationStatus === "rejected"
+                        ? "Your application was rejected. You may update and resubmit it on the dedicated application page."
+                        : "Submit your application on the creator application page."}
+                    </p>
+                    {user.creatorApplication?.reviewComment && (
+                      <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4">
+                        <p className="text-sm font-semibold text-red-700">Admin feedback</p>
+                        <p className="mt-2 text-sm text-red-800 whitespace-pre-line">
+                          {user.creatorApplication.reviewComment}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-3 sm:items-end">
+                    <button
+                      type="button"
+                      onClick={() => navigate("/creator-application")}
+                      className="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                    >
+                      {creatorApplicationStatus === "approved"
+                        ? "View application"
+                        : creatorApplicationStatus === "pending"
+                        ? "Check application status"
+                        : creatorApplicationStatus === "rejected"
+                        ? "Update application"
+                        : "Go to application form"}
+                    </button>
+                  </div>
+                </div>
+
+                {user.creatorApplication?.details?.message && (
+                  <div className="mt-6 rounded-2xl bg-white p-5 border border-gray-200">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Application details</p>
+                    <p className="text-sm text-gray-600 whitespace-pre-line">
+                      {user.creatorApplication.details.message}
+                    </p>
+                    {user.creatorApplication.details.portfolioLink && (
+                      <p className="mt-3 text-sm text-indigo-600 break-all">
+                        <span className="font-semibold">Portfolio:</span> {user.creatorApplication.details.portfolioLink}
+                      </p>
+                    )}
+                    {user.creatorApplication.details.experienceSummary && (
+                      <p className="mt-2 text-sm text-gray-600">
+                        <span className="font-semibold">Experience:</span> {user.creatorApplication.details.experienceSummary}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Subscription Tab */}
           {activeTab === "subscription" && (
             <div className="space-y-6">
@@ -1138,6 +1236,7 @@ const ProfilePage: React.FC = () => {
                   );
                 })}
               </div>
+
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Average Progress */}

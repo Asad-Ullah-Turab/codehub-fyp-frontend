@@ -73,6 +73,7 @@ export default function AnalyticsDashboard() {
           // Dashboard stats
           setStats([
             { label: "Total Users", value: d.totalUsers || 0 },
+            { label: "Creators", value: d.totalCreators || 0 },
             { label: "Premium Users", value: d.premiumUsers || 0 },
             { label: "Active Users", value: d.activeUsers || 0 },
             { label: "Tutorials Published", value: d.totalTutorials || 0 },
@@ -129,6 +130,7 @@ export default function AnalyticsDashboard() {
           const d = statsRes.data;
           setStats([
             { label: "Total Users", value: d.totalUsers || 0 },
+            { label: "Creators", value: d.totalCreators || 0 },
             { label: "Premium Users", value: d.premiumUsers || 0 },
             { label: "Active Users", value: d.activeUsers || 0 },
             { label: "Total Tutorials", value: d.totalTutorials || 0 },
@@ -203,9 +205,9 @@ export default function AnalyticsDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 xl:grid-cols-5">
           {loading ? (
-            <div className="col-span-4 text-center text-white">Loading...</div>
+            <div className="col-span-1 sm:col-span-2 xl:col-span-5 text-center text-white">Loading...</div>
           ) : (
             stats.map((stat, index) => (
               <div key={index} className="bg-gray-900 rounded-lg p-6">

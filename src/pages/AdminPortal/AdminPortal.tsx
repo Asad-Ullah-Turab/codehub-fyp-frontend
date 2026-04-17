@@ -5,6 +5,7 @@ import AdminDashboard from "./Components/AdminDashboard";
 import UserManagement from "./Components/UserManagement";
 import TutorialManagement from "./Components/TutorialManagement";
 import CourseManagement from "./Components/CourseManagement";
+import CreatorApplicationReviews from "./Components/CreatorApplicationReviews";
 import AnalyticsDashboard from "./Components/Analytics";
 import CertificateApproval from "./Components/CertificateApproval";
 import QueriesManagement from "./Components/QueriesManagement";
@@ -268,6 +269,35 @@ function AdminPortal() {
 
           <button
             className={`relative w-full flex items-center ${sidebarCollapsed ? "justify-center" : "justify-start"} gap-3 ${sidebarCollapsed ? "px-3" : "px-4"} py-2.5 mb-1 rounded-lg transition-colors text-left group ${
+              activeTab === "creator-applications"
+                ? "bg-blue-50 text-blue-600"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+            onClick={() => setActiveTab("creator-applications")}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-6 8h6m-6 4h6m2 4H6a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2z"
+              />
+            </svg>
+            {!sidebarCollapsed && <span className="font-medium">Applications</span>}
+            {sidebarCollapsed && (
+              <span className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                Applications
+              </span>
+            )}
+          </button>
+
+          <button
+            className={`relative w-full flex items-center ${sidebarCollapsed ? "justify-center" : "justify-start"} gap-3 ${sidebarCollapsed ? "px-3" : "px-4"} py-2.5 mb-1 rounded-lg transition-colors text-left group ${
               activeTab === "certificates"
                 ? "bg-blue-50 text-blue-600"
                 : "text-gray-700 hover:bg-gray-50"
@@ -426,6 +456,7 @@ function AdminPortal() {
           {activeTab === "analytics" && (
             <AnalyticsDashboard onError={(msg: string) => console.error(msg)} />
           )}
+          {activeTab === "creator-applications" && <CreatorApplicationReviews />}
           {activeTab === "certificates" && <CertificateApproval />}
           {activeTab === "queries" && <QueriesManagement />}
         </div>

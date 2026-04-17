@@ -21,6 +21,15 @@ export const profileAPI = {
     return response.data;
   },
 
+  applyForCreatorRole: async (applicationData: {
+    message: string;
+    portfolioLink?: string;
+    experienceSummary?: string;
+  }) => {
+    const response = await api.post(API_ENDPOINTS.PROFILE_CREATOR_APPLICATION, applicationData);
+    return response.data;
+  },
+
   markPromptShown: async () => {
     const response = await api.post(API_ENDPOINTS.PROFILE_PROMPT_SHOWN);
     return response.data;

@@ -74,10 +74,12 @@ export default function LessonManagement({ show, section, course, onClose }: Les
       await adminCourseAPI.deleteLesson(deleteConfirm.lessonId);
       showToast("Lesson deleted successfully", "success");
       fetchSectionLessons();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to delete lesson";
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        (error instanceof Error ? error.message : "Failed to delete lesson");
       showToast(message, "error");
-      console.error("Error deleting lesson:", error);
+      console.error("Error deleting lesson:", error?.response?.data || error);
     } finally {
       setLoading(false);
     }

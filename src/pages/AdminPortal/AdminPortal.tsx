@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import AdminDashboard from "./Components/AdminDashboard";
 import UserManagement from "./Components/UserManagement";
@@ -9,6 +9,8 @@ import CreatorApplicationReviews from "./Components/CreatorApplicationReviews";
 import AnalyticsDashboard from "./Components/Analytics";
 import CertificateApproval from "./Components/CertificateApproval";
 import QueriesManagement from "./Components/QueriesManagement";
+import CourseCreatePage from "./Pages/CourseCreatePage";
+import TutorialCreatePage from "./Pages/TutorialCreatePage";
 
 function AdminPortal() {
   const navigate = useNavigate();
@@ -22,26 +24,62 @@ function AdminPortal() {
     const stored = localStorage.getItem("adminActiveTab");
     return stored || "dashboard";
   });
+  const location = useLocation();
   const [highlightedItem, setHighlightedItem] = useState<{
     type: string;
     id: string;
   } | null>(null);
 
-  const handleTabNavigation = (tab: string, data?: any) => {
+  const handleTabNavigation = (
+    tab: string,
+    data?: { userId?: string; tutorialId?: string; courseId?: string }
+  ) => {
+    const routeMap: Record<string, string> = {
+      dashboard: "/admin",
+      tutorials: "/admin/tutorials",
+      courses: "/admin/courses",
+      users: "/admin/users",
+      analytics: "/admin/analytics",
+      "creator-applications": "/admin/creator-applications",
+      certificates: "/admin/certificates",
+      queries: "/admin/queries",
+    };
+
+    const target = routeMap[tab] || tab;
+    navigate(target);
+
     setActiveTab(tab);
     if (data) {
       setHighlightedItem({
         type: tab,
         id: data.userId || data.tutorialId || data.courseId,
       });
-      // Clear highlight after 3 seconds
       setTimeout(() => {
         setHighlightedItem(null);
       }, 3000);
     }
   };
 
-  // store active tab whenever it changes (covers direct button clicks too)
+  useEffect(() => {
+    if (location.pathname.startsWith("/admin/tutorials")) {
+      setActiveTab("tutorials");
+    } else if (location.pathname.startsWith("/admin/courses")) {
+      setActiveTab("courses");
+    } else if (location.pathname.startsWith("/admin/users")) {
+      setActiveTab("users");
+    } else if (location.pathname.startsWith("/admin/analytics")) {
+      setActiveTab("analytics");
+    } else if (location.pathname.startsWith("/admin/creator-applications")) {
+      setActiveTab("creator-applications");
+    } else if (location.pathname.startsWith("/admin/certificates")) {
+      setActiveTab("certificates");
+    } else if (location.pathname.startsWith("/admin/queries")) {
+      setActiveTab("queries");
+    } else {
+      setActiveTab("dashboard");
+    }
+  }, [location.pathname]);
+
   useEffect(() => {
     localStorage.setItem("adminActiveTab", activeTab);
   }, [activeTab]);
@@ -122,7 +160,7 @@ function AdminPortal() {
                 ? "bg-blue-50 text-blue-600"
                 : "text-gray-700 hover:bg-gray-50"
             }`}
-            onClick={() => setActiveTab("dashboard")}
+            onClick={() => handleTabNavigation("dashboard")}
           >
             <svg
               className="w-5 h-5"
@@ -153,7 +191,7 @@ function AdminPortal() {
                 ? "bg-blue-50 text-blue-600"
                 : "text-gray-700 hover:bg-gray-50"
             }`}
-            onClick={() => setActiveTab("tutorials")}
+            onClick={() => handleTabNavigation("tutorials")}
           >
             <svg
               className="w-5 h-5"
@@ -184,7 +222,7 @@ function AdminPortal() {
                 ? "bg-blue-50 text-blue-600"
                 : "text-gray-700 hover:bg-gray-50"
             }`}
-            onClick={() => setActiveTab("courses")}
+            onClick={() => handleTabNavigation("courses")}
           >
             <svg
               className="w-5 h-5"
@@ -213,7 +251,7 @@ function AdminPortal() {
                 ? "bg-blue-50 text-blue-600"
                 : "text-gray-700 hover:bg-gray-50"
             }`}
-            onClick={() => setActiveTab("users")}
+            onClick={() => handleTabNavigation("users")}
           >
             <svg
               className="w-5 h-5"
@@ -242,7 +280,7 @@ function AdminPortal() {
                 ? "bg-blue-50 text-blue-600"
                 : "text-gray-700 hover:bg-gray-50"
             }`}
-            onClick={() => setActiveTab("analytics")}
+            onClick={() => handleTabNavigation("analytics")}
           >
             <svg
               className="w-5 h-5"
@@ -273,7 +311,7 @@ function AdminPortal() {
                 ? "bg-blue-50 text-blue-600"
                 : "text-gray-700 hover:bg-gray-50"
             }`}
-            onClick={() => setActiveTab("creator-applications")}
+            onClick={() => handleTabNavigation("creator-applications")}
           >
             <svg
               className="w-5 h-5"
@@ -302,7 +340,7 @@ function AdminPortal() {
                 ? "bg-blue-50 text-blue-600"
                 : "text-gray-700 hover:bg-gray-50"
             }`}
-            onClick={() => setActiveTab("certificates")}
+            onClick={() => handleTabNavigation("certificates")}
           >
             <svg
               className="w-5 h-5"
@@ -333,7 +371,7 @@ function AdminPortal() {
                 ? "bg-blue-50 text-blue-600"
                 : "text-gray-700 hover:bg-gray-50"
             }`}
-            onClick={() => setActiveTab("queries")}
+            onClick={() => handleTabNavigation("queries")}
           >
             <svg
               className="w-5 h-5"
@@ -417,48 +455,20 @@ function AdminPortal() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden bg-gray-50">
-        {/* Scrollable Content Area */}
-        {/* main arrow toggle placed absolute over sidebar */}
         <div className="flex-1 overflow-y-auto p-6">
-          {activeTab === "dashboard" && (
-            <AdminDashboard onNavigate={handleTabNavigation} />
-          )}
-          {activeTab === "users" && (
-            <UserManagement
-              onError={(msg: string) => console.error(msg)}
-              highlightedUserId={
-                highlightedItem?.type === "users"
-                  ? highlightedItem.id
-                  : undefined
-              }
-            />
-          )}
-          {activeTab === "tutorials" && (
-            <TutorialManagement
-              onError={(msg: string) => console.error(msg)}
-              highlightedTutorialId={
-                highlightedItem?.type === "tutorials"
-                  ? highlightedItem.id
-                  : undefined
-              }
-            />
-          )}
-          {activeTab === "courses" && (
-            <CourseManagement
-              onError={(msg: string) => console.error(msg)}
-              highlightedCourseId={
-                highlightedItem?.type === "courses"
-                  ? highlightedItem.id
-                  : undefined
-              }
-            />
-          )}
-          {activeTab === "analytics" && (
-            <AnalyticsDashboard onError={(msg: string) => console.error(msg)} />
-          )}
-          {activeTab === "creator-applications" && <CreatorApplicationReviews />}
-          {activeTab === "certificates" && <CertificateApproval />}
-          {activeTab === "queries" && <QueriesManagement />}
+          <Routes>
+            <Route path="" element={<AdminDashboard onNavigate={handleTabNavigation} />} />
+            <Route path="tutorials" element={<TutorialManagement onError={(msg: string) => console.error(msg)} highlightedTutorialId={highlightedItem?.type === "tutorials" ? highlightedItem.id : undefined} />} />
+            <Route path="tutorials/new" element={<TutorialCreatePage />} />
+            <Route path="courses" element={<CourseManagement onError={(msg: string) => console.error(msg)} highlightedCourseId={highlightedItem?.type === "courses" ? highlightedItem.id : undefined} />} />
+            <Route path="courses/new" element={<CourseCreatePage />} />
+            <Route path="users" element={<UserManagement onError={(msg: string) => console.error(msg)} highlightedUserId={highlightedItem?.type === "users" ? highlightedItem.id : undefined} />} />
+            <Route path="analytics" element={<AnalyticsDashboard />} />
+            <Route path="creator-applications" element={<CreatorApplicationReviews />} />
+            <Route path="certificates" element={<CertificateApproval />} />
+            <Route path="queries" element={<QueriesManagement />} />
+            <Route path="*" element={<Navigate to="/admin" replace />} />
+          </Routes>
         </div>
       </main>
     </div>

@@ -130,10 +130,12 @@ export default function SectionManagement({ course, onClose }: SectionManagement
       await adminCourseAPI.deleteSection(deleteConfirm.sectionId);
       showToast("Section deleted successfully", "success");
       fetchCourseSections();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to delete section";
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        (error instanceof Error ? error.message : "Failed to delete section");
       showToast(message, "error");
-      console.error("Error deleting section:", error);
+      console.error("Error deleting section:", error?.response?.data || error);
     } finally {
       setLoading(false);
     }

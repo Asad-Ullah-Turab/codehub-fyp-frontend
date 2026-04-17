@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus, Edit, Trash2, Search, Star } from "lucide-react";
 import { adminCourseAPI, type Course } from "../../../services/adminCourseAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
-import CourseForm from "./CourseForm";
+import AdminModal from "./AdminModal";
+import CourseForm, { type CourseFormData } from "./CourseForm";
 import SectionManagement from "./SectionManagement";
 
 interface CourseManagementProps {
@@ -12,6 +14,7 @@ interface CourseManagementProps {
 }
 
 export default function CourseManagement({ highlightedCourseId }: CourseManagementProps) {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -53,19 +56,7 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
   // });
 
   // Form data
-  const [formData, setFormData] = useState<{
-    title: string;
-    description: string;
-    shortDescription: string;
-    language: string;
-    category: string;
-    difficulty: "beginner" | "intermediate" | "advanced";
-    estimatedHours: number;
-    certificateTemplate: "standard" | "distinguished" | "excellence";
-    tags: string[];
-    prerequisites: string[];
-    isPremium?: boolean;
-  }>({
+  const [formData, setFormData] = useState<CourseFormData>({
     title: "",
     description: "",
     shortDescription: "",
@@ -76,6 +67,10 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
     certificateTemplate: "standard",
     tags: [],
     prerequisites: [],
+    targetAudience: "",
+    learningObjectives: [],
+    outcomes: [],
+    requirements: [],
     isPremium: false,
   });
 
@@ -125,13 +120,17 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
       certificateTemplate: "standard",
       tags: [],
       prerequisites: [],
+      targetAudience: "",
+      learningObjectives: [],
+      outcomes: [],
+      requirements: [],
+      isPremium: false,
     });
     setEditingCourse(null);
   };
 
   const openAddModal = () => {
-    resetForm();
-    setShowAddModal(true);
+    navigate("/admin/courses/new");
   };
 
   const openEditModal = (course: Course) => {
@@ -146,6 +145,10 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
       certificateTemplate: course.certificateTemplate,
       tags: course.tags || [],
       prerequisites: course.prerequisites || [],
+      targetAudience: (course as any).targetAudience || "",
+      learningObjectives: (course as any).learningObjectives || [],
+      outcomes: (course as any).outcomes || [],
+      requirements: (course as any).requirements || [],
       isPremium: course.isPremium || false,
     });
     setEditingCourse(course);
@@ -194,11 +197,12 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
       await adminCourseAPI.deleteCourse(courseId);
       showToast("Course deleted successfully", "success");
       fetchCourses();
-    } catch (error: unknown) {
+    } catch (error: any) {
       const message =
-        error instanceof Error ? error.message : "Failed to delete course";
+        error?.response?.data?.message ||
+        (error instanceof Error ? error.message : "Failed to delete course");
       showToast(message, "error");
-      console.error("Error deleting course:", error);
+      console.error("Error deleting course:", error?.response?.data || error);
     } finally {
       setLoading(false);
     }
@@ -544,18 +548,20 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
       </div>
 
       {/* Course Form Modal */}
-      <CourseForm
+      <AdminModal
         show={showAddModal}
-        editingCourse={editingCourse}
-        formData={formData}
-        setFormData={setFormData}
-        loading={loading}
-        onSave={handleSaveCourse}
-        onCancel={() => {
+        title={editingCourse ? "Edit Course" : "Edit Course"}
+        subtitle="Admin Panel / Courses"
+        actionLabel={editingCourse ? "Update Course" : "Save Changes"}
+        onClose={() => {
           setShowAddModal(false);
           resetForm();
         }}
-      />
+        onSubmit={handleSaveCourse}
+        loading={loading}
+      >
+        <CourseForm formData={formData} setFormData={setFormData} />
+      </AdminModal>
 
       {/* Section Management Modal */}
       {selectedCourseForSections && (

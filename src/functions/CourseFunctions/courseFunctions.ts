@@ -48,6 +48,11 @@ export interface CourseSection {
   order: number;
   lessons: CourseLesson[];
   sectionQuiz?: Quiz;
+  estimatedHours?: number;
+  isLocked?: boolean;
+  unlockCondition?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CourseLesson {

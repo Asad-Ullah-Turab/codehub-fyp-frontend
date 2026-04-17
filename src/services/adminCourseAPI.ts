@@ -14,12 +14,16 @@ export interface Course {
   certificateTemplate: "standard" | "distinguished" | "excellence";
   tags: string[];
   prerequisites: string[];
+  targetAudience?: string;
+  learningObjectives?: string[];
+  outcomes?: string[];
+  requirements?: string[];
   instructor: {
     _id: string;
     name: string;
     email: string;
   };
-  sections: string[];
+  sections: CourseSection[];
   totalSections: number;
   totalLessons: number;
   enrollmentCount: number;
@@ -28,16 +32,15 @@ export interface Course {
   isPremium?: boolean;
   createdAt: string;
   updatedAt: string;
-  finalQuiz?: string;
+  finalQuiz?: string | Quiz;
 }
 
 export interface CourseSection {
   _id: string;
-  course: string;
   title: string;
   description: string;
   order: number;
-  lessons: string[];
+  lessons: CourseLesson[];
   sectionQuiz?: string | Quiz;
   estimatedHours: number;
   isLocked: boolean;
@@ -104,7 +107,6 @@ export interface CodeExample {
 
 export interface CourseLesson {
   _id: string;
-  section: string;
   title: string;
   description?: string;
   content: string;
@@ -154,6 +156,10 @@ export const adminCourseAPI = {
     certificateTemplate?: string;
     tags?: string[];
     prerequisites?: string[];
+    targetAudience?: string;
+    learningObjectives?: string[];
+    outcomes?: string[];
+    requirements?: string[];
     isPremium?: boolean;
   }) => {
     const response = await api.post(API_ENDPOINTS.ADMIN_COURSES, courseData);

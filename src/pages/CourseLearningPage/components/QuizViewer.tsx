@@ -50,7 +50,9 @@ const QuizViewer: React.FC<QuizViewerProps> = ({
         setQuiz(quizData || null);
       } catch (err: any) {
         console.error("Error loading quiz:", err);
-        setError(err.message || "Failed to load quiz");
+        const message =
+          err?.response?.data?.message || err.message || "Failed to load quiz";
+        setError(message);
       } finally {
         setLoading(false);
       }

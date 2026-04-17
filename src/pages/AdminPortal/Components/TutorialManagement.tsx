@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, Plus, Trash2, Edit, X, Star } from "lucide-react";
 import { adminTutorialAPI } from "../../../services/adminTutorialAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
+import AdminModal from "./AdminModal";
 
 interface TutorialManagementProps {
   onError?: (message: string) => void;
@@ -114,22 +116,10 @@ export default function TutorialManagement({
     }
   };
 
+  const navigate = useNavigate();
+
   const openAddModal = () => {
-    setEditingTutorial(null);
-    setFormData({
-      title: "",
-      description: "",
-      language: "",
-      concept: "",
-      difficulty: "beginner",
-      isPremium: false,
-      content: "",
-      tags: [],
-      codeExamples: [],
-      notes: [],
-      tips: [],
-    });
-    setShowAddModal(true);
+    navigate("/admin/tutorials/new");
   };
 
   const openEditModal = async (tutorial: any) => {
@@ -519,469 +509,437 @@ export default function TutorialManagement({
         )}
       </div>
 
-      {/* Add Tutorial Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <div>
-                <div className="text-sm text-gray-500 mb-1">
-                  Admin Panel / Tutorials /{" "}
-                  {editingTutorial ? "Edit" : "Create New"}
-                </div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  {editingTutorial ? "Edit Tutorial" : "Create New Tutorial"}
-                </h2>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleSaveTutorial}
-                  disabled={loading}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm font-medium hover:bg-blue-600 disabled:opacity-50"
-                >
-                  {loading
-                    ? "Saving..."
-                    : editingTutorial
-                      ? "Update Tutorial"
-                      : "Create Tutorial"}
-                </button>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="p-2 hover:bg-gray-100 rounded-md"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+      <AdminModal
+        show={showAddModal}
+        title={editingTutorial ? "Edit Tutorial" : "Create New Tutorial"}
+        subtitle="Admin Panel / Tutorials"
+        actionLabel={editingTutorial ? "Update Tutorial" : "Create Tutorial"}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleSaveTutorial}
+        loading={loading}
+      >
+        <div className="grid grid-cols-3 gap-6 p-1 sm:p-0">
+          {/* Left Sidebar */}
+          <div className="space-y-6">
+            {/* Tutorial Title */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Tutorial Title *
+              </label>
+              <input
+                type="text"
+                placeholder="Enter Tutorial Title"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
-            {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="grid grid-cols-3 gap-6 p-6">
-                {/* Left Sidebar */}
-                <div className="space-y-6">
-                  {/* Tutorial Title */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Tutorial Title *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Enter Tutorial Title"
-                      value={formData.title}
-                      onChange={(e) =>
-                        setFormData({ ...formData, title: e.target.value })
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Description
+              </label>
+              <textarea
+                placeholder="Brief description of the tutorial"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    description: e.target.value,
+                  })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={3}
+              />
+            </div>
+
+            {/* Language */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Language *
+              </label>
+              {!showNewLanguageInput ? (
+                <div className="space-y-2">
+                  <select
+                    value={formData.language}
+                    onChange={(e) => handleLanguageChange(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select a language</option>
+                    {languages.map((lang) => (
+                      <option key={lang} value={lang}>
+                        {lang.charAt(0).toUpperCase() + lang.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => setShowNewLanguageInput(true)}
+                    className="text-xs text-blue-600 hover:text-blue-700"
+                  >
+                    + Add new language
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Enter new language name"
+                    value={newLanguage}
+                    onChange={(e) => setNewLanguage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddNewLanguage();
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      placeholder="Brief description of the tutorial"
-                      value={formData.description}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          description: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      rows={3}
-                    />
-                  </div>
-
-                  {/* Language */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Language *
-                    </label>
-                    {!showNewLanguageInput ? (
-                      <div className="space-y-2">
-                        <select
-                          value={formData.language}
-                          onChange={(e) => handleLanguageChange(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select a language</option>
-                          {languages.map((lang) => (
-                            <option key={lang} value={lang}>
-                              {lang.charAt(0).toUpperCase() + lang.slice(1)}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() => setShowNewLanguageInput(true)}
-                          className="text-xs text-blue-600 hover:text-blue-700"
-                        >
-                          + Add new language
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <input
-                          type="text"
-                          placeholder="Enter new language name"
-                          value={newLanguage}
-                          onChange={(e) => setNewLanguage(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleAddNewLanguage();
-                            }
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          autoFocus
-                        />
-                        <div className="flex gap-2">
-                          <button
-                            onClick={handleAddNewLanguage}
-                            className="flex-1 px-3 py-1.5 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-                          >
-                            Add Language
-                          </button>
-                          <button
-                            onClick={() => {
-                              setShowNewLanguageInput(false);
-                              setNewLanguage("");
-                            }}
-                            className="flex-1 px-3 py-1.5 border border-gray-300 rounded text-xs hover:bg-gray-50"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Concept */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Concept *
-                    </label>
-                    {!showNewConceptInput ? (
-                      <div className="space-y-2">
-                        <select
-                          value={formData.concept}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              concept: e.target.value,
-                            })
-                          }
-                          disabled={!formData.language}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                        >
-                          <option value="">Select a concept</option>
-                          {concepts.map((concept) => (
-                            <option key={concept} value={concept}>
-                              {concept}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() => setShowNewConceptInput(true)}
-                          disabled={!formData.language}
-                          className="text-xs text-blue-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          + Add new concept
-                        </button>
-                        {!formData.language && (
-                          <p className="text-xs text-gray-500">
-                            Select a language first
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <input
-                          type="text"
-                          placeholder="Enter new concept name"
-                          value={newConcept}
-                          onChange={(e) => setNewConcept(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleAddNewConcept();
-                            }
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          autoFocus
-                        />
-                        <div className="flex gap-2">
-                          <button
-                            onClick={handleAddNewConcept}
-                            className="flex-1 px-3 py-1.5 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-                          >
-                            Add Concept
-                          </button>
-                          <button
-                            onClick={() => {
-                              setShowNewConceptInput(false);
-                              setNewConcept("");
-                            }}
-                            className="flex-1 px-3 py-1.5 border border-gray-300 rounded text-xs hover:bg-gray-50"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Difficulty */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Difficulty
-                    </label>
-                    <select
-                      value={formData.difficulty}
-                      onChange={(e) =>
-                        setFormData({ ...formData, difficulty: e.target.value })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleAddNewLanguage}
+                      className="flex-1 px-3 py-1.5 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
                     >
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
-                    </select>
-                  </div>
-
-                  {/* Premium flag */}
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="premium-checkbox"
-                      type="checkbox"
-                      checked={!!formData.isPremium}
-                      onChange={(e) =>
-                        setFormData({ ...formData, isPremium: e.target.checked })
-                      }
-                      className="h-4 w-4 text-yellow-500 border-gray-300 rounded"
-                    />
-                    <label
-                      htmlFor="premium-checkbox"
-                      className="text-sm font-medium text-gray-900"
+                      Add Language
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowNewLanguageInput(false);
+                        setNewLanguage("");
+                      }}
+                      className="flex-1 px-3 py-1.5 border border-gray-300 rounded text-xs hover:bg-gray-50"
                     >
-                      Premium tutorial
-                    </label>
-                  </div>
-
-                  {/* Tags */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Tags
-                    </label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {formData.tags.map((tag, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 rounded text-xs font-medium"
-                        >
-                          {tag}
-                          <button
-                            onClick={() => removeTag(tag)}
-                            className="hover:bg-blue-100 rounded-full p-0.5"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Add tags..."
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addTag(e.currentTarget.value);
-                          e.currentTarget.value = "";
-                        }
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Add tags to improve discoverability.
-                    </p>
-                  </div>
-
-                  {/* Notes */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Notes
-                    </label>
-                    <div className="space-y-2 mb-2">
-                      {formData.notes.map((note, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-start gap-2 p-2 bg-gray-50 rounded text-xs"
-                        >
-                          <span className="flex-1">{note}</span>
-                          <button
-                            onClick={() => removeNote(idx)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Add a note..."
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          const value = e.currentTarget.value.trim();
-                          e.currentTarget.value = "";
-                          e.preventDefault();
-                          if (value) addNote(value);
-                        }
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  {/* Tips */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Tips
-                    </label>
-                    <div className="space-y-2 mb-2">
-                      {formData.tips.map((tip, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-start gap-2 p-2 bg-yellow-50 rounded text-xs"
-                        >
-                          <span className="flex-1">{tip}</span>
-                          <button
-                            onClick={() => removeTip(idx)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Add a tip..."
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          const value = e.currentTarget.value.trim();
-                          e.currentTarget.value = "";
-                          e.preventDefault();
-                          if (value) addTip(value);
-                        }
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                      Cancel
+                    </button>
                   </div>
                 </div>
+              )}
+            </div>
 
-                {/* Main Content Area */}
-                <div className="col-span-2 space-y-4">
-                  {/* Tutorial Content */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Tutorial Content *
-                    </label>
-                    <div className="border border-gray-300 rounded-md overflow-hidden">
-                      <div className="bg-white p-4 min-h-[300px]">
-                        <textarea
-                          placeholder="Write the tutorial content here. You can use markdown formatting."
-                          value={formData.content}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              content: e.target.value,
-                            })
-                          }
-                          className="w-full h-full min-h-[280px] text-sm text-gray-700 focus:outline-none resize-none"
-                        />
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Supports markdown formatting
+            {/* Concept */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Concept *
+              </label>
+              {!showNewConceptInput ? (
+                <div className="space-y-2">
+                  <select
+                    value={formData.concept}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        concept: e.target.value,
+                      })
+                    }
+                    disabled={!formData.language}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  >
+                    <option value="">Select a concept</option>
+                    {concepts.map((concept) => (
+                      <option key={concept} value={concept}>
+                        {concept}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => setShowNewConceptInput(true)}
+                    disabled={!formData.language}
+                    className="text-xs text-blue-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    + Add new concept
+                  </button>
+                  {!formData.language && (
+                    <p className="text-xs text-gray-500">
+                      Select a language first
                     </p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Enter new concept name"
+                    value={newConcept}
+                    onChange={(e) => setNewConcept(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddNewConcept();
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleAddNewConcept}
+                      className="flex-1 px-3 py-1.5 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                    >
+                      Add Concept
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowNewConceptInput(false);
+                        setNewConcept("");
+                      }}
+                      className="flex-1 px-3 py-1.5 border border-gray-300 rounded text-xs hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
                   </div>
+                </div>
+              )}
+            </div>
 
-                  {/* Code Examples */}
-                  <div>
+            {/* Difficulty */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Difficulty
+              </label>
+              <select
+                value={formData.difficulty}
+                onChange={(e) =>
+                  setFormData({ ...formData, difficulty: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+
+            {/* Premium flag */}
+            <div className="flex items-center gap-2">
+              <input
+                id="premium-checkbox"
+                type="checkbox"
+                checked={!!formData.isPremium}
+                onChange={(e) =>
+                  setFormData({ ...formData, isPremium: e.target.checked })
+                }
+                className="h-4 w-4 text-yellow-500 border-gray-300 rounded"
+              />
+              <label
+                htmlFor="premium-checkbox"
+                className="text-sm font-medium text-gray-900"
+              >
+                Premium tutorial
+              </label>
+            </div>
+
+            {/* Tags */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Tags
+              </label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {formData.tags.map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 rounded text-xs font-medium"
+                  >
+                    {tag}
+                    <button
+                      onClick={() => removeTag(tag)}
+                      className="hover:bg-blue-100 rounded-full p-0.5"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <input
+                type="text"
+                placeholder="Add tags..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addTag(e.currentTarget.value);
+                    e.currentTarget.value = "";
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Add tags to improve discoverability.
+              </p>
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Notes
+              </label>
+              <div className="space-y-2 mb-2">
+                {formData.notes.map((note, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-2 p-2 bg-gray-50 rounded text-xs"
+                  >
+                    <span className="flex-1">{note}</span>
+                    <button
+                      onClick={() => removeNote(idx)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <input
+                type="text"
+                placeholder="Add a note..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const value = e.currentTarget.value.trim();
+                    e.currentTarget.value = "";
+                    e.preventDefault();
+                    if (value) addNote(value);
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Tips */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Tips
+              </label>
+              <div className="space-y-2 mb-2">
+                {formData.tips.map((tip, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-2 p-2 bg-yellow-50 rounded text-xs"
+                  >
+                    <span className="flex-1">{tip}</span>
+                    <button
+                      onClick={() => removeTip(idx)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <input
+                type="text"
+                placeholder="Add a tip..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const value = e.currentTarget.value.trim();
+                    e.currentTarget.value = "";
+                    e.preventDefault();
+                    if (value) addTip(value);
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Main Content Area */}
+          <div className="col-span-2 space-y-4">
+            {/* Tutorial Content */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Tutorial Content *
+              </label>
+              <div className="border border-gray-300 rounded-md overflow-hidden">
+                <div className="bg-white p-4 min-h-[300px]">
+                  <textarea
+                    placeholder="Write the tutorial content here. You can use markdown formatting."
+                    value={formData.content}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        content: e.target.value,
+                      })
+                    }
+                    className="w-full h-full min-h-[280px] text-sm text-gray-700 focus:outline-none resize-none"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Supports markdown formatting
+              </p>
+            </div>
+
+            {/* Code Examples */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-semibold text-gray-900">
+                  Code Examples
+                </label>
+                <button
+                  onClick={addCodeExample}
+                  className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" />
+                  Add Example
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {formData.codeExamples.map((example, idx) => (
+                  <div
+                    key={idx}
+                    className="border border-gray-300 rounded-md p-3 bg-gray-50"
+                  >
                     <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-semibold text-gray-900">
-                        Code Examples
-                      </label>
+                      <span className="text-xs font-semibold text-gray-700">
+                        Example {idx + 1}
+                      </span>
                       <button
-                        onClick={addCodeExample}
-                        className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 flex items-center gap-1"
+                        onClick={() => removeCodeExample(idx)}
+                        className="text-red-500 hover:text-red-700"
                       >
-                        <Plus className="w-3 h-3" />
-                        Add Example
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
 
-                    <div className="space-y-3">
-                      {formData.codeExamples.map((example, idx) => (
-                        <div
-                          key={idx}
-                          className="border border-gray-300 rounded-md p-3 bg-gray-50"
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-semibold text-gray-700">
-                              Example {idx + 1}
-                            </span>
-                            <button
-                              onClick={() => removeCodeExample(idx)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-
-                          <div className="space-y-2">
-                            <textarea
-                              placeholder="Enter code example..."
-                              value={example.code}
-                              onChange={(e) =>
-                                updateCodeExample(idx, "code", e.target.value)
-                              }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                              rows={4}
-                            />
-                            <input
-                              type="text"
-                              placeholder="Explanation (optional)"
-                              value={example.explanation || ""}
-                              onChange={(e) =>
-                                updateCodeExample(
-                                  idx,
-                                  "explanation",
-                                  e.target.value,
-                                )
-                              }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                            />
-                          </div>
-                        </div>
-                      ))}
-
-                      {formData.codeExamples.length === 0 && (
-                        <p className="text-xs text-gray-500 text-center py-4">
-                          No code examples added yet. Click "Add Example" to add
-                          one.
-                        </p>
-                      )}
+                    <div className="space-y-2">
+                      <textarea
+                        placeholder="Enter code example..."
+                        value={example.code}
+                        onChange={(e) =>
+                          updateCodeExample(idx, "code", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                        rows={4}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Explanation (optional)"
+                        value={example.explanation || ""}
+                        onChange={(e) =>
+                          updateCodeExample(
+                            idx,
+                            "explanation",
+                            e.target.value,
+                          )
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      />
                     </div>
                   </div>
-                </div>
+                ))}
+
+                {formData.codeExamples.length === 0 && (
+                  <p className="text-xs text-gray-500 text-center py-4">
+                    No code examples added yet. Click "Add Example" to add
+                    one.
+                  </p>
+                )}
               </div>
             </div>
           </div>
         </div>
-      )}
+      </AdminModal>
 
       {/* Delete Confirmation Modal */}
       <ConfirmModal

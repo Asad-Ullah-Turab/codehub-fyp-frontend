@@ -37,7 +37,7 @@ const CourseLearningPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<"lesson" | "quiz" | "certificate">(
     "lesson"
   );
-  const [selectedQuiz, setSelectedQuiz] = useState<any>(null);
+  const [selectedQuiz, setSelectedQuiz] = useState<string | null>(null);
   const [, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [lessonLoading, setLessonLoading] = useState(false);
@@ -313,7 +313,10 @@ const CourseLearningPage: React.FC = () => {
     }
 
     setSelectedSection(section);
-    setSelectedQuiz(section.sectionQuiz);
+    const quizId = typeof section.sectionQuiz === "string"
+      ? section.sectionQuiz
+      : section.sectionQuiz?._id || null;
+    setSelectedQuiz(quizId);
     setViewMode("quiz");
   };
 
@@ -1224,7 +1227,7 @@ const CourseLearningPage: React.FC = () => {
             ) : viewMode === "quiz" && selectedQuiz ? (
               <QuizViewer
                 courseId={courseId!}
-                quizId={selectedQuiz._id}
+                quizId={selectedQuiz}
                 sectionId={selectedSection?._id || null}
                 isFinalQuiz={false}
                 onComplete={handleQuizComplete}

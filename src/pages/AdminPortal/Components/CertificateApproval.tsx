@@ -17,8 +17,8 @@ interface Certificate {
     name: string;
     email: string;
   };
-  course: {
-    _id: string;
+  course?: {
+    _id: string | null;
     title: string;
   };
   certificateNumber: string;
@@ -159,7 +159,7 @@ export default function CertificateApproval() {
                       {cert.user.name}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {cert.course.title} • Score: {cert.finalScore}%
+                      {cert.course?.title ?? "Deleted course"} • Score: {cert.finalScore}%
                     </p>
                   </div>
                 </div>

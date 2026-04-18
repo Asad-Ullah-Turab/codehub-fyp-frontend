@@ -1,5 +1,3 @@
-import type { CourseSection, CourseLesson, Quiz } from "../../services/adminCourseAPI";
-
 export type CourseEnrollment = {
   _id: string;
   user: {
@@ -20,13 +18,39 @@ export type SectionForm = {
   estimatedHours: number;
 };
 
+export type CodeExample = {
+  title: string;
+  description: string;
+  code: string;
+  language: string;
+  input: string;
+  expectedOutput: string;
+  order: number;
+  notes: string;
+  explanation: string;
+};
+
+export type ResourceItem = {
+  title: string;
+  url: string;
+  type: "documentation" | "article" | "video" | "reference" | "example";
+  description: string;
+  order: number;
+};
+
 export type LessonForm = {
   title: string;
   description: string;
   content: string;
   order: number;
+  videoUrl: string;
   duration: number;
   difficulty: string;
+  estimatedHours: number;
+  codeExamples: CodeExample[];
+  notes: string[];
+  tips: string[];
+  resources: ResourceItem[];
 };
 
 export type QuizOption = {

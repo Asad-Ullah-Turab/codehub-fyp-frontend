@@ -25,8 +25,34 @@ const defaultLessonForm: LessonForm = {
   description: "",
   content: "",
   order: 1,
+  videoUrl: "",
   duration: 0,
   difficulty: "beginner",
+  estimatedHours: 0,
+  codeExamples: [
+    {
+      title: "",
+      description: "",
+      code: "",
+      language: "javascript",
+      input: "",
+      expectedOutput: "",
+      order: 1,
+      notes: "",
+      explanation: "",
+    },
+  ],
+  notes: [""],
+  tips: [""],
+  resources: [
+    {
+      title: "",
+      url: "",
+      type: "reference",
+      description: "",
+      order: 1,
+    },
+  ],
 };
 
 const defaultQuizForm: QuizForm = {
@@ -248,8 +274,50 @@ export default function CreatorCourseManagement({ courseId, onClose }: CreatorCo
       description: lesson.description || "",
       content: lesson.content,
       order: lesson.order,
+      videoUrl: lesson.videoUrl || "",
       duration: lesson.duration || 0,
       difficulty: lesson.difficulty || "beginner",
+      estimatedHours: lesson.estimatedHours || 0,
+      codeExamples: lesson.codeExamples?.map((example) => ({
+        title: example.title,
+        description: example.description || "",
+        code: example.code,
+        language: example.language,
+        input: example.input || "",
+        expectedOutput: example.expectedOutput || "",
+        order: example.order || 1,
+        notes: "",
+        explanation: "",
+      })) || [
+        {
+          title: "",
+          description: "",
+          code: "",
+          language: "javascript",
+          input: "",
+          expectedOutput: "",
+          order: 1,
+          notes: "",
+          explanation: "",
+        },
+      ],
+      notes: lesson.notes || [""],
+      tips: lesson.tips || [""],
+      resources: lesson.resources?.map((resource, index) => ({
+        title: resource.title,
+        url: resource.url,
+        type: resource.type as "documentation" | "article" | "video" | "reference" | "example",
+        description: "",
+        order: index + 1,
+      })) || [
+        {
+          title: "",
+          url: "",
+          type: "reference",
+          description: "",
+          order: 1,
+        },
+      ],
     });
     setEditingLessonId(lesson._id);
   };

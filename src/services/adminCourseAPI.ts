@@ -22,6 +22,7 @@ export interface Course {
     _id: string;
     name: string;
     email: string;
+    role?: string;
   };
   sections: CourseSection[];
   totalSections: number;
@@ -30,6 +31,9 @@ export interface Course {
   isPublished: boolean;
   isArchived: boolean;
   isPremium?: boolean;
+  status: "draft" | "pending" | "published" | "archived" | "rejected";
+  publishRequestedAt?: string | null;
+  publishReviewComment?: string | null;
   createdAt: string;
   updatedAt: string;
   finalQuiz?: string | Quiz;
@@ -141,6 +145,16 @@ export const adminCourseAPI = {
   // Get single course
   getCourse: async (id: string) => {
     const response = await api.get(`${API_ENDPOINTS.COURSES}/${id}`);
+    return response.data;
+  },
+
+  // Get instructor-owned courses
+  getInstructorCourses: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+  }) => {
+    const response = await api.get(`${API_ENDPOINTS.ADMIN_COURSES}/instructor/my-courses`, { params });
     return response.data;
   },
 
@@ -348,8 +362,14 @@ export const adminCourseAPI = {
   },
 
   // Publish/Unpublish course
-  togglePublishCourse: async (courseId: string) => {
-    const response = await api.patch(`${API_ENDPOINTS.ADMIN_COURSES}/${courseId}/publish`);
+  togglePublishCourse: async (
+    courseId: string,
+    body?: {
+      reviewAction?: "approve" | "reject";
+      comment?: string;
+    },
+  ) => {
+    const response = await api.patch(`${API_ENDPOINTS.ADMIN_COURSES}/${courseId}/publish`, body || {});
     return response.data;
   },
 };

@@ -15,6 +15,7 @@ import TutorialsDetailPage from "./pages/TutorialsPage/Components/TutorialsDetai
 import CourseLearningPage from "./pages/CourseLearningPage/CourseLearningPage";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import CreatorApplicationPage from "./pages/CreatorApplicationPage/CreatorApplicationPage";
+import CreatorPortal from "./pages/CreatorPortal/CreatorPortal";
 import AdminPortal from "./pages/AdminPortal/AdminPortal";
 import AboutPage from "./pages/AboutPage/AboutPage";
 import ContactPage from "./pages/ContactPage/ContactPage";
@@ -88,6 +89,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CreatorApplicationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/creator-portal"
+              element={
+                <ProtectedRoute>
+                  <CreatorPortal />
                 </ProtectedRoute>
               }
             />

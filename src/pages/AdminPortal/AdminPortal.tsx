@@ -6,6 +6,7 @@ import UserManagement from "./Components/UserManagement";
 import TutorialManagement from "./Components/TutorialManagement";
 import CourseManagement from "./Components/CourseManagement";
 import CreatorApplicationReviews from "./Components/CreatorApplicationReviews";
+import CreatorCourseApprovals from "./Components/CreatorCourseApprovals";
 import AnalyticsDashboard from "./Components/Analytics";
 import CertificateApproval from "./Components/CertificateApproval";
 import QueriesManagement from "./Components/QueriesManagement";
@@ -42,6 +43,7 @@ function AdminPortal() {
       users: "/admin/users",
       analytics: "/admin/analytics",
       "creator-applications": "/admin/creator-applications",
+      "creator-course-approvals": "/admin/creator-course-approvals",
       certificates: "/admin/certificates",
       queries: "/admin/queries",
     };
@@ -72,6 +74,8 @@ function AdminPortal() {
       setActiveTab("analytics");
     } else if (location.pathname.startsWith("/admin/creator-applications")) {
       setActiveTab("creator-applications");
+    } else if (location.pathname.startsWith("/admin/creator-course-approvals")) {
+      setActiveTab("creator-course-approvals");
     } else if (location.pathname.startsWith("/admin/certificates")) {
       setActiveTab("certificates");
     } else if (location.pathname.startsWith("/admin/queries")) {
@@ -337,6 +341,35 @@ function AdminPortal() {
 
           <button
             className={`relative w-full flex items-center ${sidebarCollapsed ? "justify-center" : "justify-start"} gap-3 ${sidebarCollapsed ? "px-3" : "px-4"} py-2.5 mb-1 rounded-lg transition-colors text-left group ${
+              activeTab === "creator-course-approvals"
+                ? "bg-blue-50 text-blue-600"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+            onClick={() => handleTabNavigation("creator-course-approvals")}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            {!sidebarCollapsed && <span className="font-medium">Creator Courses</span>}
+            {sidebarCollapsed && (
+              <span className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                Creator Courses
+              </span>
+            )}
+          </button>
+
+          <button
+            className={`relative w-full flex items-center ${sidebarCollapsed ? "justify-center" : "justify-start"} gap-3 ${sidebarCollapsed ? "px-3" : "px-4"} py-2.5 mb-1 rounded-lg transition-colors text-left group ${
               activeTab === "certificates"
                 ? "bg-blue-50 text-blue-600"
                 : "text-gray-700 hover:bg-gray-50"
@@ -466,6 +499,7 @@ function AdminPortal() {
             <Route path="users" element={<UserManagement onError={(msg: string) => console.error(msg)} highlightedUserId={highlightedItem?.type === "users" ? highlightedItem.id : undefined} />} />
             <Route path="analytics" element={<AnalyticsDashboard />} />
             <Route path="creator-applications" element={<CreatorApplicationReviews />} />
+            <Route path="creator-course-approvals" element={<CreatorCourseApprovals />} />
             <Route path="certificates" element={<CertificateApproval />} />
             <Route path="queries" element={<QueriesManagement />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />

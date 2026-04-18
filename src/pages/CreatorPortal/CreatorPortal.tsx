@@ -4,6 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../contexts/ToastContext";
 import CreatorCourseForm from "./CreatorCourseForm";
 import CreatorCourseList from "./CreatorCourseList";
+import CreatorCourseManagement from "./CreatorCourseManagement";
 import creatorCourseAPI, { type CreatorCourseFormData } from "../../services/creatorCourseAPI";
 
 const initialFormData: CreatorCourseFormData = {
@@ -33,6 +34,7 @@ export default function CreatorPortal() {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<CreatorCourseFormData>(initialFormData);
   const [activeTab, setActiveTab] = useState<"my-courses" | "create-course">("my-courses");
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -97,6 +99,24 @@ export default function CreatorPortal() {
     }
   };
 
+  const handleManageCourse = (courseId: string) => {
+    setSelectedCourseId(courseId);
+  };
+
+  const handleCloseManagement = () => {
+    setSelectedCourseId(null);
+    fetchCourses();
+  };
+
+  if (selectedCourseId) {
+    return (
+      <CreatorCourseManagement
+        courseId={selectedCourseId}
+        onClose={handleCloseManagement}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -151,7 +171,12 @@ export default function CreatorPortal() {
 
           <main>
             {activeTab === "my-courses" ? (
-              <CreatorCourseList courses={courses} loading={loading} onRequestPublish={handleRequestPublish} />
+              <CreatorCourseList
+                courses={courses}
+                loading={loading}
+                onRequestPublish={handleRequestPublish}
+                onManageCourse={(course) => handleManageCourse(course._id)}
+              />
             ) : (
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="mb-6 flex items-center justify-between gap-4">

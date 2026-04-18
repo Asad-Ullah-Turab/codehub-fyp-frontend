@@ -36,8 +36,159 @@ export const creatorCourseAPI = {
     return response.data;
   },
 
+  getCourse: async (courseId: string) => {
+    const response = await api.get(`${API_ENDPOINTS.CREATOR_COURSES}/${courseId}`);
+    return response.data;
+  },
+
   requestPublishCourse: async (courseId: string) => {
     const response = await api.patch(`${API_ENDPOINTS.CREATOR_COURSES}/${courseId}/publish-request`);
+    return response.data;
+  },
+
+  getCourseSections: async (courseId: string) => {
+    const response = await api.get(`${API_ENDPOINTS.CREATOR_COURSES}/${courseId}/sections`);
+    return response.data;
+  },
+
+  createSection: async (
+    courseId: string,
+    sectionData: {
+      title: string;
+      description?: string;
+      order: number;
+      estimatedHours?: number;
+    },
+  ) => {
+    const response = await api.post(`${API_ENDPOINTS.CREATOR_COURSES}/${courseId}/sections`, sectionData);
+    return response.data;
+  },
+
+  updateSection: async (
+    sectionId: string,
+    sectionData: {
+      title?: string;
+      description?: string;
+      order?: number;
+      estimatedHours?: number;
+    },
+  ) => {
+    const response = await api.put(`${API_ENDPOINTS.CREATOR_COURSES}/sections/${sectionId}`, sectionData);
+    return response.data;
+  },
+
+  deleteSection: async (sectionId: string) => {
+    const response = await api.delete(`${API_ENDPOINTS.CREATOR_COURSES}/sections/${sectionId}`);
+    return response.data;
+  },
+
+  getSectionLessons: async (sectionId: string) => {
+    const response = await api.get(`${API_ENDPOINTS.CREATOR_COURSES}/sections/${sectionId}/lessons`);
+    return response.data;
+  },
+
+  createLesson: async (
+    sectionId: string,
+    lessonData: {
+      title: string;
+      description?: string;
+      content: string;
+      order: number;
+      videoUrl?: string;
+      duration?: number;
+      codeExamples?: any[];
+      notes?: string[];
+      tips?: string[];
+      resources?: any[];
+      difficulty?: string;
+      estimatedHours?: number;
+    },
+  ) => {
+    const response = await api.post(`${API_ENDPOINTS.CREATOR_COURSES}/sections/${sectionId}/lessons`, lessonData);
+    return response.data;
+  },
+
+  updateLesson: async (
+    lessonId: string,
+    lessonData: {
+      title?: string;
+      description?: string;
+      content?: string;
+      order?: number;
+      videoUrl?: string;
+      duration?: number;
+      codeExamples?: any[];
+      notes?: string[];
+      tips?: string[];
+      resources?: any[];
+      difficulty?: string;
+      estimatedHours?: number;
+    },
+  ) => {
+    const response = await api.put(`${API_ENDPOINTS.CREATOR_COURSES}/lessons/${lessonId}`, lessonData);
+    return response.data;
+  },
+
+  deleteLesson: async (lessonId: string) => {
+    const response = await api.delete(`${API_ENDPOINTS.CREATOR_COURSES}/lessons/${lessonId}`);
+    return response.data;
+  },
+
+  createOrUpdateQuiz: async (quizData: {
+    courseId?: string;
+    sectionId?: string;
+    title: string;
+    description?: string;
+    type: "section-quiz" | "final-quiz" | "practice-quiz";
+    questions: any[];
+    passingScore?: number;
+    timeLimit?: number;
+    shuffleQuestions?: boolean;
+    shuffleOptions?: boolean;
+    showAnswerExplanation?: boolean;
+    retakeAllowed?: boolean;
+    maxRetakes?: number;
+  }) => {
+    const response = await api.post(`${API_ENDPOINTS.CREATOR_COURSES}/${quizData.courseId}/quizzes`, quizData);
+    return response.data;
+  },
+
+  getQuiz: async (quizId: string) => {
+    const response = await api.get(`${API_ENDPOINTS.CREATOR_COURSES}/quizzes/${quizId}`);
+    return response.data;
+  },
+
+  updateQuiz: async (
+    quizId: string,
+    quizData: {
+      title?: string;
+      description?: string;
+      questions?: any[];
+      passingScore?: number;
+      timeLimit?: number;
+      shuffleQuestions?: boolean;
+      shuffleOptions?: boolean;
+      showAnswerExplanation?: boolean;
+      retakeAllowed?: boolean;
+      maxRetakes?: number;
+    },
+  ) => {
+    const response = await api.put(`${API_ENDPOINTS.CREATOR_COURSES}/quizzes/${quizId}`, quizData);
+    return response.data;
+  },
+
+  deleteQuiz: async (quizId: string) => {
+    const response = await api.delete(`${API_ENDPOINTS.CREATOR_COURSES}/quizzes/${quizId}`);
+    return response.data;
+  },
+
+  getCourseEnrollments: async (courseId: string) => {
+    const response = await api.get(`${API_ENDPOINTS.CREATOR_COURSES}/${courseId}/enrollments`);
+    return response.data;
+  },
+
+  getCourseRatings: async (courseId: string) => {
+    const response = await api.get(`${API_ENDPOINTS.CREATOR_COURSES}/${courseId}/ratings`);
     return response.data;
   },
 

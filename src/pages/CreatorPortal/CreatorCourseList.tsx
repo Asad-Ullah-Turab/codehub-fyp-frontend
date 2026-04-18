@@ -4,9 +4,10 @@ interface CreatorCourseListProps {
   courses: Course[];
   loading: boolean;
   onRequestPublish: (courseId: string) => void;
+  onManageCourse: (course: Course) => void;
 }
 
-export default function CreatorCourseList({ courses, loading, onRequestPublish }: CreatorCourseListProps) {
+export default function CreatorCourseList({ courses, loading, onRequestPublish, onManageCourse }: CreatorCourseListProps) {
   if (loading) {
     return (
       <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
@@ -42,17 +43,26 @@ export default function CreatorCourseList({ courses, loading, onRequestPublish }
             </div>
             <div className="flex flex-col gap-2 sm:items-end">
               <p className="text-sm text-slate-600">Enrolled: {course.enrollmentCount || 0}</p>
-              <button
-                disabled={course.status === "pending" || course.status === "published"}
-                onClick={() => onRequestPublish(course._id)}
-                className="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
-              >
-                {course.status === "draft" || course.status === "rejected"
-                  ? "Request Publish"
-                  : course.status === "pending"
-                  ? "Pending Review"
-                  : "Published"}
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => onManageCourse(course)}
+                  className="inline-flex items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-200"
+                >
+                  Manage
+                </button>
+                <button
+                  disabled={course.status === "pending" || course.status === "published"}
+                  onClick={() => onRequestPublish(course._id)}
+                  className="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+                >
+                  {course.status === "draft" || course.status === "rejected"
+                    ? "Request Publish"
+                    : course.status === "pending"
+                    ? "Pending Review"
+                    : "Published"}
+                </button>
+              </div>
             </div>
           </div>
           {course.publishReviewComment && (

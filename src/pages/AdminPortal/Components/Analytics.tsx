@@ -186,7 +186,7 @@ export default function AnalyticsDashboard() {
             Last 30 Days
             <ChevronDown className="w-4 h-4" />
           </button>
-          <button className="px-4 py-2 bg-gray-900 text-white rounded-full text-sm font-medium hover:bg-gray-800">
+          <button className="theme-primary-button rounded-full px-4 py-2 text-sm font-medium text-white">
             Export to CSV
           </button>
         </div>

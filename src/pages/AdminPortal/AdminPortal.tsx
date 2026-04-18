@@ -11,6 +11,7 @@ import CertificateApproval from "./Components/CertificateApproval";
 import QueriesManagement from "./Components/QueriesManagement";
 import CourseCreatePage from "./Pages/CourseCreatePage";
 import TutorialCreatePage from "./Pages/TutorialCreatePage";
+import "./admin-theme.css";
 
 function AdminPortal() {
   const navigate = useNavigate();
@@ -94,17 +95,17 @@ function AdminPortal() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="admin-portal-shell flex h-screen overflow-hidden">
       {/* Left Sidebar */}
       <aside
-        className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 shadow-sm overflow-x-hidden ${sidebarCollapsed ? "w-20" : "w-60"}`}
+        className={`admin-portal-sidebar flex flex-col transition-all duration-300 shadow-xl overflow-x-hidden ${sidebarCollapsed ? "w-20" : "w-60"}`}
       >
         {/* Logo + collapse toggle */}
         <div
-          className={`${sidebarCollapsed ? "px-3 py-4" : "p-6"} border-b border-gray-200 flex items-center justify-between`}
+          className={`${sidebarCollapsed ? "px-3 py-4" : "p-6"} border-b border-slate-700/50 flex items-center justify-between`}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-sky-400 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-900/35">
               <svg
                 className="w-6 h-6 text-white"
                 fill="none"
@@ -120,7 +121,7 @@ function AdminPortal() {
               </svg>
             </div>
             {!sidebarCollapsed && (
-              <span className="text-xl font-bold text-gray-900">CODEHUB</span>
+              <span className="sidebar-brand text-xl font-bold tracking-wide">CODEHUB</span>
             )}
           </div>
           <button
@@ -131,7 +132,7 @@ function AdminPortal() {
                 return next;
               });
             }}
-            className="p-1 rounded hover:bg-gray-100 ml-1"
+            className="p-1 rounded-lg hover:bg-slate-700/40 ml-1 text-slate-200"
             title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             <svg
@@ -396,7 +397,7 @@ function AdminPortal() {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 p-4">
+        <div className="border-t border-slate-700/50 p-4">
           <button
             title={sidebarCollapsed ? "Back to Website" : undefined}
             onClick={() => navigate("/")}
@@ -454,7 +455,7 @@ function AdminPortal() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden bg-gray-50">
+      <main className="flex-1 flex flex-col overflow-hidden bg-transparent">
         <div className="flex-1 overflow-y-auto p-6">
           <Routes>
             <Route path="" element={<AdminDashboard onNavigate={handleTabNavigation} />} />

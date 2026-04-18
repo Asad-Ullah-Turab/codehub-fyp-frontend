@@ -90,7 +90,7 @@ export default function CreatorApplicationReviews() {
       actions={
         <button
           onClick={loadApplications}
-          className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+          className="theme-primary-button inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold text-white"
         >
           Refresh applications
         </button>

@@ -95,7 +95,7 @@ function App() {
             <Route
               path="/creator-portal"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requireCreator={true}>
                   <CreatorPortal />
                 </ProtectedRoute>
               }

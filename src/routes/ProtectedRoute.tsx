@@ -6,9 +6,10 @@ import { ROUTES } from '../constants';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
+  requireCreator?: boolean;
 }
 
-export default function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children, requireAdmin = false, requireCreator = false }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -44,7 +45,13 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
       return;
     }
 
-  }, [isAuthenticated, isLoading, user, logout, navigate, location.pathname, requireAdmin]);
+    // Check 5: Route requires creator but user is not creator
+    if (requireCreator && user?.role !== 'creator') {
+      navigate('/');
+      return;
+    }
+
+  }, [isAuthenticated, isLoading, user, logout, navigate, location.pathname, requireAdmin, requireCreator]);
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -64,7 +71,8 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
     user?.accountStatus === 'suspended' ||
     user?.accountStatus === 'pending' ||
     !user?.isEmailVerified ||
-    (requireAdmin && user?.role !== 'admin')
+    (requireAdmin && user?.role !== 'admin') ||
+    (requireCreator && user?.role !== 'creator')
   ) {
     return null;
   }

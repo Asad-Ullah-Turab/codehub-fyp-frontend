@@ -41,7 +41,7 @@ export default function CreatorPortal() {
   }, [isLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
-    if (!isLoading && user && user.role !== "creator" && user.role !== "admin") {
+    if (!isLoading && user && user.role !== "creator") {
       navigate("/");
     }
   }, [isLoading, user, navigate]);

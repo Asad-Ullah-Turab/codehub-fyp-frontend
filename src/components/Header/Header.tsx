@@ -245,6 +245,41 @@ export default function Header() {
                     </Link>
                   )}
 
+                  {user?.role === "creator" && (
+                    <Link
+                      to="/creator-portal"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M20 21V7a2 2 0 00-2-2H6a2 2 0 00-2 2v14"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 21h8"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 7V3m0 0L8 7m4-4l4 4"
+                        />
+                      </svg>
+                      <span>Creator Dashboard</span>
+                    </Link>
+                  )}
+
                   {/* Divider */}
                   <div className="border-t border-gray-100 my-2"></div>
 
@@ -498,6 +533,44 @@ export default function Header() {
                   />
                 </svg>
                 <span>Admin Dashboard</span>
+              </Link>
+            )}
+
+            {user?.role === "creator" && (
+              <Link
+                to="/creator-portal"
+                onClick={() => {
+                  setDropdownOpen(false);
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 21V7a2 2 0 00-2-2H6a2 2 0 00-2 2v14"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 21h8"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 7V3m0 0L8 7m4-4l4 4"
+                  />
+                </svg>
+                <span>Creator Dashboard</span>
               </Link>
             )}
 

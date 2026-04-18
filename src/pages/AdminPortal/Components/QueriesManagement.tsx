@@ -36,6 +36,7 @@ interface SubscriptionType {
 import { adminAPI } from "../../../services/adminAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import { contactAPI } from "../../../services/contactAPI";
+import AdminPageLayout from "./AdminPageLayout";
 
 export default function QueriesManagement() {
   const [activeTab, setActiveTab] = useState("contacts");
@@ -132,18 +133,11 @@ export default function QueriesManagement() {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Queries Management
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Manage contact forms and newsletter subscriptions
-          </p>
-        </div>
-      </div>
+    <AdminPageLayout
+      title="Queries Management"
+      subtitle="Manage contact forms and newsletter subscriptions"
+    >
+      <div className="space-y-6">
 
       {/* Tabs */}
       <div className="bg-white border-b border-gray-200">
@@ -247,7 +241,7 @@ export default function QueriesManagement() {
                         <div className="text-sm text-gray-900 font-medium flex items-center gap-2">
                           {contact.fullName}
                           {contact.userId?.subscriptionPlan === 'premium' && (
-                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" title="Premium User" />
+                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" aria-hidden="true" />
                           )}
                         </div>
                       </td>
@@ -560,5 +554,6 @@ export default function QueriesManagement() {
         </div>
       )}
     </div>
+  </AdminPageLayout>
   );
 }

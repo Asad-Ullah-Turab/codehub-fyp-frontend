@@ -8,6 +8,7 @@ import {
   Loader,
 } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
+import AdminPageLayout from "./AdminPageLayout";
 import { adminAPI } from "../../../services/adminAPI";
 
 interface Certificate {
@@ -72,7 +73,7 @@ export default function CertificateApproval() {
 
       if (resp?.success) {
         setCertificates(
-          certificates.filter((cert) => cert._id !== certificateId)
+          certificates.filter((cert) => cert._id !== certificateId),
         );
         setTotal(total - 1);
         showToast("Certificate approved", "success");
@@ -80,7 +81,10 @@ export default function CertificateApproval() {
         showToast(resp?.message || "Failed to approve certificate", "error");
       }
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "An error occurred", "error");
+      showToast(
+        err instanceof Error ? err.message : "An error occurred",
+        "error",
+      );
     } finally {
       setApprovingId(null);
     }
@@ -94,11 +98,14 @@ export default function CertificateApproval() {
 
     try {
       setRejectingId(certificateId);
-      const resp = await adminAPI.rejectCertificate(certificateId, rejectionReason.trim());
+      const resp = await adminAPI.rejectCertificate(
+        certificateId,
+        rejectionReason.trim(),
+      );
 
       if (resp?.success) {
         setCertificates(
-          certificates.filter((cert) => cert._id !== certificateId)
+          certificates.filter((cert) => cert._id !== certificateId),
         );
         setTotal(total - 1);
         setRejectionReason("");
@@ -108,184 +115,186 @@ export default function CertificateApproval() {
         showToast(resp?.message || "Failed to reject certificate", "error");
       }
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "An error occurred", "error");
+      showToast(
+        err instanceof Error ? err.message : "An error occurred",
+        "error",
+      );
     } finally {
       setRejectingId(null);
     }
   };
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow">
-      <div className="text-sm text-gray-500 mb-1">
-        Admin Panel / Certificates
-      </div>
-      <h2 className="text-2xl font-bold mb-6 text-gray-900">
-        Certificate Approvals
-      </h2>
+    <AdminPageLayout
+      title="Certificate Approvals"
+      subtitle="Approve or reject pending certificates quickly"
+    >
+      <div className="max-w-7xl mx-auto space-y-6">
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            {error}
+          </div>
+        )}
 
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          {error}
-        </div>
-      )}
-
-      {loading ? (
-        <div className="flex justify-center py-8">
-          <Loader className="animate-spin text-indigo-600" size={32} />
-        </div>
-      ) : certificates.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          {total === 0
-            ? "No pending certificates to approve"
-            : "No certificates found"}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {certificates.map((cert) => (
-            <div
-              key={cert._id}
-              className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-            >
-              <button
-                onClick={() =>
-                  setExpandedId(expandedId === cert._id ? null : cert._id)
-                }
-                className="w-full px-6 py-4 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <Loader className="animate-spin text-indigo-600" size={32} />
+          </div>
+        ) : certificates.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            {total === 0
+              ? "No pending certificates to approve"
+              : "No certificates found"}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {certificates.map((cert) => (
+              <div
+                key={cert._id}
+                className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
               >
-                <div className="flex items-center gap-4 flex-1 text-left">
-                  <Clock className="text-yellow-600" size={20} />
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      {cert.user.name}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {cert.course?.title ?? "Deleted course"} • Score: {cert.finalScore}%
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">
-                      {cert.certificateNumber}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(cert.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  {expandedId === cert._id ? (
-                    <ChevronUp size={20} className="text-gray-600" />
-                  ) : (
-                    <ChevronDown size={20} className="text-gray-600" />
-                  )}
-                </div>
-              </button>
-
-              {expandedId === cert._id && (
-                <div className="px-6 py-4 bg-white border-t border-gray-200">
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                <button
+                  onClick={() =>
+                    setExpandedId(expandedId === cert._id ? null : cert._id)
+                  }
+                  className="w-full px-6 py-4 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-4 flex-1 text-left">
+                    <Clock className="text-yellow-600" size={20} />
                     <div>
-                      <p className="text-sm text-gray-600">User Email</p>
-                      <p className="font-medium text-gray-900">
-                        {cert.user.email}
+                      <p className="font-semibold text-gray-900">
+                        {cert.user.name}
                       </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Final Score</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="text-sm text-gray-600">
+                        {cert.course?.title ?? "Deleted course"} • Score:{" "}
                         {cert.finalScore}%
                       </p>
                     </div>
                   </div>
-
-                  {expandedId === cert._id && rejectingId === cert._id && (
-                    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Rejection Reason *
-                      </label>
-                      <textarea
-                        value={rejectionReason}
-                        onChange={(e) => setRejectionReason(e.target.value)}
-                        placeholder="Please provide a reason for rejection"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                        rows={3}
-                      />
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">
+                        {cert.certificateNumber}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(cert.createdAt).toLocaleDateString()}
+                      </p>
                     </div>
-                  )}
-
-                  <div className="flex gap-3">
-                    {rejectingId === cert._id ? (
-                      <>
-                        <button
-                          onClick={() => rejectCertificate(cert._id)}
-                          disabled={!rejectionReason.trim()}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 transition-colors font-medium"
-                        >
-                          <XCircle size={18} />
-                          Confirm Rejection
-                        </button>
-                        <button
-                          onClick={() => {
-                            setRejectingId(null);
-                            setRejectionReason("");
-                          }}
-                          className="flex-1 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                        >
-                          Cancel
-                        </button>
-                      </>
+                    {expandedId === cert._id ? (
+                      <ChevronUp size={20} className="text-gray-600" />
                     ) : (
-                      <>
-                        <button
-                          onClick={() => approveCertificate(cert._id)}
-                          disabled={approvingId === cert._id}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition-colors font-medium"
-                        >
-                          {approvingId === cert._id ? (
-                            <Loader className="animate-spin" size={18} />
-                          ) : (
-                            <CheckCircle size={18} />
-                          )}
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => setRejectingId(cert._id)}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
-                        >
-                          <XCircle size={18} />
-                          Reject
-                        </button>
-                      </>
+                      <ChevronDown size={20} className="text-gray-600" />
                     )}
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                </button>
 
-          {/* Pagination */}
-          <div className="flex justify-center items-center gap-4 mt-6">
-            <button
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Previous
-            </button>
-            <span className="text-gray-700 font-medium">
-              Page {page} of {Math.ceil(total / LIMIT)}
-            </span>
-            <button
-              onClick={() =>
-                setPage(Math.min(Math.ceil(total / LIMIT), page + 1))
-              }
-              disabled={page >= Math.ceil(total / LIMIT)}
-              className="px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Next
-            </button>
+                {expandedId === cert._id && (
+                  <div className="px-6 py-4 bg-white border-t border-gray-200">
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-gray-600">User Email</p>
+                        <p className="font-medium text-gray-900">
+                          {cert.user.email}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Final Score</p>
+                        <p className="font-medium text-gray-900">
+                          {cert.finalScore}%
+                        </p>
+                      </div>
+                    </div>
+
+                    {expandedId === cert._id && rejectingId === cert._id && (
+                      <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Rejection Reason *
+                        </label>
+                        <textarea
+                          value={rejectionReason}
+                          onChange={(e) => setRejectionReason(e.target.value)}
+                          placeholder="Please provide a reason for rejection"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                          rows={3}
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex gap-3">
+                      {rejectingId === cert._id ? (
+                        <>
+                          <button
+                            onClick={() => rejectCertificate(cert._id)}
+                            disabled={!rejectionReason.trim()}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 transition-colors font-medium"
+                          >
+                            <XCircle size={18} />
+                            Confirm Rejection
+                          </button>
+                          <button
+                            onClick={() => {
+                              setRejectingId(null);
+                              setRejectionReason("");
+                            }}
+                            className="flex-1 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => approveCertificate(cert._id)}
+                            disabled={approvingId === cert._id}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition-colors font-medium"
+                          >
+                            {approvingId === cert._id ? (
+                              <Loader className="animate-spin" size={18} />
+                            ) : (
+                              <CheckCircle size={18} />
+                            )}
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => setRejectingId(cert._id)}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
+                          >
+                            <XCircle size={18} />
+                            Reject
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Pagination */}
+            <div className="flex justify-center items-center gap-4 mt-6">
+              <button
+                onClick={() => setPage(Math.max(1, page - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Previous
+              </button>
+              <span className="text-gray-700 font-medium">
+                Page {page} of {Math.ceil(total / LIMIT)}
+              </span>
+              <button
+                onClick={() =>
+                  setPage(Math.min(Math.ceil(total / LIMIT), page + 1))
+                }
+                disabled={page >= Math.ceil(total / LIMIT)}
+                className="px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Next
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </AdminPageLayout>
   );
 }

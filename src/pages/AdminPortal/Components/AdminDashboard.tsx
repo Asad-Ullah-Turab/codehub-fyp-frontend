@@ -11,6 +11,7 @@ import {
   X,
   Star,
 } from "lucide-react";
+import AdminPageLayout from "./AdminPageLayout";
 import {
   fetchDashboardStats,
   fetchAnalyticsData,
@@ -131,7 +132,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     } catch (err) {
       console.error("Error fetching dashboard stats:", err);
       setError(
-        err instanceof Error ? err.message : "Failed to load dashboard stats"
+        err instanceof Error ? err.message : "Failed to load dashboard stats",
       );
     } finally {
       setLoading(false);
@@ -146,12 +147,14 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const [latestTutorials, setLatestTutorials] = useState<Tutorial[]>([]);
   const [latestCourses, setLatestCourses] = useState<Course[]>([]);
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>(
-    []
+    [],
   );
   const [mostViewedContent, setMostViewedContent] = useState<ContentDataItem[]>(
-    []
+    [],
   );
-  const [userGrowthData, setUserGrowthData] = useState<Array<{date: string, count: number}>>([]);
+  const [userGrowthData, setUserGrowthData] = useState<
+    Array<{ date: string; count: number }>
+  >([]);
 
   const loadAnalytics = async () => {
     try {
@@ -195,7 +198,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             value: item.viewCount || item.views || 0,
             color: item.type === "tutorial" ? "#3b82f6" : "#8b5cf6",
             type: item.type,
-          })
+          }),
         );
 
         setMostViewedContent(contentItems);
@@ -211,11 +214,11 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                 value: lang.count,
                 color: languageColors[lang._id.toLowerCase()] || "#6b7280",
                 type: "language",
-              })
+              }),
             );
 
           setMostViewedContent(
-            contentItems.sort((a, b) => b.value - a.value).slice(0, 6)
+            contentItems.sort((a, b) => b.value - a.value).slice(0, 6),
           );
         } else {
           setMostViewedContent([]);
@@ -244,7 +247,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         // Format user growth data for chart
         const formattedData = response.data.userGrowth.map((item: any) => ({
           date: item._id,
-          count: item.count
+          count: item.count,
         }));
         setUserGrowthData(formattedData);
       }
@@ -262,7 +265,6 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     loadUserGrowthData();
   }, []);
 
-
   const languageColors: { [key: string]: string } = {
     python: "#14b8a6",
     javascript: "#ec4899",
@@ -271,7 +273,6 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     rust: "#f97316",
     haskell: "#3b82f6",
   };
-
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -320,163 +321,137 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center flex-1">
-            <div ref={searchRef} className="relative w-80">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search tutorials, users, courses..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  handleSearch(e.target.value);
-                }}
-                onFocus={() => searchQuery && setShowSearchResults(true)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              />
-
-              {/* Search Results Popup */}
-              {showSearchResults && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto z-50">
-                  {searchLoading ? (
-                    <div className="p-4 text-center text-gray-500 text-sm">
-                      Searching...
-                    </div>
-                  ) : (
-                    <>
-                      {/* Tutorials Section */}
-                      {searchResults.tutorials.length > 0 && (
-                        <div className="border-b border-gray-100">
-                          <div className="px-4 py-2 bg-gray-50 text-xs font-semibold text-gray-700">
-                            Tutorials
-                          </div>
-                          {searchResults.tutorials.map((tutorial) => (
-                            <button
-                              key={tutorial._id}
-                              onClick={() => {
-                                handleEditTutorial(tutorial);
-                                setShowSearchResults(false);
-                              }}
-                              className="w-full px-4 py-2 hover:bg-gray-50 text-left flex items-center gap-2"
-                            >
-                              <BookOpen className="w-4 h-4 text-blue-600" />
-                              <div className="flex-1">
-                                <div className="text-sm text-gray-900 flex items-center gap-2">
-                                  {tutorial.title}
-                                  {tutorial.isPremium && (
-                                    <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                                  )}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {tutorial.language}
-                                </div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Courses Section */}
-                      {searchResults.courses.length > 0 && (
-                        <div className="border-b border-gray-100">
-                          <div className="px-4 py-2 bg-gray-50 text-xs font-semibold text-gray-700">
-                            Courses
-                          </div>
-                          {searchResults.courses.map((course) => (
-                            <button
-                              key={course._id}
-                              onClick={() => {
-                                handleEditCourse(course);
-                                setShowSearchResults(false);
-                              }}
-                              className="w-full px-4 py-2 hover:bg-gray-50 text-left flex items-center gap-2"
-                            >
-                              <FileText className="w-4 h-4 text-purple-600" />
-                              <div className="flex-1">
-                                <div className="text-sm text-gray-900 flex items-center gap-2">
-                                  {course.title}
-                                  {course.isPremium && (
-                                    <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                                  )}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {course.language}
-                                </div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Users Section */}
-                      {searchResults.users.length > 0 && (
-                        <div>
-                          <div className="px-4 py-2 bg-gray-50 text-xs font-semibold text-gray-700">
-                            Users
-                          </div>
-                          {searchResults.users.map((user) => (
-                            <button
-                              key={user._id}
-                              onClick={() => {
-                                onNavigate?.("users", { userId: user._id });
-                                setShowSearchResults(false);
-                              }}
-                              className="w-full px-4 py-2 hover:bg-gray-50 text-left flex items-center gap-2"
-                            >
-                              <User className="w-4 h-4 text-green-600" />
-                              <div className="flex-1">
-                                <div className="text-sm text-gray-900 flex items-center gap-2">
-                                  {user.name}
-                                  {user.subscriptionPlan === 'premium' && (
-                                    <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                                  )}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {user.email}
-                                </div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* No Results */}
-                      {searchResults.tutorials.length === 0 &&
-                        searchResults.courses.length === 0 &&
-                        searchResults.users.length === 0 &&
-                        !searchLoading && (
-                          <div className="p-4 text-center text-gray-500 text-sm">
-                            No results found
-                          </div>
-                        )}
-                    </>
-                  )}
+    <AdminPageLayout
+      title="Admin Dashboard"
+      subtitle="Overview of courses, users, tutorials, and site activity"
+    >
+      <div className="flex justify-center mb-6">
+        <div className="relative w-full max-w-xl">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Search tutorials, users, courses..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              handleSearch(e.target.value);
+            }}
+            onFocus={() => searchQuery && setShowSearchResults(true)}
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          />
+          {showSearchResults && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-lg max-h-96 overflow-y-auto z-50">
+              {searchLoading ? (
+                <div className="p-4 text-center text-gray-500 text-sm">
+                  Searching...
                 </div>
+              ) : (
+                <>
+                  {searchResults.tutorials.length > 0 && (
+                    <div className="border-b border-gray-100">
+                      <div className="px-4 py-2 bg-gray-50 text-xs font-semibold text-gray-700">
+                        Tutorials
+                      </div>
+                      {searchResults.tutorials.map((tutorial) => (
+                        <button
+                          key={tutorial._id}
+                          onClick={() => {
+                            handleEditTutorial(tutorial);
+                            setShowSearchResults(false);
+                          }}
+                          className="w-full px-4 py-2 hover:bg-gray-50 text-left flex items-center gap-2"
+                        >
+                          <BookOpen className="w-4 h-4 text-blue-600" />
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-900 flex items-center gap-2">
+                              {tutorial.title}
+                              {tutorial.isPremium && (
+                                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {tutorial.language}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {searchResults.courses.length > 0 && (
+                    <div className="border-b border-gray-100">
+                      <div className="px-4 py-2 bg-gray-50 text-xs font-semibold text-gray-700">
+                        Courses
+                      </div>
+                      {searchResults.courses.map((course) => (
+                        <button
+                          key={course._id}
+                          onClick={() => {
+                            handleEditCourse(course);
+                            setShowSearchResults(false);
+                          }}
+                          className="w-full px-4 py-2 hover:bg-gray-50 text-left flex items-center gap-2"
+                        >
+                          <FileText className="w-4 h-4 text-purple-600" />
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-900 flex items-center gap-2">
+                              {course.title}
+                              {course.isPremium && (
+                                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {course.language}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {searchResults.users.length > 0 && (
+                    <div>
+                      <div className="px-4 py-2 bg-gray-50 text-xs font-semibold text-gray-700">
+                        Users
+                      </div>
+                      {searchResults.users.map((user) => (
+                        <button
+                          key={user._id}
+                          onClick={() => {
+                            onNavigate?.("users", { userId: user._id });
+                            setShowSearchResults(false);
+                          }}
+                          className="w-full px-4 py-2 hover:bg-gray-50 text-left flex items-center gap-2"
+                        >
+                          <User className="w-4 h-4 text-green-600" />
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-900 flex items-center gap-2">
+                              {user.name}
+                              {user.subscriptionPlan === "premium" && (
+                                <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {user.email}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {searchResults.tutorials.length === 0 &&
+                    searchResults.courses.length === 0 &&
+                    searchResults.users.length === 0 &&
+                    !searchLoading && (
+                      <div className="p-4 text-center text-gray-500 text-sm">
+                        No results found
+                      </div>
+                    )}
+                </>
               )}
             </div>
-          </div>
+          )}
         </div>
-      </header>
-
-      {/* Main Content */}
+      </div>
       <main className="px-6 py-6">
-        {/* Welcome Section */}
-        <div className="mb-6">
-          <div className="text-sm text-gray-500 mb-1">
-            Admin Panel / Dashboard
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Dashboard Overview
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Here's a summary of your site's activity.
-          </p>
-        </div>
-
         {/* Stats Grid */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           {loading ? (
@@ -560,10 +535,16 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                   <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
                     <span className="text-white text-sm font-bold">$</span>
                   </div>
-                  <div className="text-xs text-green-700 font-medium">Monthly Revenue</div>
+                  <div className="text-xs text-green-700 font-medium">
+                    Monthly Revenue
+                  </div>
                 </div>
                 <div className="text-2xl font-bold text-green-900">
-                  ${(stats.monthlyRecurringRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  $
+                  {(stats.monthlyRecurringRevenue || 0).toLocaleString(
+                    "en-US",
+                    { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+                  )}
                 </div>
                 <div className="text-xs text-green-600 mt-1">
                   MRR from {stats.premiumUsers || 0} premium users
@@ -575,14 +556,18 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                   <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                     <span className="text-white text-sm font-bold">$</span>
                   </div>
-                  <div className="text-xs text-blue-700 font-medium">Annual Revenue</div>
+                  <div className="text-xs text-blue-700 font-medium">
+                    Annual Revenue
+                  </div>
                 </div>
                 <div className="text-2xl font-bold text-blue-900">
-                  ${(stats.annualRecurringRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  $
+                  {(stats.annualRecurringRevenue || 0).toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </div>
-                <div className="text-xs text-blue-600 mt-1">
-                  ARR projection
-                </div>
+                <div className="text-xs text-blue-600 mt-1">ARR projection</div>
               </div>
 
               <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-lg p-5 shadow-sm border border-purple-100">
@@ -590,10 +575,16 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                   <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
                     <span className="text-white text-sm font-bold">$</span>
                   </div>
-                  <div className="text-xs text-purple-700 font-medium">Total Revenue</div>
+                  <div className="text-xs text-purple-700 font-medium">
+                    Total Revenue
+                  </div>
                 </div>
                 <div className="text-2xl font-bold text-purple-900">
-                  ${(stats.totalRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  $
+                  {(stats.totalRevenue || 0).toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </div>
                 <div className="text-xs text-purple-600 mt-1">
                   {stats.totalTransactions || 0} transactions
@@ -605,16 +596,24 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                   <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
                     <span className="text-white text-sm font-bold">📈</span>
                   </div>
-                  <div className="text-xs text-orange-700 font-medium">30-Day Growth</div>
+                  <div className="text-xs text-orange-700 font-medium">
+                    30-Day Growth
+                  </div>
                 </div>
                 <div className="text-2xl font-bold text-orange-900">
-                  ${(stats.revenueGrowth || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  $
+                  {(stats.revenueGrowth || 0).toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </div>
-                <div className={`text-xs font-semibold mt-1 ${
-                  parseFloat(stats.revenueGrowthRate || "0") >= 0 
-                    ? "text-green-600" 
-                    : "text-red-600"
-                }`}>
+                <div
+                  className={`text-xs font-semibold mt-1 ${
+                    parseFloat(stats.revenueGrowthRate || "0") >= 0
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
                   {stats.revenueGrowthRate || "0.0"}% change
                 </div>
               </div>
@@ -658,15 +657,20 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                     </linearGradient>
                   </defs>
                   {(() => {
-                    const maxCount = Math.max(...userGrowthData.map(d => d.count), 1);
+                    const maxCount = Math.max(
+                      ...userGrowthData.map((d) => d.count),
+                      1,
+                    );
                     const xStep = 100 / (userGrowthData.length - 1 || 1);
-                    
+
                     const points = userGrowthData.map((d, i) => ({
                       x: i * xStep,
-                      y: 90 - ((d.count / maxCount) * 70)
+                      y: 90 - (d.count / maxCount) * 70,
                     }));
 
-                    const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+                    const polylinePoints = points
+                      .map((p) => `${p.x},${p.y}`)
+                      .join(" ");
 
                     return (
                       <>
@@ -683,7 +687,9 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                             cx={p.x}
                             cy={p.y}
                             r="1.5"
-                            fill={i === points.length - 1 ? "#a78bfa" : "#60a5fa"}
+                            fill={
+                              i === points.length - 1 ? "#a78bfa" : "#60a5fa"
+                            }
                           />
                         ))}
                       </>
@@ -749,12 +755,15 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               ) : (
                 mostViewedContent.map((item, index) => {
                   const maxViewValue = Math.max(
-                    ...mostViewedContent.map((i) => i.value)
+                    ...mostViewedContent.map((i) => i.value),
                   );
                   return (
                     <div key={index} className="space-y-1">
                       <div className="flex items-center justify-between">
-                        <div className="text-xs text-gray-700 font-medium" title={item.name}>
+                        <div
+                          className="text-xs text-gray-700 font-medium"
+                          title={item.name}
+                        >
                           {item.name}
                         </div>
                         <div className="text-xs text-gray-500 capitalize">
@@ -996,7 +1005,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                     setShowTutorialModal(false);
                     onNavigate?.(
                       "tutorials",
-                      editingItem ? { editTutorial: editingItem } : {}
+                      editingItem ? { editTutorial: editingItem } : {},
                     );
                   }}
                   className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
@@ -1036,7 +1045,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                     setShowCourseModal(false);
                     onNavigate?.(
                       "courses",
-                      editingItem ? { editCourse: editingItem } : {}
+                      editingItem ? { editCourse: editingItem } : {},
                     );
                   }}
                   className="w-full py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600"
@@ -1048,6 +1057,6 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           </div>
         )}
       </main>
-    </div>
+    </AdminPageLayout>
   );
 }

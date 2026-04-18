@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { adminCourseAPI } from "../../../services/adminCourseAPI";
 import { useToast } from "../../../contexts/ToastContext";
+import AdminPageLayout from "../Components/AdminPageLayout";
 import CourseForm, { type CourseFormData } from "../Components/CourseForm";
 
 const initialCourseFormData: CourseFormData = {
@@ -76,26 +77,19 @@ export default function CourseCreatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="bg-gradient-to-r from-slate-900 to-slate-700 text-white px-8 py-8 shadow-lg">
-        <div className="max-w-6xl mx-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-300">Admin Panel / Courses / Create</p>
-            <h1 className="mt-2 text-3xl font-semibold">Create New Course</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-300">
-              Build course metadata, define learning objectives, and configure course details before publishing.
-            </p>
-          </div>
-          <button
-            onClick={handleCancel}
-            className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Courses
-          </button>
-        </div>
-      </div>
-
+    <AdminPageLayout
+      title="Create New Course"
+      subtitle="Build course metadata, define objectives, and publish new courses."
+      actions={
+        <button
+          onClick={handleCancel}
+          className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Courses
+        </button>
+      }
+    >
       <div className="mx-auto max-w-6xl p-6">
         <div className="grid gap-6 lg:grid-cols-[1.8fr_1fr]">
           <div className="space-y-6">
@@ -148,6 +142,6 @@ export default function CourseCreatePage() {
           </div>
         </div>
       </div>
-    </div>
+    </AdminPageLayout>
   );
 }

@@ -5,6 +5,7 @@ import { adminCourseAPI, type Course } from "../../../services/adminCourseAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
 import AdminModal from "./AdminModal";
+import AdminPageLayout from "./AdminPageLayout";
 import CourseForm, { type CourseFormData } from "./CourseForm";
 import SectionManagement from "./SectionManagement";
 
@@ -234,28 +235,19 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-sm text-gray-500 mb-1">
-              Admin Panel / Courses
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Course Management
-            </h1>
-          </div>
-          <button
-            onClick={openAddModal}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm font-medium flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add New Course
-          </button>
-        </div>
-      </div>
-
+    <AdminPageLayout
+      title="Course Management"
+      subtitle="Manage courses, sections, and lessons"
+      actions={
+        <button
+          onClick={openAddModal}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700"
+        >
+          <Plus className="w-4 h-4" />
+          Add New Course
+        </button>
+      }
+    >
       {/* Language Tabs and Filters */}
       <div className="bg-white border-b border-gray-200">
         {/* Tabs */}
@@ -587,6 +579,6 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
         }}
         onCancel={() => setDeleteConfirm({ show: false, courseId: null })}
       />
-    </div>
+    </AdminPageLayout>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { adminAPI } from "../../../services/adminAPI";
 import { useToast } from "../../../contexts/ToastContext";
+import AdminPageLayout from "./AdminPageLayout";
 
 interface CreatorApplication {
   _id: string;
@@ -83,38 +84,30 @@ export default function CreatorApplicationReviews() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="mb-4">
-            <p className="text-sm text-gray-500">Admin Panel / Creator Applications</p>
-            <h1 className="mt-2 text-3xl font-bold text-gray-900">Review pending creator applications</h1>
-            <p className="mt-2 text-sm text-gray-600">
-              Review applicants who want creator access, provide feedback when rejecting, and approve only the best submissions.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-xl border border-gray-200 bg-slate-50 p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Pending applications</p>
-              <p className="mt-3 text-3xl font-semibold text-gray-900">{loading ? "..." : applications.length}</p>
-            </div>
-            <div className="rounded-xl border border-gray-200 bg-slate-50 p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Latest status</p>
-              <p className="mt-3 text-sm text-gray-600">Load the latest pending creator applications and review each submission.</p>
-            </div>
-            <div className="flex items-end justify-end">
-              <button
-                onClick={loadApplications}
-                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-              >
-                Refresh applications
-              </button>
-            </div>
-          </div>
+    <AdminPageLayout
+      title="Creator Applications"
+      subtitle="Review pending creator applications and manage creator onboarding"
+      actions={
+        <button
+          onClick={loadApplications}
+          className="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+        >
+          Refresh applications
+        </button>
+      }
+    >
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-gray-200 bg-slate-50 p-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Pending applications</p>
+          <p className="mt-3 text-3xl font-semibold text-gray-900">{loading ? "..." : applications.length}</p>
         </div>
+        <div className="rounded-xl border border-gray-200 bg-slate-50 p-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-gray-500">Latest status</p>
+          <p className="mt-3 text-sm text-gray-600">Load the latest pending creator applications and review each submission.</p>
+        </div>
+      </div>
 
-        <div className="mt-6 space-y-5">
+      <div className="mt-6 space-y-5">
           {loading ? (
             <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-sm">
               <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
@@ -165,7 +158,7 @@ export default function CreatorApplicationReviews() {
                         <div className="rounded-2xl border border-gray-200 bg-slate-50 p-5">
                           <p className="text-sm font-semibold text-gray-900">Application summary</p>
                           <p className="mt-3 text-sm leading-7 text-gray-700 whitespace-pre-line">
-                            {application.creatorApplication.details?.message || application.creatorApplication.message || "No details provided."}
+                            {application.creatorApplication.details?.message || "No details provided."}
                           </p>
                         </div>
 
@@ -229,7 +222,6 @@ export default function CreatorApplicationReviews() {
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </AdminPageLayout>
   );
 }

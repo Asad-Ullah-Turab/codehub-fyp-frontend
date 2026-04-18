@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { adminTutorialAPI } from "../../../services/adminTutorialAPI";
 import { useToast } from "../../../contexts/ToastContext";
+import AdminPageLayout from "../Components/AdminPageLayout";
 
 const initialTutorialForm = {
   title: "",
@@ -150,21 +151,19 @@ export default function TutorialCreatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200 px-6 py-5 flex items-center justify-between gap-4">
-        <div>
-          <div className="text-sm text-gray-500">Admin Panel / Tutorials / Create</div>
-          <h1 className="text-2xl font-bold text-gray-900">Create New Tutorial</h1>
-        </div>
+    <AdminPageLayout
+      title="Create New Tutorial"
+      subtitle="Add a tutorial with code examples, notes, and tags."
+      actions={
         <button
           onClick={handleCancel}
-          className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100"
+          className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Tutorials
         </button>
-      </div>
-
+      }
+    >
       <div className="p-6">
         <div className="mx-auto max-w-6xl bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 space-y-6">
@@ -523,6 +522,6 @@ export default function TutorialCreatePage() {
           </div>
         </div>
       </div>
-    </div>
+    </AdminPageLayout>
   );
 }

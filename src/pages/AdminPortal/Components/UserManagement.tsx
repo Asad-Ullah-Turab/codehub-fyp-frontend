@@ -24,6 +24,7 @@ import { adminAPI } from "../../../services/adminAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import { getProfileImageUrl } from "../../../utils/imageUtils";
 import ConfirmModal from "../../../components/ConfirmModal/ConfirmModal";
+import AdminPageLayout from "./AdminPageLayout";
 
 interface UserManagementProps {
   onError?: (message: string) => void;
@@ -212,24 +213,11 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <AdminPageLayout
+      title="User Management"
+      subtitle="Manage users, suspend accounts, and send notifications"
+    >
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <div className="text-sm text-gray-500 mb-1">
-              Admin Panel / Users
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              User Management
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Manage users, suspend accounts, and send notifications
-            </p>
-          </div>
-        </div>
-
-        {/* System Management Actions */}
         <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg shadow-sm border border-purple-200 p-4 mb-4">
           <div className="flex items-center justify-between">
             <div>
@@ -309,12 +297,6 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
           <table className="w-full">
             <thead>
               <tr className="bg-white border-b border-gray-200">
-                <th className="w-8 px-4 py-3">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded border-gray-300"
-                  />
-                </th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">
                   User
                 </th>
@@ -372,12 +354,6 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                       user.subscriptionPlan === 'premium' ? 'bg-yellow-50 hover:bg-yellow-100' : 'hover:bg-gray-50'
                     }`}
                   >
-                    <td className="px-4 py-4">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 rounded border-gray-300"
-                      />
-                    </td>
                     <td className="px-4 py-4">
                       <div>
                         <div className="text-sm font-semibold text-gray-900">
@@ -1030,6 +1006,6 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
           confirmButtonClass="bg-red-500 hover:bg-red-600"
         />
       </div>
-    </div>
+    </AdminPageLayout>
   );
 }

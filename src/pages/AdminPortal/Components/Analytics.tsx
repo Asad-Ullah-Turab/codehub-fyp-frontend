@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Search, ChevronDown, Star } from "lucide-react";
 import { adminAPI } from "../../../services/adminAPI";
 import { useToast } from "../../../contexts/ToastContext";
+import AdminPageLayout from "./AdminPageLayout";
 
 interface CourseData {
   name: string;
@@ -176,35 +177,22 @@ export default function AnalyticsDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <div className="text-sm text-gray-500 mb-1">
-                Admin Panel / Analytics
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Analytics Dashboard
-              </h1>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
-                Last 30 Days
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              <button className="px-4 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-gray-800">
-                Export to CSV
-              </button>
-            </div>
-          </div>
-          <p className="text-gray-600 text-sm">
-            Overview of site performance and user engagement.
-          </p>
+    <AdminPageLayout
+      title="Analytics Dashboard"
+      subtitle="Overview of site performance and user engagement"
+      actions={
+        <div className="flex flex-wrap items-center gap-3">
+          <button className="px-4 py-2 bg-white border border-gray-300 rounded-full text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
+            Last 30 Days
+            <ChevronDown className="w-4 h-4" />
+          </button>
+          <button className="px-4 py-2 bg-gray-900 text-white rounded-full text-sm font-medium hover:bg-gray-800">
+            Export to CSV
+          </button>
         </div>
-
-        {/* Stats Grid */}
+      }
+    >
+      <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 xl:grid-cols-5">
           {loading ? (
             <div className="col-span-1 sm:col-span-2 xl:col-span-5 text-center text-white">Loading...</div>
@@ -671,6 +659,6 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
       </div>
-    </div>
+    </AdminPageLayout>
   );
 }

@@ -101,6 +101,8 @@ export const ROUTES = {
   HOME: "/",
   SIGNIN: "/signin",
   SIGNUP: "/signup",
+  CREATOR: "/creator",
+  CREATOR_COURSES: "/creator/courses",
   EDITOR: "/editor",
   OAUTH_SUCCESS: "/auth/success",
   EMAIL_VERIFICATION: "/verify-email",

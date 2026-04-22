@@ -15,8 +15,8 @@ import TutorialsDetailPage from "./pages/TutorialsPage/Components/TutorialsDetai
 import CourseLearningPage from "./pages/CourseLearningPage/CourseLearningPage";
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import CreatorApplicationPage from "./pages/CreatorApplicationPage/CreatorApplicationPage";
-import CreatorPortal from "./pages/CreatorPortal/CreatorPortal";
 import AdminPortal from "./pages/AdminPortal/AdminPortal";
+import CreatorPortal from "./pages/CreatorPortal/CreatorPortal";
 import AboutPage from "./pages/AboutPage/AboutPage";
 import ContactPage from "./pages/ContactPage/ContactPage";
 import SubscriptionPage from "./pages/SubscriptionPage/SubscriptionPage";
@@ -92,15 +92,17 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/creator-portal"
-              element={
-                <ProtectedRoute requireCreator={true}>
-                  <CreatorPortal />
-                </ProtectedRoute>
-              }
-            />
           </Route>
+          {/* Creator routes without Layout (no navbar) */}
+          <Route
+            path="/creator/*"
+            element={
+              <ProtectedRoute requireCreator={true}>
+                <CreatorPortal />
+              </ProtectedRoute>
+            }
+          />
+          
           {/* Admin routes without Layout (no navbar) */}
           <Route
             path="/admin/*"

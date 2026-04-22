@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Clock3, Layers, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowLeft, Clock3, Layers, Pencil, Plus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import AdminPageLayout from "../../AdminPortal/Components/AdminPageLayout";
 import { useToast } from "../../../contexts/ToastContext";
 import { creatorCourseAPI } from "../../../services/creatorCourseAPI";
 import type { Course } from "../../../services/adminCourseAPI";
+import CreatorCourseDetailsModal from "./CreatorCourseDetailsModal";
+import CreatorCreateCourseModal from "./CreatorCreateCourseModal";
 
 const toArray = <T,>(value: unknown): T[] => {
   if (Array.isArray(value)) {
@@ -19,6 +21,8 @@ export default function CreatorCoursesDashboard() {
   const { showToast } = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [creatingCourse, setCreatingCourse] = useState(false);
 
   const fetchCourses = async () => {
     try {
@@ -64,6 +68,33 @@ export default function CreatorCoursesDashboard() {
     }
   };
 
+  const togglePublish = async (course: Course) => {
+    try {
+      await creatorCourseAPI.togglePublishCourse(course._id);
+      showToast(course.status === "published" ? "Course unpublished." : "Course published.", "success");
+      fetchCourses();
+    } catch (error: any) {
+      const message = error?.response?.data?.message || "Unable to change publish status.";
+      showToast(message, "error");
+    }
+  };
+
+  const deleteCourse = async (course: Course) => {
+    const confirmed = window.confirm(`Delete "${course.title}"? This cannot be undone.`);
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await creatorCourseAPI.deleteCourse(course._id);
+      showToast("Course deleted.", "success");
+      setCourses((current) => current.filter((item) => item._id !== course._id));
+    } catch (error: any) {
+      const message = error?.response?.data?.message || "Unable to delete course.";
+      showToast(message, "error");
+    }
+  };
+
   const getPublishLabel = (status: Course["status"]) => {
     if (status === "published") {
       return "Published";
@@ -76,19 +107,86 @@ export default function CreatorCoursesDashboard() {
     return "Request publish";
   };
 
+  const renderPublishAction = (course: Course) => {
+    if (course.status === "published") {
+      return (
+        <button
+          type="button"
+          onClick={() => togglePublish(course)}
+          className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+        >
+          Unpublish
+        </button>
+      );
+    }
+
+    if (course.hasAdminApprovedPublish) {
+      return (
+        <button
+          type="button"
+          onClick={() => togglePublish(course)}
+          disabled={course.status === "pending"}
+          className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+        >
+          Publish
+        </button>
+      );
+    }
+
+    if (course.status === "pending") {
+      return (
+        <button
+          type="button"
+          disabled
+          className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+        >
+          Pending review
+        </button>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={() => requestPublish(course._id)}
+        className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+      >
+        Request publish
+      </button>
+    );
+  };
+
   return (
     <AdminPageLayout
       title="Creator Courses"
       subtitle="A clean dashboard for your courses, with no sidebar. Open a course to manage its sections, lessons, and quizzes in the new workspace."
       actions={
-        <button
-          type="button"
-          onClick={fetchCourses}
-          className="theme-primary-button inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium"
-        >
-          <RefreshCw className="h-4 w-4" />
-          Refresh
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setCreatingCourse(true)}
+            className="theme-primary-button inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium"
+          >
+            <Plus className="h-4 w-4" />
+            Create new course
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to website
+          </button>
+          <button
+            type="button"
+            onClick={fetchCourses}
+            className="theme-primary-button inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </button>
+        </div>
       }
     >
       <div className="grid gap-4 md:grid-cols-3">
@@ -184,19 +282,20 @@ export default function CreatorCoursesDashboard() {
                   <div className="flex flex-wrap items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => openWorkspace(course._id)}
+                      onClick={() => setEditingCourse(course)}
                       className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-indigo-200 hover:text-indigo-700"
                     >
-                      Open
-                      <ArrowRight className="h-4 w-4" />
+                      <Pencil className="h-4 w-4" />
+                      Edit details
                     </button>
+                    {renderPublishAction(course)}
                     <button
                       type="button"
-                      onClick={() => requestPublish(course._id)}
-                      disabled={course.status === "pending" || course.status === "published"}
-                      className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600"
+                      onClick={() => deleteCourse(course)}
+                      className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-50"
                     >
-                      {getPublishLabel(course.status)}
+                      <Trash2 className="h-4 w-4" />
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -205,6 +304,25 @@ export default function CreatorCoursesDashboard() {
           )}
         </div>
       </div>
+
+      <CreatorCourseDetailsModal
+        open={Boolean(editingCourse)}
+        course={editingCourse}
+        onClose={() => setEditingCourse(null)}
+        onSaved={() => {
+          setEditingCourse(null);
+          fetchCourses();
+        }}
+      />
+
+      <CreatorCreateCourseModal
+        open={creatingCourse}
+        onClose={() => setCreatingCourse(false)}
+        onCreated={() => {
+          setCreatingCourse(false);
+          fetchCourses();
+        }}
+      />
     </AdminPageLayout>
   );
 }

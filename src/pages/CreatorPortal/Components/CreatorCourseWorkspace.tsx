@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Outlet, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ChevronLeft, ChevronRight, Layers, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Home, Layers, RefreshCw, Sparkles } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
 import { creatorCourseAPI } from "../../../services/creatorCourseAPI";
 import type { Course, CourseSection } from "../../../services/adminCourseAPI";
@@ -183,11 +183,13 @@ export default function CreatorCourseWorkspace() {
           </button>
         </div>
 
-        <div className="border-b border-slate-700/40 px-5 py-4">
-          <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Current course</p>
-          {!sidebarCollapsed && <h2 className="mt-2 text-lg font-semibold text-white">{course.title}</h2>}
-          {!sidebarCollapsed && <p className="mt-1 text-sm text-slate-300">{course.status} · {course.totalSections || 0} sections</p>}
-        </div>
+        {!sidebarCollapsed && (
+          <div className="border-b border-slate-700/40 px-5 py-4">
+            <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Current course</p>
+            <h2 className="mt-2 text-lg font-semibold text-white">{course.title}</h2>
+            <p className="mt-1 text-sm text-slate-300">{course.status} · {course.totalSections || 0} sections</p>
+          </div>
+        )}
 
         <CreatorCourseSidebar
           sections={sections}
@@ -197,23 +199,25 @@ export default function CreatorCourseWorkspace() {
           onOpenLesson={openLessonEditor}
           onOpenQuiz={openQuizEditor}
         />
+
+        <div className={`border-t border-slate-700/40 ${sidebarCollapsed ? "p-3" : "p-4"}`}>
+          <button
+            type="button"
+            onClick={() => navigate("/creator/courses")}
+            className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-700/70 bg-slate-900 px-4 py-3 text-sm font-medium text-slate-100 transition hover:bg-slate-800 ${sidebarCollapsed ? "px-0" : ""}`}
+            title="Back to dashboard"
+          >
+            <Home className="h-4 w-4" />
+            {!sidebarCollapsed && <span>Dashboard</span>}
+          </button>
+        </div>
       </aside>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-500">
-                <button
-                  type="button"
-                  onClick={() => navigate("/creator/courses")}
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 tracking-normal text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Dashboard
-                </button>
-                <span>Creator workspace</span>
-              </div>
+              <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Creator workspace</div>
               <h1 className="mt-3 truncate text-2xl font-semibold text-slate-900 sm:text-3xl">
                 {course.title}
               </h1>

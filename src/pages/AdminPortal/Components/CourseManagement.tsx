@@ -305,6 +305,9 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
               }
             >
               <option value="">All Categories</option>
+              <option value="programming-language">Programming Language</option>
+              <option value="data-structures">Data Structures</option>
+              <option value="algorithms">Algorithms</option>
               <option value="web-development">Web Development</option>
               <option value="mobile-development">Mobile Development</option>
               <option value="data-science">Data Science</option>
@@ -313,6 +316,10 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
               <option value="security">Security</option>
               <option value="game-development">Game Development</option>
               <option value="blockchain">Blockchain</option>
+              <option value="cloud-computing">Cloud Computing</option>
+              <option value="databases">Databases</option>
+              <option value="system-design">System Design</option>
+              <option value="testing-qa">Testing & QA</option>
               <option value="other">Other</option>
             </select>
             <select

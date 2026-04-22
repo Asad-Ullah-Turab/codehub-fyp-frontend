@@ -11,7 +11,12 @@ interface CreatorCourseDetailsModalProps {
   onSaved: () => Promise<void> | void;
 }
 
-export default function CreatorCourseDetailsModal({ open, course, onClose, onSaved }: CreatorCourseDetailsModalProps) {
+export default function CreatorCourseDetailsModal({
+  open,
+  course,
+  onClose,
+  onSaved,
+}: CreatorCourseDetailsModalProps) {
   const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
   const [tagInput, setTagInput] = useState("");
@@ -41,11 +46,15 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
       description: course.description || "",
       language: course.language || "",
       category: course.category || "",
-      difficulty: (course.difficulty as "beginner" | "intermediate" | "advanced") || "beginner",
+      difficulty:
+        (course.difficulty as "beginner" | "intermediate" | "advanced") ||
+        "beginner",
       estimatedHours: course.estimatedHours || 0,
       targetAudience: course.targetAudience || "",
       tags: Array.isArray(course.tags) ? course.tags : [],
-      requirements: Array.isArray(course.requirements) ? course.requirements : [],
+      requirements: Array.isArray(course.requirements)
+        ? course.requirements
+        : [],
       isPremium: Boolean(course.isPremium),
     });
     setTagInput("");
@@ -99,8 +108,15 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
       return;
     }
 
-    if (!formData.title.trim() || !formData.shortDescription.trim() || !formData.description.trim()) {
-      showToast("Title, short description, and description are required.", "error");
+    if (
+      !formData.title.trim() ||
+      !formData.shortDescription.trim() ||
+      !formData.description.trim()
+    ) {
+      showToast(
+        "Title, short description, and description are required.",
+        "error",
+      );
       return;
     }
 
@@ -122,7 +138,8 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
       showToast("Course details updated.", "success");
       await onSaved();
     } catch (error: any) {
-      const message = error?.response?.data?.message || "Unable to update course details.";
+      const message =
+        error?.response?.data?.message || "Unable to update course details.";
       showToast(message, "error");
     } finally {
       setSaving(false);
@@ -135,13 +152,21 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl">
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Creator dashboard</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Edit course details</h2>
+            <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
+              Creator dashboard
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+              Edit course details
+            </h2>
           </div>
-          <button type="button" onClick={onClose} className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -149,29 +174,50 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
         <div className="grid gap-5 overflow-y-auto px-6 py-6 lg:grid-cols-2">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-900">Title *</label>
+              <label className="block text-sm font-semibold text-slate-900">
+                Title *
+              </label>
               <input
                 type="text"
                 value={formData.title}
-                onChange={(event) => setFormData((prev) => ({ ...prev, title: event.target.value }))}
+                onChange={(event) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    title: event.target.value,
+                  }))
+                }
                 className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-900">Short description *</label>
+              <label className="block text-sm font-semibold text-slate-900">
+                Short description *
+              </label>
               <input
                 type="text"
                 value={formData.shortDescription}
-                onChange={(event) => setFormData((prev) => ({ ...prev, shortDescription: event.target.value }))}
+                onChange={(event) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    shortDescription: event.target.value,
+                  }))
+                }
                 className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-900">Description *</label>
+              <label className="block text-sm font-semibold text-slate-900">
+                Description *
+              </label>
               <textarea
                 rows={7}
                 value={formData.description}
-                onChange={(event) => setFormData((prev) => ({ ...prev, description: event.target.value }))}
+                onChange={(event) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: event.target.value,
+                  }))
+                }
                 className="mt-2 w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
               />
             </div>
@@ -180,10 +226,17 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-semibold text-slate-900">Language</label>
+                <label className="block text-sm font-semibold text-slate-900">
+                  Language
+                </label>
                 <select
                   value={formData.language}
-                  onChange={(event) => setFormData((prev) => ({ ...prev, language: event.target.value }))}
+                  onChange={(event) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      language: event.target.value,
+                    }))
+                  }
                   className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 >
                   <option value="javascript">JavaScript</option>
@@ -195,16 +248,36 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-900">Category</label>
+                <label className="block text-sm font-semibold text-slate-900">
+                  Category
+                </label>
                 <select
                   value={formData.category}
-                  onChange={(event) => setFormData((prev) => ({ ...prev, category: event.target.value }))}
+                  onChange={(event) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      category: event.target.value,
+                    }))
+                  }
                   className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 >
-                  <option value="programming-language">Programming language</option>
+                  <option value="programming-language">
+                    Programming language
+                  </option>
                   <option value="data-structures">Data structures</option>
                   <option value="algorithms">Algorithms</option>
                   <option value="web-development">Web development</option>
+                  <option value="mobile-development">Mobile development</option>
+                  <option value="data-science">Data science</option>
+                  <option value="machine-learning">Machine learning</option>
+                  <option value="devops">DevOps</option>
+                  <option value="security">Security</option>
+                  <option value="game-development">Game development</option>
+                  <option value="blockchain">Blockchain</option>
+                  <option value="cloud-computing">Cloud computing</option>
+                  <option value="databases">Databases</option>
+                  <option value="system-design">System design</option>
+                  <option value="testing-qa">Testing & QA</option>
                   <option value="other">Other</option>
                 </select>
               </div>
@@ -212,10 +285,18 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-semibold text-slate-900">Difficulty</label>
+                <label className="block text-sm font-semibold text-slate-900">
+                  Difficulty
+                </label>
                 <select
                   value={formData.difficulty}
-                  onChange={(event) => setFormData((prev) => ({ ...prev, difficulty: event.target.value as typeof formData.difficulty }))}
+                  onChange={(event) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      difficulty: event.target
+                        .value as typeof formData.difficulty,
+                    }))
+                  }
                   className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 >
                   <option value="beginner">Beginner</option>
@@ -224,30 +305,46 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-900">Estimated hours</label>
+                <label className="block text-sm font-semibold text-slate-900">
+                  Estimated hours
+                </label>
                 <input
                   type="number"
                   min="0"
                   step="0.5"
                   value={formData.estimatedHours}
-                  onChange={(event) => setFormData((prev) => ({ ...prev, estimatedHours: Number(event.target.value) || 0 }))}
+                  onChange={(event) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      estimatedHours: Number(event.target.value) || 0,
+                    }))
+                  }
                   className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-900">Target audience</label>
+              <label className="block text-sm font-semibold text-slate-900">
+                Target audience
+              </label>
               <input
                 type="text"
                 value={formData.targetAudience}
-                onChange={(event) => setFormData((prev) => ({ ...prev, targetAudience: event.target.value }))}
+                onChange={(event) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    targetAudience: event.target.value,
+                  }))
+                }
                 className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-900">Tags</label>
+              <label className="block text-sm font-semibold text-slate-900">
+                Tags
+              </label>
               <div className="mt-2 flex gap-2">
                 <input
                   type="text"
@@ -284,7 +381,9 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-900">Requirements</label>
+              <label className="block text-sm font-semibold text-slate-900">
+                Requirements
+              </label>
               <div className="mt-2 flex gap-2">
                 <input
                   type="text"
@@ -303,7 +402,9 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {formData.requirements.length === 0 ? (
-                  <span className="text-sm text-slate-500">No requirements added.</span>
+                  <span className="text-sm text-slate-500">
+                    No requirements added.
+                  </span>
                 ) : (
                   formData.requirements.map((requirement) => (
                     <button
@@ -324,7 +425,12 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
               <input
                 type="checkbox"
                 checked={formData.isPremium}
-                onChange={(event) => setFormData((prev) => ({ ...prev, isPremium: event.target.checked }))}
+                onChange={(event) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    isPremium: event.target.checked,
+                  }))
+                }
                 className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-200"
               />
               Premium course

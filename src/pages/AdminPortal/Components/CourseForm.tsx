@@ -75,6 +75,17 @@ export default function CourseForm({ formData, setFormData }: CourseFormProps) {
                   <option value="data-structures">Data Structures</option>
                   <option value="algorithms">Algorithms</option>
                   <option value="web-development">Web Development</option>
+                  <option value="mobile-development">Mobile Development</option>
+                  <option value="data-science">Data Science</option>
+                  <option value="machine-learning">Machine Learning</option>
+                  <option value="devops">DevOps</option>
+                  <option value="security">Security</option>
+                  <option value="game-development">Game Development</option>
+                  <option value="blockchain">Blockchain</option>
+                  <option value="cloud-computing">Cloud Computing</option>
+                  <option value="databases">Databases</option>
+                  <option value="system-design">System Design</option>
+                  <option value="testing-qa">Testing & QA</option>
                   <option value="other">Other</option>
                 </select>
               </div>

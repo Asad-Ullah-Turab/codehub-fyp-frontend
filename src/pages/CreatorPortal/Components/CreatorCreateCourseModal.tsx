@@ -121,7 +121,7 @@ export default function CreatorCreateCourseModal({ open, onClose, onCreated }: C
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl">
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Creator dashboard</p>
@@ -191,6 +191,17 @@ export default function CreatorCreateCourseModal({ open, onClose, onCreated }: C
                   <option value="data-structures">Data structures</option>
                   <option value="algorithms">Algorithms</option>
                   <option value="web-development">Web development</option>
+                  <option value="mobile-development">Mobile development</option>
+                  <option value="data-science">Data science</option>
+                  <option value="machine-learning">Machine learning</option>
+                  <option value="devops">DevOps</option>
+                  <option value="security">Security</option>
+                  <option value="game-development">Game development</option>
+                  <option value="blockchain">Blockchain</option>
+                  <option value="cloud-computing">Cloud computing</option>
+                  <option value="databases">Databases</option>
+                  <option value="system-design">System design</option>
+                  <option value="testing-qa">Testing & QA</option>
                   <option value="other">Other</option>
                 </select>
               </div>

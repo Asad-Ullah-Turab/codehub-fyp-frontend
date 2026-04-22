@@ -136,7 +136,9 @@ export default function Header() {
                       <p className="font-semibold text-gray-900 truncate">
                         {user?.name}
                       </p>
-                      <p className="text-sm text-gray-600 truncate">{user?.email}</p>
+                      <p className="text-sm text-gray-600 truncate">
+                        {user?.email}
+                      </p>
                       <span
                         className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
                           user?.role === "admin"
@@ -247,7 +249,7 @@ export default function Header() {
 
                   {user?.role === "creator" && (
                     <Link
-                      to="/creator-portal"
+                      to="/creator"
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
                     >

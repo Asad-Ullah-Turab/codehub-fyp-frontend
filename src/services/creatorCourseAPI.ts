@@ -46,6 +46,16 @@ export const creatorCourseAPI = {
     return response.data;
   },
 
+  togglePublishCourse: async (courseId: string) => {
+    const response = await api.patch(`${API_ENDPOINTS.CREATOR_COURSES}/${courseId}/publish`);
+    return response.data;
+  },
+
+  deleteCourse: async (courseId: string) => {
+    const response = await api.delete(`${API_ENDPOINTS.CREATOR_COURSES}/${courseId}`);
+    return response.data;
+  },
+
   getCourseSections: async (courseId: string) => {
     const response = await api.get(`${API_ENDPOINTS.CREATOR_COURSES}/${courseId}/sections`);
     return response.data;

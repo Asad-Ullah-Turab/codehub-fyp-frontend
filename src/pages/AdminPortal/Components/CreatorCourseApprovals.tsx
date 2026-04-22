@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle, XCircle, Loader, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
 import { creatorCourseAPI } from "../../../services/creatorCourseAPI";
+import AdminPageLayout from "./AdminPageLayout";
 
 interface CourseApprovalItem {
   _id: string;
@@ -72,14 +73,18 @@ export default function CreatorCourseApprovals() {
   };
 
   return (
-    <div className="space-y-6">
-      {error && (
-        <div className="rounded-3xl border border-red-200 bg-red-50 p-5 text-red-700">
-          {error}
-        </div>
-      )}
+    <AdminPageLayout
+      title="Creator Course Approvals"
+      subtitle="Review creator-submitted course publish requests and approve or reject them."
+    >
+      <div className="space-y-6">
+        {error && (
+          <div className="rounded-3xl border border-red-200 bg-red-50 p-5 text-red-700">
+            {error}
+          </div>
+        )}
 
-      {loading ? (
+        {loading ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
           <Loader className="mx-auto h-10 w-10 animate-spin text-indigo-600" />
           <p className="mt-4 text-sm text-slate-600">Loading pending creator course approvals...</p>
@@ -165,5 +170,6 @@ export default function CreatorCourseApprovals() {
         </div>
       )}
     </div>
+    </AdminPageLayout>
   );
 }

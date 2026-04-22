@@ -37,7 +37,7 @@ export const useVerifyUserStatus = () => {
 
     try {
       const response = await authAPI.getProfile();
-      if (response.data.user.accountStatus === "suspended") {
+      if (response.data.accountStatus === "suspended") {
         logout();
         navigate("/signin?error=account_suspended");
       }

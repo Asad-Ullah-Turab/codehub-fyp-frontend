@@ -35,6 +35,7 @@ export default function CreatorPortal() {
   const [formData, setFormData] = useState<CreatorCourseFormData>(initialFormData);
   const [activeTab, setActiveTab] = useState<"my-courses" | "create-course">("my-courses");
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -99,12 +100,14 @@ export default function CreatorPortal() {
     }
   };
 
-  const handleManageCourse = (courseId: string) => {
-    setSelectedCourseId(courseId);
+  const handleManageCourse = (course: any) => {
+    setSelectedCourseId(course._id);
+    setSelectedCourse(course);
   };
 
   const handleCloseManagement = () => {
     setSelectedCourseId(null);
+    setSelectedCourse(null);
     fetchCourses();
   };
 
@@ -112,6 +115,7 @@ export default function CreatorPortal() {
     return (
       <CreatorCourseManagement
         courseId={selectedCourseId}
+        initialCourse={selectedCourse}
         onClose={handleCloseManagement}
       />
     );
@@ -175,7 +179,7 @@ export default function CreatorPortal() {
                 courses={courses}
                 loading={loading}
                 onRequestPublish={handleRequestPublish}
-                onManageCourse={(course) => handleManageCourse(course._id)}
+                onManageCourse={handleManageCourse}
               />
             ) : (
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">

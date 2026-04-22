@@ -10,6 +10,7 @@ import CreatorCourseEnrollments from "./CreatorCourseEnrollments";
 
 interface CreatorCourseManagementProps {
   courseId: string;
+  initialCourse?: Course | null;
   onClose: () => void;
 }
 
@@ -74,8 +75,8 @@ const defaultQuizForm: QuizForm = {
   ],
 };
 
-export default function CreatorCourseManagement({ courseId, onClose }: CreatorCourseManagementProps) {
-  const [course, setCourse] = useState<Course | null>(null);
+export default function CreatorCourseManagement({ courseId, initialCourse = null, onClose }: CreatorCourseManagementProps) {
+  const [course, setCourse] = useState<Course | null>(initialCourse);
   const [sections, setSections] = useState<CourseSection[]>([]);
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
   const [ratings, setRatings] = useState<{ averageRating: number; ratingCount: number } | null>(null);
@@ -84,6 +85,8 @@ export default function CreatorCourseManagement({ courseId, onClose }: CreatorCo
   const [savingSection, setSavingSection] = useState(false);
   const [savingLesson, setSavingLesson] = useState(false);
   const [savingQuiz, setSavingQuiz] = useState(false);
+  const [savingPublish, setSavingPublish] = useState(false);
+  const [deletingCourse, setDeletingCourse] = useState(false);
   const [selectedSection, setSelectedSection] = useState<CourseSection | null>(null);
   const [sectionLessons, setSectionLessons] = useState<CourseLesson[]>([]);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
@@ -102,9 +105,17 @@ export default function CreatorCourseManagement({ courseId, onClose }: CreatorCo
       setLoading(true);
       const response = await creatorCourseAPI.getCourse(courseId);
       setCourse(response.data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error fetching course:", error);
-      showToast("Failed to load course details", "error");
+      if (initialCourse) {
+        setCourse(initialCourse);
+      }
+      const status = (error as any)?.response?.status;
+      if (status === 403) {
+        showToast("You are not authorized to access this course.", "error");
+      } else {
+        showToast("Failed to load course details", "error");
+      }
     } finally {
       setLoading(false);
     }
@@ -439,6 +450,45 @@ export default function CreatorCourseManagement({ courseId, onClose }: CreatorCo
     resetSectionForm();
   };
 
+  const handleTogglePublish = async () => {
+    if (!course) return;
+
+    try {
+      setSavingPublish(true);
+      const response = await creatorCourseAPI.togglePublishCourse(course._id);
+      setCourse(response.data);
+      showToast(
+        `Course ${response.data.isPublished ? "published" : "unpublished"} successfully`,
+        "success",
+      );
+    } catch (error) {
+      console.error("Error toggling publish status:", error);
+      showToast("Unable to change publish status", "error");
+    } finally {
+      setSavingPublish(false);
+    }
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!course) return;
+    const confirmed = window.confirm(
+      "Are you sure you want to permanently delete this course? This action cannot be undone."
+    );
+    if (!confirmed) return;
+
+    try {
+      setDeletingCourse(true);
+      await creatorCourseAPI.deleteCourse(course._id);
+      showToast("Course deleted successfully", "success");
+      onClose();
+    } catch (error) {
+      console.error("Error deleting course:", error);
+      showToast("Unable to delete course", "error");
+    } finally {
+      setDeletingCourse(false);
+    }
+  };
+
   const summaryStats = useMemo(
     () => ({
       enrollments: course?.enrollmentCount || 0,
@@ -474,13 +524,43 @@ export default function CreatorCourseManagement({ courseId, onClose }: CreatorCo
               Manage sections, lessons, quizzes, enrollments, and course ratings for your creator course.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-200"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back
-          </button>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {course?.hasAdminApprovedPublish ? (
+              <button
+                type="button"
+                onClick={handleTogglePublish}
+                disabled={savingPublish || course.status === "pending"}
+                className="inline-flex items-center justify-center rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+              >
+                {savingPublish
+                  ? "Updating..."
+                  : course.isPublished
+                  ? "Unpublish"
+                  : "Publish"}
+              </button>
+            ) : (
+              <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                {course?.status === "pending"
+                  ? "Publish request is pending admin review."
+                  : "Awaiting first admin approval before publish toggle becomes available."}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleDeleteCourse}
+              disabled={deletingCourse}
+              className="inline-flex items-center justify-center rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+            >
+              {deletingCourse ? "Deleting..." : "Delete Course"}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-200"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-3 mb-6">

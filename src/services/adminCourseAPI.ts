@@ -34,6 +34,7 @@ export interface Course {
   status: "draft" | "pending" | "published" | "archived" | "rejected";
   publishRequestedAt?: string | null;
   publishReviewComment?: string | null;
+  hasAdminApprovedPublish?: boolean;
   createdAt: string;
   updatedAt: string;
   finalQuiz?: string | Quiz;

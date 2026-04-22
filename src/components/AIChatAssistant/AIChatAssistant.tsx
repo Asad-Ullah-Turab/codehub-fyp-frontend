@@ -136,10 +136,13 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
       };
       setMessages((prev) => [...prev, aiResponse]);
       // decrement local count
-      if (subscriptionInfo && subscriptionInfo.plan === 'free') {
+      if (subscriptionInfo && subscriptionInfo.plan === "free") {
         setSubscriptionInfo((prev: any) => ({
           ...prev,
-          chatQueriesRemaining: Math.max((prev.chatQueriesRemaining || 1) - 1, 0)
+          chatQueriesRemaining: Math.max(
+            (prev.chatQueriesRemaining || 1) - 1,
+            0,
+          ),
         }));
       }
     } catch (err) {
@@ -147,8 +150,8 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
       setError(msg);
       showToast(msg, "error");
       // if limit reached include upgrade suggestion
-      if (msg.toLowerCase().includes('limit')) {
-        showToast('Visit your profile to upgrade subscription.', 'info');
+      if (msg.toLowerCase().includes("limit")) {
+        showToast("Visit your profile to upgrade subscription.", "info");
       }
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -199,10 +202,13 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiResponse]);
-      if (subscriptionInfo && subscriptionInfo.plan === 'free') {
+      if (subscriptionInfo && subscriptionInfo.plan === "free") {
         setSubscriptionInfo((prev: any) => ({
           ...prev,
-          chatQueriesRemaining: Math.max((prev.chatQueriesRemaining || 1) - 1, 0)
+          chatQueriesRemaining: Math.max(
+            (prev.chatQueriesRemaining || 1) - 1,
+            0,
+          ),
         }));
       }
     } catch (err) {
@@ -247,21 +253,22 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
         <div className="flex items-center gap-2">
-        <h2 className="font-semibold text-gray-800 text-sm">AI Assistant</h2>
-        {subscriptionInfo && subscriptionInfo.plan === 'free' && (
-          <>
-            <span className="text-xs text-gray-500">
-              Chat: {subscriptionInfo.chatQueriesRemaining}, Code: {subscriptionInfo.codeQueriesRemaining}
-            </span>
-            <button
-              onClick={() => window.location.href = '/upgrade'}
-              className="ml-2 px-2 py-1 bg-yellow-300 text-xs rounded"
-            >
-              Upgrade
-            </button>
-          </>
-        )}
-      </div>
+          <h2 className="font-semibold text-gray-800 text-sm">AI Assistant</h2>
+          {subscriptionInfo && subscriptionInfo.plan === "free" && (
+            <>
+              <span className="text-xs text-gray-500">
+                Chat: {subscriptionInfo.chatQueriesRemaining}, Code:{" "}
+                {subscriptionInfo.codeQueriesRemaining}
+              </span>
+              <button
+                onClick={() => (window.location.href = "/upgrade")}
+                className="ml-2 px-2 py-1 bg-yellow-300 text-xs rounded"
+              >
+                Upgrade
+              </button>
+            </>
+          )}
+        </div>
         <button
           onClick={() => setShowClearConfirm(true)}
           className="text-gray-400 hover:text-gray-600 transition-colors p-1"
@@ -304,7 +311,8 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
               setError(null);
               showToast("Chats cleared", "success");
             } catch (err) {
-              const message = err instanceof Error ? err.message : "Failed to clear chats";
+              const message =
+                err instanceof Error ? err.message : "Failed to clear chats";
               setError(message);
               showToast(message, "error");
             } finally {
@@ -318,11 +326,22 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 bg-gray-50">
         {messages.map((message) => (
-          <motion.div key={message.id} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.22 }} className="overflow-x-hidden">
+          <motion.div
+            key={message.id}
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.22 }}
+            className="overflow-x-hidden"
+          >
             {!message.isUser && (
               <div className="flex items-start space-x-3">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-5 h-5 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"

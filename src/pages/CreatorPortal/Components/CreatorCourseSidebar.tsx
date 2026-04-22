@@ -40,7 +40,7 @@ export default function CreatorCourseSidebar({
           }`}
           title={section.title}
         >
-          {section.order + 1}
+          {section.order || 1}
         </button>
 
         {isActive && (

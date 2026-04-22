@@ -164,14 +164,6 @@ export default function CreatorCoursesDashboard() {
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={() => setCreatingCourse(true)}
-            className="theme-primary-button inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium"
-          >
-            <Plus className="h-4 w-4" />
-            Create new course
-          </button>
-          <button
-            type="button"
             onClick={() => navigate("/")}
             className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
           >
@@ -213,9 +205,19 @@ export default function CreatorCoursesDashboard() {
                 Open a course to manage its sections, lessons, and quizzes.
               </p>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-600">
-              <Sparkles className="h-3.5 w-3.5" />
-              Creator workspace
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-600">
+                <Sparkles className="h-3.5 w-3.5" />
+                Creator workspace
+              </div>
+              <button
+                type="button"
+                onClick={() => setCreatingCourse(true)}
+                className="theme-primary-button inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium"
+              >
+                <Plus className="h-4 w-4" />
+                Create new course
+              </button>
             </div>
           </div>
         </div>

@@ -75,7 +75,7 @@ export default function CreatorCourseWorkspace() {
   }, [sidebarCollapsed]);
 
   const selectedSectionId = useMemo(() => {
-    return sectionId || searchParams.get("section") || sections[0]?._id || null;
+    return sectionId || searchParams.get("section") || null;
   }, [sectionId, searchParams, sections]);
 
   const selectedSection = useMemo(
@@ -83,13 +83,12 @@ export default function CreatorCourseWorkspace() {
     [sections, selectedSectionId],
   );
 
-  useEffect(() => {
-    if (!sectionId && !lessonId && !quizId && selectedSectionId && searchParams.get("section") !== selectedSectionId) {
-      setSearchParams({ section: selectedSectionId }, { replace: true });
-    }
-  }, [lessonId, quizId, searchParams, sectionId, selectedSectionId, setSearchParams]);
-
   const openSectionOverview = (targetSectionId: string) => {
+    if (targetSectionId === selectedSectionId) {
+      navigate(`/creator/courses/${courseId}`);
+      return;
+    }
+
     navigate(`/creator/courses/${courseId}?section=${targetSectionId}`);
   };
 
@@ -237,8 +236,8 @@ export default function CreatorCourseWorkspace() {
               </button>
               <button
                 type="button"
-                onClick={() => openSectionOverview(selectedSectionId || sections[0]?._id || "")}
-                disabled={!selectedSectionId && sections.length === 0}
+                onClick={() => selectedSectionId && openSectionOverview(selectedSectionId)}
+                disabled={!selectedSectionId}
                 className="theme-primary-button inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Layers className="h-4 w-4" />

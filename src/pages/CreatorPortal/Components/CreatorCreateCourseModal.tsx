@@ -1,56 +1,41 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
 import { creatorCourseAPI } from "../../../services/creatorCourseAPI";
-import type { Course } from "../../../services/adminCourseAPI";
 
-interface CreatorCourseDetailsModalProps {
+interface CreatorCreateCourseModalProps {
   open: boolean;
-  course: Course | null;
   onClose: () => void;
-  onSaved: () => Promise<void> | void;
+  onCreated: () => Promise<void> | void;
 }
 
-export default function CreatorCourseDetailsModal({ open, course, onClose, onSaved }: CreatorCourseDetailsModalProps) {
+const initialFormData = {
+  title: "",
+  shortDescription: "",
+  description: "",
+  language: "javascript",
+  category: "programming-language",
+  difficulty: "beginner" as "beginner" | "intermediate" | "advanced",
+  estimatedHours: 0,
+  targetAudience: "",
+  tags: [] as string[],
+  requirements: [] as string[],
+  isPremium: false,
+};
+
+export default function CreatorCreateCourseModal({ open, onClose, onCreated }: CreatorCreateCourseModalProps) {
   const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [requirementInput, setRequirementInput] = useState("");
-  const [formData, setFormData] = useState({
-    title: "",
-    shortDescription: "",
-    description: "",
-    language: "",
-    category: "",
-    difficulty: "beginner" as "beginner" | "intermediate" | "advanced",
-    estimatedHours: 0,
-    targetAudience: "",
-    tags: [] as string[],
-    requirements: [] as string[],
-    isPremium: false,
-  });
+  const [formData, setFormData] = useState(initialFormData);
 
-  useEffect(() => {
-    if (!open || !course) {
-      return;
-    }
-
-    setFormData({
-      title: course.title || "",
-      shortDescription: course.shortDescription || "",
-      description: course.description || "",
-      language: course.language || "",
-      category: course.category || "",
-      difficulty: (course.difficulty as "beginner" | "intermediate" | "advanced") || "beginner",
-      estimatedHours: course.estimatedHours || 0,
-      targetAudience: course.targetAudience || "",
-      tags: Array.isArray(course.tags) ? course.tags : [],
-      requirements: Array.isArray(course.requirements) ? course.requirements : [],
-      isPremium: Boolean(course.isPremium),
-    });
+  const handleClose = () => {
+    setFormData(initialFormData);
     setTagInput("");
     setRequirementInput("");
-  }, [course, open]);
+    onClose();
+  };
 
   const addTag = () => {
     const value = tagInput.trim();
@@ -94,11 +79,7 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
     }));
   };
 
-  const handleSave = async () => {
-    if (!course) {
-      return;
-    }
-
+  const handleCreate = async () => {
     if (!formData.title.trim() || !formData.shortDescription.trim() || !formData.description.trim()) {
       showToast("Title, short description, and description are required.", "error");
       return;
@@ -106,7 +87,7 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
 
     try {
       setSaving(true);
-      await creatorCourseAPI.updateCourse(course._id, {
+      await creatorCourseAPI.createCourse({
         title: formData.title,
         shortDescription: formData.shortDescription,
         description: formData.description,
@@ -114,22 +95,27 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
         category: formData.category,
         difficulty: formData.difficulty,
         estimatedHours: formData.estimatedHours,
-        targetAudience: formData.targetAudience,
+        certificateTemplate: "standard",
         tags: formData.tags,
+        prerequisites: [],
+        targetAudience: formData.targetAudience,
+        learningObjectives: [],
+        outcomes: [],
         requirements: formData.requirements,
         isPremium: formData.isPremium,
       });
-      showToast("Course details updated.", "success");
-      await onSaved();
+      showToast("Course created successfully.", "success");
+      setFormData(initialFormData);
+      await onCreated();
     } catch (error: any) {
-      const message = error?.response?.data?.message || "Unable to update course details.";
+      const message = error?.response?.data?.message || "Unable to create course.";
       showToast(message, "error");
     } finally {
       setSaving(false);
     }
   };
 
-  if (!open || !course) {
+  if (!open) {
     return null;
   }
 
@@ -139,9 +125,9 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
         <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-slate-500">Creator dashboard</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Edit course details</h2>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-900">Create new course</h2>
           </div>
-          <button type="button" onClick={onClose} className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900">
+          <button type="button" onClick={handleClose} className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -335,18 +321,18 @@ export default function CreatorCourseDetailsModal({ open, course, onClose, onSav
         <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-4">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
           >
             Cancel
           </button>
           <button
             type="button"
-            onClick={handleSave}
+            onClick={handleCreate}
             disabled={saving}
             className="theme-primary-button rounded-full px-4 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? "Saving..." : "Save changes"}
+            {saving ? "Creating..." : "Create course"}
           </button>
         </div>
       </div>

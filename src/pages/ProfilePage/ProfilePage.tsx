@@ -56,7 +56,7 @@ import {
 } from "lucide-react";
 
 const ProfilePage: React.FC = () => {
-  const { isAuthenticated, logout, user: authUser } = useAuth();
+  const { isAuthenticated, logout, user: authUser, setUserAndToken, token } = useAuth();
   const isAdmin = authUser?.role === "admin";
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -2195,6 +2195,9 @@ const ProfilePage: React.FC = () => {
                                           profilePicture: response.data.fileUrl,
                                         }));
                                         setUser(response.data.user);
+                                        if (token) {
+                                          setUserAndToken(response.data.user, token);
+                                        }
                                       } catch (err) {
                                         console.error(
                                           "Error uploading picture:",

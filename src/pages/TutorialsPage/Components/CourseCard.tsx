@@ -13,6 +13,7 @@ import {
   UserRound,
   Zap,
 } from "lucide-react";
+import { getProfileImageUrl } from "../../../utils/imageUtils";
 import type { Course } from "../../../functions/CourseFunctions/courseFunctions";
 
 interface CourseCardProps {
@@ -47,6 +48,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, userHasPremium
   const instructorInitial = instructorName.trim().charAt(0).toUpperCase() || "C";
   const rating = Number(course.averageRating || 0);
   const ratingCount = course.ratingCount || 0;
+  const instructorProfileImage = getProfileImageUrl(course.instructor?.profilePicture);
 
   const visual = isCreatorCourse
     ? {
@@ -125,9 +127,9 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, userHasPremium
           <div className="mb-4 flex w-full items-center justify-between gap-3 rounded-xl bg-white/80 p-3 ring-1 ring-emerald-100">
             <div className="flex min-w-0 items-center gap-3">
               <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-emerald-600 text-white">
-                {course.instructor?.profilePicture ? (
+                {instructorProfileImage ? (
                   <img
-                    src={course.instructor.profilePicture}
+                    src={instructorProfileImage}
                     alt={`${instructorName} avatar`}
                     className="h-full w-full object-cover"
                   />
@@ -148,9 +150,9 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, userHasPremium
           <div className="mb-4 flex w-full items-center justify-between gap-3 rounded-xl bg-white/80 p-3 ring-1 ring-sky-100">
             <div className="flex min-w-0 items-center gap-3">
               <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-sky-600 text-white">
-                {course.instructor?.profilePicture ? (
+                {instructorProfileImage ? (
                   <img
-                    src={course.instructor.profilePicture}
+                    src={instructorProfileImage}
                     alt={`${instructorName} avatar`}
                     className="h-full w-full object-cover"
                   />

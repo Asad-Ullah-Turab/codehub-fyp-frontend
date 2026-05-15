@@ -6,6 +6,7 @@ import {
 import AdminPageLayout from "./AdminPageLayout";
 import { adminAPI } from "../../../services/adminAPI";
 import { useToast } from "../../../contexts/ToastContext";
+import { getProfileImageUrl } from "../../../utils/imageUtils";
 
 const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -223,8 +224,8 @@ export default function AdminCreatorRevenue() {
                     <div className="flex items-center gap-4">
                       {/* Avatar */}
                       <div className="h-9 w-9 flex-shrink-0 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden">
-                        {creator.profilePicture ? (
-                          <img src={creator.profilePicture} alt={creator.name} className="h-full w-full object-cover" />
+                        {getProfileImageUrl(creator.profilePicture) ? (
+                          <img src={getProfileImageUrl(creator.profilePicture) || ""} alt={creator.name} className="h-full w-full object-cover" />
                         ) : (
                           <span className="text-sm font-bold text-indigo-600">{creator.name?.[0]?.toUpperCase()}</span>
                         )}

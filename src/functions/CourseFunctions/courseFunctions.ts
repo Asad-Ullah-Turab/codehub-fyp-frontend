@@ -22,6 +22,7 @@ export interface Course {
     name: string;
     email: string;
     profilePicture?: string;
+    role?: 'user' | 'creator' | 'admin';
   };
   sections: CourseSection[];
   finalQuiz?: Quiz;

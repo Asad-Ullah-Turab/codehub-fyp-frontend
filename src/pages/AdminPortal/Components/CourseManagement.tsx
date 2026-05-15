@@ -340,12 +340,18 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
 
       {/* Course Table */}
       <div className="px-6 py-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-x-auto">
+          <table className="w-full min-w-max">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
                   TITLE
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
+                  TYPE
+                </th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
+                  CREATOR
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-semibold text-gray-600">
                   CATEGORY
@@ -374,7 +380,7 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
               {loading ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={10}
                     className="px-6 py-8 text-center text-gray-500"
                   >
                     Loading courses...
@@ -383,7 +389,7 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
               ) : courses.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={10}
                     className="px-6 py-8 text-center text-gray-500"
                   >
                     No courses found
@@ -405,6 +411,21 @@ export default function CourseManagement({ highlightedCourseId }: CourseManageme
                       </div>
                       <div className="text-xs text-gray-500 mt-0.5 line-clamp-1">
                         {course.shortDescription}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded text-xs font-semibold ${
+                        course.instructor?.name?.includes('Admin') || course.instructor?._id === 'admin'
+                          ? 'bg-purple-100 text-purple-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {course.instructor?.name?.includes('Admin') || course.instructor?._id === 'admin' ? 'Admin' : 'Creator'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium text-gray-900">{course.instructor?.name || 'Unknown'}</span>
+                        <span className="text-xs text-gray-500">{course.instructor?.email}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
+  ArrowLeft,
   Zap,
   ExternalLink,
   CheckCircle,
@@ -60,6 +61,7 @@ const statusBadge = (status: Payout["status"]) => {
 };
 
 export default function CreatorEarnings() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { showToast } = useToast();
   const [status, setStatus] = useState<CreatorStatus | null>(null);
@@ -153,12 +155,20 @@ export default function CreatorEarnings() {
       title="Earnings"
       subtitle="Manage your Creator Pro subscription, connect your payout account, and track monthly revenue share."
       actions={
-        <button
-          onClick={load}
-          className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-        >
-          <RefreshCw className="h-4 w-4" /> Refresh
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/creator/courses")}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to Courses
+          </button>
+          <button
+            onClick={load}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            <RefreshCw className="h-4 w-4" /> Refresh
+          </button>
+        </div>
       }
     >
       <div className="space-y-6">

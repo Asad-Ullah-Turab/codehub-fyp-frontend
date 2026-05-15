@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, BookOpen, ChevronDown, MessageSquare, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, BarChart3, BookOpen, ChevronDown, MessageSquare, Star } from 'lucide-react';
 import AdminPageLayout from '../../AdminPortal/Components/AdminPageLayout';
 import { useToast } from '../../../contexts/ToastContext';
 import creatorCourseAPI from '../../../services/creatorCourseAPI';
@@ -19,6 +20,7 @@ interface ReviewsBySummary {
 }
 
 const CreatorCourseReviews: React.FC = () => {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [summary, setSummary] = useState<ReviewsBySummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -115,6 +117,14 @@ const CreatorCourseReviews: React.FC = () => {
     <AdminPageLayout
       title="Course Reviews"
       subtitle="Feedback left by learners on your creator courses."
+      actions={
+        <button
+          onClick={() => navigate("/creator/courses")}
+          className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        >
+          <ArrowLeft className="h-4 w-4" /> Back to Courses
+        </button>
+      }
     >
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-3">

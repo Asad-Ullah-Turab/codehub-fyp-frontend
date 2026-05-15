@@ -10,7 +10,7 @@ import {
   getAllCourses,
   type Course,
 } from "../../functions/CourseFunctions/courseFunctions";
-import { getProfile } from "../../functions/ProfileFunctions/profileFunctions";
+import { getProfile, getUserEnrollments } from "../../functions/ProfileFunctions/profileFunctions";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../../contexts/ToastContext";
 import LanguageCard from "./Components/LanguageCard";
@@ -28,59 +28,59 @@ const TutorialsPage: React.FC = () => {
   const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [userLanguages, setUserLanguages] = useState<string[]>([]);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fetchKey, setFetchKey] = useState(0);
 
-  // subscription information for plan checks
   useEffect(() => {
-    const fetchStatus = async () => {
+    let cancelled = false;
+
+    const loadPageData = async () => {
       try {
-        const info = await import("../../services/subscriptionAPI").then(m => m.getSubscriptionStatus());
-        setSubscriptionInfo(info);
-      } catch {
-        // ignore
+        setLoading(true);
+        setError(null);
+
+        const [conceptsData, coursesResponse] = await Promise.all([
+          fetchMainConcepts(),
+          getAllCourses({ limit: 8 }),
+        ]);
+
+        if (cancelled) return;
+        setMainConcepts(conceptsData);
+        setCourses(coursesResponse.data);
+
+        if (isAuthenticated) {
+          try {
+            const [profileResponse, info, enrollmentsResponse] = await Promise.all([
+              getProfile(),
+              import("../../services/subscriptionAPI").then(m => m.getSubscriptionStatus()),
+              getUserEnrollments({ limit: 100 }),
+            ]);
+            if (cancelled) return;
+            const languages = profileResponse.data.programmingLanguages || [];
+            setUserLanguages(languages.map((lang: string) => lang.toLowerCase()));
+            setSubscriptionInfo(info);
+            const ids = new Set(
+              (enrollmentsResponse.data || []).map((e) => e.course._id)
+            );
+            setEnrolledCourseIds(ids);
+          } catch (err) {
+            console.error("Error loading user profile:", err);
+          }
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Error loading page data:", err);
+        setError("Failed to load data. Please try again later.");
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
-    if (isAuthenticated) fetchStatus();
-  }, [isAuthenticated]);
 
-  useEffect(() => {
     loadPageData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loadPageData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Load tutorials data
-      const conceptsData = await fetchMainConcepts();
-      setMainConcepts(conceptsData);
-
-      // Load courses data
-      const coursesResponse = await getAllCourses({ limit: 8 });
-      setCourses(coursesResponse.data);
-
-      // Load user profile to get programming languages (if authenticated)
-      if (isAuthenticated) {
-        try {
-          const profileResponse = await getProfile();
-          const languages = profileResponse.data.programmingLanguages || [];
-          // Normalize language names to lowercase for comparison
-          setUserLanguages(languages.map((lang: string) => lang.toLowerCase()));
-        } catch (err) {
-          console.error("Error loading user profile:", err);
-          // Don't set error state, just continue without recommendations
-        }
-      }
-    } catch (err) {
-      console.error("Error loading page data:", err);
-      setError("Failed to load data. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => { cancelled = true; };
+  }, [isAuthenticated, fetchKey]);
 
   const handleLanguageClick = (language: string) => {
     navigate(`/tutorials/${language}`);
@@ -158,7 +158,7 @@ const TutorialsPage: React.FC = () => {
             <p className="text-gray-600 mb-6">{error}</p>
             <button
               className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
-              onClick={loadPageData}
+              onClick={() => setFetchKey((k) => k + 1)}
             >
               Try Again
             </button>
@@ -220,6 +220,7 @@ const TutorialsPage: React.FC = () => {
                   course={course}
                   onClick={() => handleCourseClick(course._id, course.isPremium)}
                   userHasPremium={subscriptionInfo?.plan === "premium"}
+                  isEnrolled={enrolledCourseIds.has(course._id)}
                 />
               ))}
             </div>

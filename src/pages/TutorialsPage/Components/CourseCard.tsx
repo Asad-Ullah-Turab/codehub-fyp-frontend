@@ -19,9 +19,10 @@ interface CourseCardProps {
   course: Course;
   onClick: () => void;
   userHasPremium?: boolean;
+  isEnrolled?: boolean;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, userHasPremium = false }) => {
+const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, userHasPremium = false, isEnrolled = false }) => {
   const getDifficultyText = (difficulty: string) => {
     const lower = difficulty.toLowerCase();
     if (lower === "beginner") return "Beginner to Expert";
@@ -142,14 +143,27 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, userHasPremium
             <UserRound className="h-4 w-4 flex-shrink-0 text-emerald-600" />
           </div>
         ) : (
-          <div className="mb-4 flex w-full items-center gap-3 rounded-xl bg-white/80 p-3 ring-1 ring-sky-100">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-600 text-white">
-              <Award className="h-5 w-5" />
+          <div className="mb-4 flex w-full items-center justify-between gap-3 rounded-xl bg-white/80 p-3 ring-1 ring-sky-100">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-sky-600 text-white">
+                {course.instructor?.profilePicture ? (
+                  <img
+                    src={course.instructor.profilePicture}
+                    alt={`${instructorName} avatar`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-sm font-bold">
+                    {instructorInitial}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase text-sky-700">CodeHub Official</p>
+                <p className="truncate text-sm font-bold text-slate-900">{instructorName}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-semibold uppercase text-sky-700">CodeHub official</p>
-              <p className="text-sm font-bold text-slate-900">Admin curated path</p>
-            </div>
+            <Award className="h-4 w-4 flex-shrink-0 text-sky-600" />
           </div>
         )}
 
@@ -175,13 +189,19 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, userHasPremium
 
         <div className="mt-auto w-full">
           <button
-            className={`${visual.cta} text-white font-semibold py-2.5 px-4 rounded-lg w-full flex items-center justify-center gap-2 transition-colors duration-200`}
+            className={`${isEnrolled ? "bg-indigo-600 hover:bg-indigo-700" : visual.cta} text-white font-semibold py-2.5 px-4 rounded-lg w-full flex items-center justify-center gap-2 transition-colors duration-200`}
             onClick={(e) => {
               e.stopPropagation();
               onClick();
             }}
           >
-            <span>{course.isPremium && !userHasPremium ? "Upgrade to Access" : "Start Learning"}</span>
+            <span>
+              {isEnrolled
+                ? "Continue Learning"
+                : course.isPremium && !userHasPremium
+                  ? "Upgrade to Access"
+                  : "Start Learning"}
+            </span>
             <ChevronRight className="w-4 h-4 opacity-90" />
           </button>
         </div>

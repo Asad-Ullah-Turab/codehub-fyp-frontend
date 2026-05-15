@@ -16,6 +16,8 @@ import {
 import CourseLessonViewer from "./components/CourseLessonViewer";
 import QuizViewer from "./components/QuizViewer";
 import CertificateViewer from "./components/CertificateViewer";
+import CourseReviewForm from "./components/CourseReviewForm";
+import CourseReviewsList from "./components/CourseReviewsList";
 import AIChatAssistant from "../../components/AIChatAssistant/AIChatAssistant";
 import viewTrackingAPI from "../../services/viewTrackingAPI";
 
@@ -46,6 +48,7 @@ const CourseLearningPage: React.FC = () => {
   const [searchFilter, setSearchFilter] = useState("");
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [lessonStartTime, setLessonStartTime] = useState<Date | null>(null);
+  const [reviewListKey, setReviewListKey] = useState(0);
 
   // Resizable sidebar state
   const [leftSidebarWidth, setLeftSidebarWidth] = useState(320);
@@ -1221,6 +1224,18 @@ const CourseLearningPage: React.FC = () => {
                         </svg>
                       </button>
                     </div>
+                  </div>
+
+                  {/* Course Reviews */}
+                  <div className="mt-8 space-y-6">
+                    {isAuthenticated && (
+                      <CourseReviewForm
+                        courseId={courseId!}
+                        onReviewAdded={() => setReviewListKey((current) => current + 1)}
+                      />
+                    )}
+
+                    <CourseReviewsList key={reviewListKey} courseId={courseId!} />
                   </div>
                 </div>
               </>

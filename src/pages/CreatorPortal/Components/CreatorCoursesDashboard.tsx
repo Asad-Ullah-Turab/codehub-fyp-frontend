@@ -178,6 +178,13 @@ export default function CreatorCoursesDashboard() {
             <RefreshCw className="h-4 w-4" />
             Refresh
           </button>
+          <button
+            type="button"
+            onClick={() => navigate("/creator/reviews")}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+          >
+            View reviews
+          </button>
         </div>
       }
     >
@@ -210,6 +217,13 @@ export default function CreatorCoursesDashboard() {
                 <Sparkles className="h-3.5 w-3.5" />
                 Creator workspace
               </div>
+              <button
+                type="button"
+                onClick={() => navigate("/creator/reviews")}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+              >
+                View reviews
+              </button>
               <button
                 type="button"
                 onClick={() => setCreatingCourse(true)}

@@ -209,6 +209,18 @@ export const creatorCourseAPI = {
     return response.data;
   },
 
+  getCourseReviewsForCreator: async (courseId: string, page = 1, limit = 20) => {
+    const response = await api.get(`${API_ENDPOINTS.CREATOR_COURSES}/${courseId}/reviews`, {
+      params: { page, limit },
+    });
+    return response.data;
+  },
+
+  getCreatorReviewsSummary: async () => {
+    const response = await api.get(`${API_ENDPOINTS.CREATOR_COURSES}/reviews/summary`);
+    return response.data;
+  },
+
   reviewPublishRequest: async (
     courseId: string,
     action: "approve" | "reject",

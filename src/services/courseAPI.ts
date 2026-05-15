@@ -58,6 +58,23 @@ export const courseAPI = {
     const response = await api.get(`${API_ENDPOINTS.ADMIN_COURSES}/certificates/${certificateId}`);
     return response.data;
   },
+
+  addCourseReview: async (courseId: string, rating: number, comment?: string) => {
+    const response = await api.post(`${API_ENDPOINTS.COURSES}/${courseId}/reviews`, { rating, comment });
+    return response.data;
+  },
+
+  getCourseReviews: async (courseId: string, page = 1, limit = 10, sortBy = 'recent') => {
+    const response = await api.get(`${API_ENDPOINTS.COURSES}/${courseId}/reviews`, {
+      params: { page, limit, sortBy }
+    });
+    return response.data;
+  },
+
+  markReviewHelpful: async (reviewId: string) => {
+    const response = await api.post(`${API_ENDPOINTS.COURSES}/reviews/${reviewId}/helpful`);
+    return response.data;
+  },
 };
 
 export default courseAPI;

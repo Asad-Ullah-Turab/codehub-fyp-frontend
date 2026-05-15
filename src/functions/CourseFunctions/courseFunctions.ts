@@ -113,6 +113,34 @@ export interface QuizQuestion {
   points: number;
 }
 
+export interface CourseReview {
+  _id: string;
+  course: string;
+  user: {
+    _id: string;
+    name: string;
+    profilePicture?: string;
+    email?: string;
+  };
+  rating: number;
+  comment: string;
+  isVerifiedEnrollment: boolean;
+  helpful: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CourseReviewResponse {
+  reviews: CourseReview[];
+  total: number;
+  pages: number;
+  currentPage: number;
+  limit: number;
+  ratingDistribution?: {
+    [key: number]: number;
+  };
+}
+
 export interface CourseEnrollment {
   _id: string;
   course: string | Course;
@@ -390,6 +418,56 @@ export const getCourseStats = async (_courseId: string): Promise<{
     };
   } catch (error) {
     console.error('Error fetching course stats:', error);
+    throw error;
+  }
+};
+
+// Add or update a review for a course
+export const addCourseReview = async (
+  courseId: string,
+  rating: number,
+  comment?: string,
+): Promise<{
+  success: boolean;
+  data: CourseReview;
+}> => {
+  try {
+    const resp = await courseAPI.addCourseReview(courseId, rating, comment);
+    return resp;
+  } catch (error) {
+    console.error('Error adding course review:', error);
+    throw error;
+  }
+};
+
+// Get all reviews for a course
+export const getCourseReviews = async (
+  courseId: string,
+  page = 1,
+  limit = 10,
+  sortBy = 'recent',
+): Promise<CourseReviewResponse> => {
+  try {
+    const resp = await courseAPI.getCourseReviews(courseId, page, limit, sortBy);
+    return resp.data;
+  } catch (error) {
+    console.error('Error fetching course reviews:', error);
+    throw error;
+  }
+};
+
+// Mark a review as helpful
+export const markReviewHelpful = async (
+  reviewId: string,
+): Promise<{
+  success: boolean;
+  data: CourseReview;
+}> => {
+  try {
+    const resp = await courseAPI.markReviewHelpful(reviewId);
+    return resp;
+  } catch (error) {
+    console.error('Error marking review helpful:', error);
     throw error;
   }
 };

@@ -185,7 +185,9 @@ const ProfilePage: React.FC = () => {
 
       setUser(profileRes.data);
       setDashboardStats(statsRes.data);
-      setCourseProgress(courseProgressRes.data);
+      setCourseProgress(
+        (courseProgressRes.data || []).filter((entry) => entry?.course),
+      );
       setSavedTutorials(savedTutorialsRes.data);
 
       try {
@@ -337,7 +339,9 @@ const ProfilePage: React.FC = () => {
     try {
       await updateEnrollmentStatus(enrollmentId, "withdrawn");
       const courseProgressRes = await getCourseProgress();
-      setCourseProgress(courseProgressRes.data);
+      setCourseProgress(
+        (courseProgressRes.data || []).filter((entry) => entry?.course),
+      );
     } catch (err) {
       console.error("Error withdrawing from course:", err);
       setError(
@@ -1317,7 +1321,9 @@ const ProfilePage: React.FC = () => {
 
               {courseProgress.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
-                  {courseProgress.map((course) => (
+                  {courseProgress
+                    .filter((course) => course.course)
+                    .map((course) => (
                     <div
                       key={course.enrollmentId}
                       className="bg-gray-50 rounded-xl p-5 hover:shadow-lg transition-all border border-gray-100 hover:-translate-y-1"

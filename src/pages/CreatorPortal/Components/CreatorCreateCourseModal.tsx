@@ -17,6 +17,10 @@ const initialFormData = {
   category: "programming-language",
   difficulty: "beginner" as "beginner" | "intermediate" | "advanced",
   estimatedHours: 0,
+  certificateSignerName: "",
+  certificateSignerTitle: "",
+  certificateSealLabel: "",
+  certificateFooterText: "",
   targetAudience: "",
   tags: [] as string[],
   requirements: [] as string[],
@@ -96,6 +100,10 @@ export default function CreatorCreateCourseModal({ open, onClose, onCreated }: C
         difficulty: formData.difficulty,
         estimatedHours: formData.estimatedHours,
         certificateTemplate: "standard",
+        certificateSignerName: formData.certificateSignerName,
+        certificateSignerTitle: formData.certificateSignerTitle,
+        certificateSealLabel: formData.certificateSealLabel,
+        certificateFooterText: formData.certificateFooterText,
         tags: formData.tags,
         prerequisites: [],
         targetAudience: formData.targetAudience,
@@ -231,6 +239,50 @@ export default function CreatorCreateCourseModal({ open, onClose, onCreated }: C
                   className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-900">Certificate Signer Name</label>
+              <input
+                type="text"
+                value={formData.certificateSignerName}
+                onChange={(event) => setFormData((prev) => ({ ...prev, certificateSignerName: event.target.value }))}
+                className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                placeholder="Your name or signature label"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-900">Certificate Signer Title</label>
+              <input
+                type="text"
+                value={formData.certificateSignerTitle}
+                onChange={(event) => setFormData((prev) => ({ ...prev, certificateSignerTitle: event.target.value }))}
+                className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                placeholder="Creator, Instructor, Director Signature"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-900">Certificate Seal Label</label>
+              <input
+                type="text"
+                value={formData.certificateSealLabel}
+                onChange={(event) => setFormData((prev) => ({ ...prev, certificateSealLabel: event.target.value }))}
+                className="mt-2 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                placeholder="Official Seal"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-900">Certificate Footer Text</label>
+              <textarea
+                rows={3}
+                value={formData.certificateFooterText}
+                onChange={(event) => setFormData((prev) => ({ ...prev, certificateFooterText: event.target.value }))}
+                className="mt-2 w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                placeholder="Verified Achievement • Authenticated Completion • Excellence Recognized"
+              />
             </div>
 
             <div>

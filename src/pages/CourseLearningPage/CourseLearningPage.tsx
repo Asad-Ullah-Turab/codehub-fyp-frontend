@@ -422,37 +422,38 @@ const CourseLearningPage: React.FC = () => {
   };
 
   const handleQuizComplete = async () => {
-    // Reload course data to get updated progress
-    if (!courseId) return;
+    if (!courseId || !course || !selectedSection) return;
 
+    // Reload enrollment so progress reflects the completed quiz
+    let updatedEnrollment = enrollment;
     try {
       const courseResponse = await getCourseById(courseId);
-      setEnrollment(courseResponse.enrollment || null);
-
       if (courseResponse.enrollment) {
         const enrollmentResponse = await getEnrollmentDetails(courseId);
-        setEnrollment(enrollmentResponse.data);
+        updatedEnrollment = enrollmentResponse.data;
+        setEnrollment(updatedEnrollment);
       }
     } catch (err) {
       console.error("Error reloading course data:", err);
     }
-
-    // Move to next section or show certificate
-    if (!course || !selectedSection) return;
 
     const currentSectionIndex = course.sections.findIndex(
       (s) => s._id === selectedSection._id
     );
 
     if (currentSectionIndex < course.sections.length - 1) {
-      // Move to next section
+      // Navigate directly — skip lock check since quiz was just completed
       const nextSection = course.sections[currentSectionIndex + 1];
       if (nextSection.lessons?.length > 0) {
-        handleLessonSelect(nextSection, nextSection.lessons[0]);
+        setSelectedSection(nextSection);
+        setSelectedLesson(nextSection.lessons[0]);
+        setLessonStartTime(new Date());
+        setViewMode("lesson");
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } else {
       // Course completed - check for certificate
-      if (enrollment?.certificateIssued) {
+      if (updatedEnrollment?.certificateIssued) {
         setViewMode("certificate");
       } else {
         showToast(

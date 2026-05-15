@@ -11,6 +11,10 @@ export interface CreatorCourseFormData {
   difficulty: "beginner" | "intermediate" | "advanced";
   estimatedHours: number;
   certificateTemplate: "standard" | "distinguished" | "excellence";
+  certificateSignerName?: string;
+  certificateSignerTitle?: string;
+  certificateSealLabel?: string;
+  certificateFooterText?: string;
   tags: string[];
   prerequisites: string[];
   targetAudience: string;

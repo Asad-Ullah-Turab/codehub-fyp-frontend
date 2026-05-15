@@ -5,6 +5,7 @@ import CreatorCourseOverview from "./Components/CreatorCourseOverview";
 import CreatorLessonEditor from "./Components/CreatorLessonEditor";
 import CreatorQuizEditor from "./Components/CreatorQuizEditor";
 import CreatorCourseReviews from "./Components/CreatorCourseReviews";
+import CreatorEarnings from "./Components/CreatorEarnings";
 import "../AdminPortal/admin-theme.css";
 
 export default function CreatorPortal() {
@@ -13,6 +14,7 @@ export default function CreatorPortal() {
       <Route index element={<Navigate to="courses" replace />} />
       <Route path="courses" element={<CreatorCoursesDashboard />} />
       <Route path="reviews" element={<CreatorCourseReviews />} />
+      <Route path="earnings" element={<CreatorEarnings />} />
       <Route path="courses/:courseId" element={<CreatorCourseWorkspace />}>
         <Route index element={<CreatorCourseOverview />} />
         <Route path="sections/:sectionId/lessons/new" element={<CreatorLessonEditor />} />

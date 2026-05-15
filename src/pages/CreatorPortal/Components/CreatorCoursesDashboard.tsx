@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Clock3, Layers, Pencil, Plus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Clock3, DollarSign, Layers, Pencil, Plus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import AdminPageLayout from "../../AdminPortal/Components/AdminPageLayout";
 import { useToast } from "../../../contexts/ToastContext";
 import { creatorCourseAPI } from "../../../services/creatorCourseAPI";
@@ -185,6 +185,14 @@ export default function CreatorCoursesDashboard() {
           >
             View reviews
           </button>
+          <button
+            type="button"
+            onClick={() => navigate("/creator/earnings")}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-indigo-300 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100"
+          >
+            <DollarSign className="h-4 w-4" />
+            Earnings
+          </button>
         </div>
       }
     >
@@ -223,6 +231,14 @@ export default function CreatorCoursesDashboard() {
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
               >
                 View reviews
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/creator/earnings")}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-indigo-300 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100"
+              >
+                <DollarSign className="h-4 w-4" />
+                Earnings
               </button>
               <button
                 type="button"

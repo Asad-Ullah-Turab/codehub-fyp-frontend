@@ -10,6 +10,8 @@ import CreatorCourseApprovals from "./Components/CreatorCourseApprovals";
 import AnalyticsDashboard from "./Components/Analytics";
 import CertificateApproval from "./Components/CertificateApproval";
 import QueriesManagement from "./Components/QueriesManagement";
+import AdminCreatorRevenue from "./Components/AdminCreatorRevenue";
+import AdminUserRevenue from "./Components/AdminUserRevenue";
 import CourseCreatePage from "./Pages/CourseCreatePage";
 import TutorialCreatePage from "./Pages/TutorialCreatePage";
 import "./admin-theme.css";
@@ -44,6 +46,8 @@ function AdminPortal() {
       analytics: "/admin/analytics",
       "creator-applications": "/admin/creator-applications",
       "creator-course-approvals": "/admin/creator-course-approvals",
+      "creator-revenue": "/admin/creator-revenue",
+      "user-revenue": "/admin/user-revenue",
       certificates: "/admin/certificates",
       queries: "/admin/queries",
     };
@@ -80,6 +84,10 @@ function AdminPortal() {
       setActiveTab("certificates");
     } else if (location.pathname.startsWith("/admin/queries")) {
       setActiveTab("queries");
+    } else if (location.pathname.startsWith("/admin/creator-revenue")) {
+      setActiveTab("creator-revenue");
+    } else if (location.pathname.startsWith("/admin/user-revenue")) {
+      setActiveTab("user-revenue");
     } else {
       setActiveTab("dashboard");
     }
@@ -370,6 +378,42 @@ function AdminPortal() {
 
           <button
             className={`relative w-full flex items-center ${sidebarCollapsed ? "justify-center" : "justify-start"} gap-3 ${sidebarCollapsed ? "px-3" : "px-4"} py-2.5 mb-1 rounded-lg transition-colors text-left group ${
+              activeTab === "creator-revenue"
+                ? "bg-blue-50 text-blue-600"
+                : "text-gray-700 hover:bg-gray-50"
+            }`}
+            onClick={() => handleTabNavigation("creator-revenue")}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {!sidebarCollapsed && <span className="font-medium">Creator Revenue</span>}
+            {sidebarCollapsed && (
+              <span className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                Creator Revenue
+              </span>
+            )}
+          </button>
+
+          <button
+            className={`relative w-full flex items-center ${sidebarCollapsed ? "justify-center" : "justify-start"} gap-3 ${sidebarCollapsed ? "px-3" : "px-4"} py-2.5 mb-1 rounded-lg transition-colors text-left group ${
+              activeTab === "user-revenue" ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"
+            }`}
+            onClick={() => handleTabNavigation("user-revenue")}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+            {!sidebarCollapsed && <span className="font-medium">User Revenue</span>}
+            {sidebarCollapsed && (
+              <span className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                User Revenue
+              </span>
+            )}
+          </button>
+
+          <button
+            className={`relative w-full flex items-center ${sidebarCollapsed ? "justify-center" : "justify-start"} gap-3 ${sidebarCollapsed ? "px-3" : "px-4"} py-2.5 mb-1 rounded-lg transition-colors text-left group ${
               activeTab === "certificates"
                 ? "bg-blue-50 text-blue-600"
                 : "text-gray-700 hover:bg-gray-50"
@@ -500,6 +544,8 @@ function AdminPortal() {
             <Route path="analytics" element={<AnalyticsDashboard />} />
             <Route path="creator-applications" element={<CreatorApplicationReviews />} />
             <Route path="creator-course-approvals" element={<CreatorCourseApprovals />} />
+            <Route path="creator-revenue" element={<AdminCreatorRevenue />} />
+            <Route path="user-revenue" element={<AdminUserRevenue />} />
             <Route path="certificates" element={<CertificateApproval />} />
             <Route path="queries" element={<QueriesManagement />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />

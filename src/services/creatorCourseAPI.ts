@@ -196,6 +196,11 @@ export const creatorCourseAPI = {
     return response.data;
   },
 
+  generateSectionWithAI: async (courseId: string, topic: string) => {
+    const res = await api.post(`/creator/courses/${courseId}/sections/generate-ai`, { topic });
+    return res.data;
+  },
+
   getCourseEnrollments: async (courseId: string) => {
     const response = await api.get(`${API_ENDPOINTS.CREATOR_COURSES}/${courseId}/enrollments`);
     return response.data;
@@ -223,6 +228,11 @@ export const creatorCourseAPI = {
   getCreatorReviewsSummary: async () => {
     const response = await api.get(`${API_ENDPOINTS.CREATOR_COURSES}/reviews/summary`);
     return response.data;
+  },
+
+  getCourseAnalytics: async (courseId: string) => {
+    const res = await api.get(`/creator/courses/${courseId}/analytics`);
+    return res.data;
   },
 
   reviewPublishRequest: async (

@@ -265,6 +265,32 @@ export const adminAPI = {
     }
   },
 
+  // Creator revenue
+  getCreatorRevenue: async () => {
+    const res = await api.get('/admin/creator-revenue');
+    return res.data;
+  },
+
+  getCreatorPayoutHistory: async (creatorId: string) => {
+    const res = await api.get(`/admin/creator-revenue/${creatorId}/payouts`);
+    return res.data;
+  },
+
+  triggerCreatorPayouts: async () => {
+    const res = await api.post('/admin/creator-revenue/trigger-payouts');
+    return res.data;
+  },
+
+  retryCreatorPayout: async (payoutId: string) => {
+    const res = await api.post(`/admin/creator-revenue/payouts/${payoutId}/retry`);
+    return res.data;
+  },
+
+  getSubscriptionTransactions: async (page = 1, limit = 20, type = '', status = '') => {
+    const res = await api.get('/admin/subscription-transactions', { params: { page, limit, type, status } });
+    return res.data;
+  },
+
   // System management
   triggerMonthlyReset: async () => {
     try {

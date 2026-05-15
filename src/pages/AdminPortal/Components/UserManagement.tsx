@@ -13,6 +13,7 @@ import {
   Award,
   Sparkles,
   Star,
+  Zap,
   MapPin,
   Globe,
   Github,
@@ -351,7 +352,11 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                         ? 'bg-blue-50 border-l-4 border-l-blue-500 shadow-lg shadow-blue-200/50 animate-pulse' 
                         : ''
                     } ${
-                      user.subscriptionPlan === 'premium' ? 'bg-yellow-50 hover:bg-yellow-100' : 'hover:bg-gray-50'
+                      user.subscriptionPlan === 'premium'
+                        ? 'bg-yellow-50 hover:bg-yellow-100'
+                        : user.creatorPlan === 'pro' && user.creatorPlanStatus === 'active'
+                        ? 'bg-indigo-50 hover:bg-indigo-100'
+                        : 'hover:bg-gray-50'
                     }`}
                   >
                     <td className="px-4 py-4">
@@ -378,14 +383,20 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                         <option value="admin">Admin</option>
                       </select>
                     </td>
-                    <td className="px-4 py-4 text-sm text-gray-700 flex items-center gap-1">
-                      {user.subscriptionPlan || 'free'}
-                      {user.subscriptionPlan === 'premium' && (
-                        <span className="relative">
-                          <Star className="w-4 h-4 text-yellow-500" />
-                          <span className="sr-only">Premium user</span>
-                        </span>
-                      )}
+                    <td className="px-4 py-4 text-sm text-gray-700">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1">
+                          <span className="capitalize">{user.subscriptionPlan || 'free'}</span>
+                          {user.subscriptionPlan === 'premium' && (
+                            <Star className="w-3.5 h-3.5 text-yellow-500 flex-shrink-0" title="Premium" />
+                          )}
+                        </div>
+                        {user.creatorPlan === 'pro' && user.creatorPlanStatus === 'active' && (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
+                            <Zap className="w-3 h-3" /> Creator Pro
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-700">
                       {new Date(user.createdAt).toLocaleString()}
@@ -593,15 +604,42 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 text-gray-500 mb-1">
                       <Sparkles className="w-4 h-4" />
-                      <span className="text-xs font-medium uppercase">Subscription</span>
+                      <span className="text-xs font-medium uppercase">User Subscription</span>
                     </div>
                     <p className="text-base font-semibold text-gray-900 capitalize">
                       {selectedUser.subscriptionPlan || 'free'}
-                      {selectedUser.subscriptionPlan === 'free' && (
-                        <> ({selectedUser.chatQueriesRemaining} chat, {selectedUser.codeQueriesRemaining} code, {selectedUser.tutorialGenRemaining} tutorials left)</>
+                      {selectedUser.subscriptionPlan === 'premium' && (
+                        <Star className="w-4 h-4 text-yellow-500 inline ml-1" />
                       )}
                     </p>
+                    {selectedUser.subscriptionPlan === 'free' && (
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {selectedUser.chatQueriesRemaining} chat · {selectedUser.codeQueriesRemaining} code · {selectedUser.tutorialGenRemaining} tutorials left
+                      </p>
+                    )}
                   </div>
+
+                  {selectedUser.role === 'creator' && (
+                    <div className={`border rounded-lg p-4 ${selectedUser.creatorPlan === 'pro' && selectedUser.creatorPlanStatus === 'active' ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200'}`}>
+                      <div className="flex items-center gap-2 text-gray-500 mb-1">
+                        <Zap className="w-4 h-4 text-indigo-500" />
+                        <span className="text-xs font-medium uppercase">Creator Pro</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-base font-semibold text-gray-900 capitalize">
+                          {selectedUser.creatorPlan === 'pro' && selectedUser.creatorPlanStatus === 'active' ? 'Active' : selectedUser.creatorPlanStatus || 'Not subscribed'}
+                        </p>
+                        {selectedUser.creatorPlan === 'pro' && selectedUser.creatorPlanStatus === 'active' && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-700">
+                            <Zap className="w-3 h-3" /> Pro
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Payout account: {selectedUser.stripeConnectPayoutsEnabled ? '✓ Connected' : 'Not connected'}
+                      </p>
+                    </div>
+                  )}
                   
                   {selectedUser.experience && (
                     <div className="bg-white border border-gray-200 rounded-lg p-4">

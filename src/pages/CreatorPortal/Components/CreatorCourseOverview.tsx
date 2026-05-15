@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { BookOpen, FileQuestion, Layers, Pencil, Plus, Trash2 } from "lucide-react";
+import { BarChart2, BookOpen, FileQuestion, Layers, Pencil, Plus, Sparkles, Trash2, Zap } from "lucide-react";
 import type { CourseSection } from "../../../services/adminCourseAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import { creatorCourseAPI } from "../../../services/creatorCourseAPI";
 import CreatorSectionModal from "./CreatorSectionModal";
+import AISectionGenerateModal from "./AISectionGenerateModal";
 import type { CreatorCourseWorkspaceContextValue } from "./CreatorCourseWorkspace";
 
 const sectionSummary = (section: CourseSection) => {
@@ -22,8 +23,15 @@ export default function CreatorCourseOverview() {
   const { showToast } = useToast();
   const [sectionModalOpen, setSectionModalOpen] = useState(false);
   const [editingSection, setEditingSection] = useState<CourseSection | null>(null);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [analytics, setAnalytics] = useState<any>(null);
 
   const nextOrder = useMemo(() => (sections.length > 0 ? Math.max(...sections.map((section) => section.order || 0)) + 1 : 0), [sections]);
+
+  useEffect(() => {
+    if (!course?._id) return;
+    creatorCourseAPI.getCourseAnalytics(course._id).then(setAnalytics).catch(() => {});
+  }, [course?._id]);
 
   if (!course) {
     return null;
@@ -37,6 +45,39 @@ export default function CreatorCourseOverview() {
   const startEditSection = (section: CourseSection) => {
     setEditingSection(section);
     setSectionModalOpen(true);
+  };
+
+  const handleAISection = async (generated: { sectionTitle: string; lessons: any[] }) => {
+    if (!course) return;
+    try {
+      const sectionRes = await creatorCourseAPI.createSection(course._id, {
+        title: generated.sectionTitle,
+        order: nextOrder,
+      });
+      const sectionData = sectionRes?.data ?? sectionRes;
+      const newSectionId: string = sectionData?._id;
+
+      if (newSectionId && generated.lessons.length > 0) {
+        await Promise.all(
+          generated.lessons.map((lesson: any, index: number) =>
+            creatorCourseAPI.createLesson(newSectionId, {
+              title: lesson.title,
+              content: lesson.content || "",
+              order: index + 1,
+              codeExamples: lesson.codeExamples || [],
+              notes: lesson.notes || [],
+              tips: lesson.tips || [],
+            }),
+          ),
+        );
+      }
+
+      showToast(`Section "${generated.sectionTitle}" created with ${generated.lessons.length} lessons.`, "success");
+      await refreshCourse();
+    } catch (error: any) {
+      const message = error?.response?.data?.message || "Failed to apply AI-generated section.";
+      showToast(message, "error");
+    }
   };
 
   const activeSection = selectedSection || null;
@@ -67,6 +108,14 @@ export default function CreatorCourseOverview() {
                   </option>
                 ))}
               </select>
+              <button
+                type="button"
+                onClick={() => setShowAIModal(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100"
+              >
+                <Sparkles className="h-4 w-4" />
+                AI Generate
+              </button>
               <button
                 type="button"
                 onClick={startAddSection}
@@ -271,6 +320,71 @@ export default function CreatorCourseOverview() {
         </div>
       </div>
 
+      {analytics && (
+        analytics.isPro === false ? (
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+              <BarChart2 className="h-4 w-4 text-slate-500" /> Course Analytics
+            </h3>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center"><p className="text-2xl font-bold text-slate-900">{analytics.data.totalEnrollments}</p><p className="text-xs text-slate-500">Total Enrollments</p></div>
+              <div className="text-center"><p className="text-2xl font-bold text-slate-900">{analytics.data.completionRate}%</p><p className="text-xs text-slate-500">Completion Rate</p></div>
+              <div className="text-center"><p className="text-2xl font-bold text-slate-900">{analytics.data.recentEnrollments}</p><p className="text-xs text-slate-500">Last 30 Days</p></div>
+            </div>
+            <div className="mt-4 rounded-xl bg-indigo-50 p-3 flex items-center gap-2">
+              <Zap className="h-4 w-4 text-indigo-500 flex-shrink-0" />
+              <p className="text-xs text-indigo-700">Upgrade to <strong>Creator Pro</strong> to unlock enrollment trends, rating breakdown, and earnings insights.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+                <BarChart2 className="h-4 w-4 text-indigo-500" /> Course Analytics <span className="text-xs text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full">Pro</span>
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              <div className="rounded-xl bg-slate-50 p-3 text-center">
+                <p className="text-2xl font-bold text-slate-900">{analytics.data.totalEnrollments}</p>
+                <p className="text-xs text-slate-500">Total Enrollments</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3 text-center">
+                <p className="text-2xl font-bold text-green-700">{analytics.data.completionRate}%</p>
+                <p className="text-xs text-slate-500">Completion Rate</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3 text-center">
+                <p className="text-2xl font-bold text-blue-700">{analytics.data.recentEnrollments}</p>
+                <p className="text-xs text-slate-500">Last 30 Days</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3 text-center">
+                <p className="text-2xl font-bold text-indigo-700">⭐ {analytics.data.reviewStats?.avgRating?.toFixed(1) || '—'}</p>
+                <p className="text-xs text-slate-500">{analytics.data.reviewStats?.totalReviews || 0} reviews</p>
+              </div>
+            </div>
+            {analytics.data.enrollmentTrend?.length > 0 && (
+              <div className="rounded-xl bg-slate-50 p-3 mb-3">
+                <p className="text-xs font-medium text-slate-600 mb-2">Enrollment trend (last 30 days)</p>
+                <div className="flex items-end gap-1 h-12">
+                  {analytics.data.enrollmentTrend.map((d: any, i: number) => {
+                    const max = Math.max(...analytics.data.enrollmentTrend.map((x: any) => x.count), 1);
+                    return (
+                      <div key={i} title={`${d._id}: ${d.count}`} className="flex-1 bg-indigo-400 rounded-sm min-h-[2px]" style={{ height: `${(d.count / max) * 100}%` }} />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <div className="flex items-center justify-between rounded-xl bg-green-50 p-3">
+              <div>
+                <p className="text-xs text-green-600 font-medium">Revenue earned (all courses)</p>
+                <p className="text-lg font-bold text-green-800">${analytics.data.payoutStats?.totalEarned?.toFixed(2) || '0.00'}</p>
+              </div>
+              <p className="text-xs text-green-600">{analytics.data.payoutStats?.payoutCount || 0} payouts processed</p>
+            </div>
+          </div>
+        )
+      )}
+
       <CreatorSectionModal
         open={sectionModalOpen}
         courseId={course._id}
@@ -279,6 +393,14 @@ export default function CreatorCourseOverview() {
         onClose={() => setSectionModalOpen(false)}
         onSaved={refreshCourse}
       />
+
+      {showAIModal && (
+        <AISectionGenerateModal
+          courseId={course._id}
+          onClose={() => setShowAIModal(false)}
+          onApply={handleAISection}
+        />
+      )}
     </div>
   );
 }

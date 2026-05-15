@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, ChevronDown, Star } from "lucide-react";
+import { Search, ChevronDown, Star, Zap } from "lucide-react";
 import { adminAPI } from "../../../services/adminAPI";
 import { useToast } from "../../../contexts/ToastContext";
 import AdminPageLayout from "./AdminPageLayout";
@@ -61,7 +61,14 @@ export default function AnalyticsDashboard() {
     annualRevenue: 0,
     totalRevenue: 0,
     premiumUsers: 0,
+    creatorProMRR: 0,
+    combinedMRR: 0,
+    combinedARR: 0,
+    proCreators: 0,
+    creatorProTotalPaidOut: 0,
+    combinedTotalRevenue: 0,
   });
+  const [revenueFilter, setRevenueFilter] = useState<"all" | "premium" | "creator">("all");
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -133,8 +140,8 @@ export default function AnalyticsDashboard() {
             { label: "Total Users", value: d.totalUsers || 0 },
             { label: "Creators", value: d.totalCreators || 0 },
             { label: "Premium Users", value: d.premiumUsers || 0 },
+            { label: "Creator Pro", value: d.proCreators || 0 },
             { label: "Active Users", value: d.activeUsers || 0 },
-            { label: "Total Tutorials", value: d.totalTutorials || 0 },
           ]);
 
           // Set earnings data
@@ -143,6 +150,12 @@ export default function AnalyticsDashboard() {
             annualRevenue: d.annualRecurringRevenue || 0,
             totalRevenue: d.totalRevenue || 0,
             premiumUsers: d.premiumUsers || 0,
+            creatorProMRR: d.creatorProMRR || 0,
+            combinedMRR: d.combinedMRR || 0,
+            combinedARR: d.combinedARR || 0,
+            proCreators: d.proCreators || 0,
+            creatorProTotalPaidOut: d.creatorProTotalPaidOut || 0,
+            combinedTotalRevenue: d.combinedTotalRevenue || 0,
           });
         }
 
@@ -214,46 +227,87 @@ export default function AnalyticsDashboard() {
             Subscription Revenue Tracking
           </h2>
           
+          {/* Subscription type filter */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm font-medium text-gray-600">View:</span>
+            {(["all", "premium", "creator"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setRevenueFilter(f)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  revenueFilter === f
+                    ? f === "creator" ? "bg-indigo-600 text-white" : "bg-gray-900 text-white"
+                    : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {f === "premium" && <Star className="w-3 h-3" />}
+                {f === "creator" && <Zap className="w-3 h-3" />}
+                {f === "all" ? "Combined" : f === "premium" ? "User Premium" : "Creator Pro"}
+              </button>
+            ))}
+          </div>
+
           {/* Revenue Stats Cards */}
           <div className="grid grid-cols-4 gap-4 mb-6">
+            {revenueFilter !== "creator" && (
+              <div className="bg-gradient-to-br from-yellow-500 to-amber-500 rounded-lg p-6 text-white">
+                <div className="flex items-center gap-1 text-xs text-yellow-100 mb-2">
+                  <Star className="w-3 h-3" /> User Premium MRR
+                </div>
+                <div className="text-3xl font-bold mb-1">
+                  ${earningsStats.monthlyRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-yellow-100">{earningsStats.premiumUsers} active subscribers</div>
+              </div>
+            )}
+
+            {revenueFilter !== "premium" && (
+              <div className="bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg p-6 text-white">
+                <div className="flex items-center gap-1 text-xs text-indigo-100 mb-2">
+                  <Zap className="w-3 h-3" /> Creator Pro MRR
+                </div>
+                <div className="text-3xl font-bold mb-1">
+                  ${earningsStats.creatorProMRR.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-indigo-100">{earningsStats.proCreators} active Creator Pro</div>
+              </div>
+            )}
+
             <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-6 text-white">
-              <div className="text-xs text-green-100 mb-2">Monthly Recurring Revenue</div>
+              <div className="text-xs text-green-100 mb-2">
+                {revenueFilter === "all" ? "Combined MRR" : revenueFilter === "premium" ? "Premium MRR" : "Creator Pro MRR"}
+              </div>
               <div className="text-3xl font-bold mb-1">
-                ${earningsStats.monthlyRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ${(revenueFilter === "all"
+                  ? earningsStats.combinedMRR
+                  : revenueFilter === "premium"
+                  ? earningsStats.monthlyRevenue
+                  : earningsStats.creatorProMRR
+                ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <div className="text-xs text-green-100">
-                From {earningsStats.premiumUsers} active subscriptions
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg p-6 text-white">
-              <div className="text-xs text-blue-100 mb-2">Annual Revenue Projection</div>
-              <div className="text-3xl font-bold mb-1">
-                ${earningsStats.annualRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <div className="text-xs text-blue-100">
-                ARR (12 × MRR)
+                ARR: ${(revenueFilter === "all"
+                  ? earningsStats.combinedARR
+                  : revenueFilter === "premium"
+                  ? earningsStats.annualRevenue
+                  : earningsStats.creatorProMRR * 12
+                ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </div>
 
             <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg p-6 text-white">
-              <div className="text-xs text-purple-100 mb-2">Total Revenue Earned</div>
+              <div className="text-xs text-purple-100 mb-2">
+                {revenueFilter === "all" ? "Combined Total Revenue" : revenueFilter === "premium" ? "Premium Total Revenue" : "Creator Pro Paid Out"}
+              </div>
               <div className="text-3xl font-bold mb-1">
-                ${earningsStats.totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ${(revenueFilter === "all"
+                  ? earningsStats.combinedTotalRevenue
+                  : revenueFilter === "premium"
+                  ? earningsStats.totalRevenue
+                  : earningsStats.creatorProTotalPaidOut
+                ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
-              <div className="text-xs text-purple-100">
-                All-time earnings
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg p-6 text-white">
-              <div className="text-xs text-orange-100 mb-2">Premium Users</div>
-              <div className="text-3xl font-bold mb-1">
-                {earningsStats.premiumUsers}
-              </div>
-              <div className="text-xs text-orange-100">
-                Active subscriptions
-              </div>
+              <div className="text-xs text-purple-100">All-time earnings</div>
             </div>
           </div>
 

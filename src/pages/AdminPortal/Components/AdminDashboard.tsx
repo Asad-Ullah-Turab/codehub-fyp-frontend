@@ -530,44 +530,43 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               Subscription Revenue
             </h2>
             <div className="grid grid-cols-4 gap-4">
+              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-lg p-5 shadow-sm border border-yellow-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
+                    <Star className="w-4 h-4 text-white fill-white" />
+                  </div>
+                  <div className="text-xs text-yellow-700 font-medium">User Premium MRR</div>
+                </div>
+                <div className="text-2xl font-bold text-yellow-900">
+                  ${(stats.monthlyRecurringRevenue || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-yellow-600 mt-1">{stats.premiumUsers || 0} premium users</div>
+              </div>
+
+              <div className="bg-gradient-to-br from-indigo-50 to-violet-50 rounded-lg p-5 shadow-sm border border-indigo-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">⚡</span>
+                  </div>
+                  <div className="text-xs text-indigo-700 font-medium">Creator Pro MRR</div>
+                </div>
+                <div className="text-2xl font-bold text-indigo-900">
+                  ${(stats.creatorProMRR || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-indigo-600 mt-1">{stats.proCreators || 0} Creator Pro subscribers</div>
+              </div>
+
               <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-5 shadow-sm border border-green-100">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
                     <span className="text-white text-sm font-bold">$</span>
                   </div>
-                  <div className="text-xs text-green-700 font-medium">
-                    Monthly Revenue
-                  </div>
+                  <div className="text-xs text-green-700 font-medium">Combined MRR</div>
                 </div>
                 <div className="text-2xl font-bold text-green-900">
-                  $
-                  {(stats.monthlyRecurringRevenue || 0).toLocaleString(
-                    "en-US",
-                    { minimumFractionDigits: 2, maximumFractionDigits: 2 },
-                  )}
+                  ${(stats.combinedMRR || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
-                <div className="text-xs text-green-600 mt-1">
-                  MRR from {stats.premiumUsers || 0} premium users
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-5 shadow-sm border border-blue-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">$</span>
-                  </div>
-                  <div className="text-xs text-blue-700 font-medium">
-                    Annual Revenue
-                  </div>
-                </div>
-                <div className="text-2xl font-bold text-blue-900">
-                  $
-                  {(stats.annualRecurringRevenue || 0).toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </div>
-                <div className="text-xs text-blue-600 mt-1">ARR projection</div>
+                <div className="text-xs text-green-600 mt-1">ARR: ${(stats.combinedARR || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
               </div>
 
               <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-lg p-5 shadow-sm border border-purple-100">
@@ -575,20 +574,12 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                   <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
                     <span className="text-white text-sm font-bold">$</span>
                   </div>
-                  <div className="text-xs text-purple-700 font-medium">
-                    Total Revenue
-                  </div>
+                  <div className="text-xs text-purple-700 font-medium">Combined Total Revenue</div>
                 </div>
                 <div className="text-2xl font-bold text-purple-900">
-                  $
-                  {(stats.totalRevenue || 0).toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+                  ${(stats.combinedTotalRevenue || stats.totalRevenue || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
-                <div className="text-xs text-purple-600 mt-1">
-                  {stats.totalTransactions || 0} transactions
-                </div>
+                <div className="text-xs text-purple-600 mt-1">{stats.totalTransactions || 0} transactions</div>
               </div>
 
               <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-5 shadow-sm border border-orange-100">

@@ -20,9 +20,11 @@ interface CourseCardProps {
   onClick: () => void;
   userHasPremium?: boolean;
   isEnrolled?: boolean;
+  isOwnCourse?: boolean;
+  userRole?: string;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, userHasPremium = false, isEnrolled = false }) => {
+const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, userHasPremium = false, isEnrolled = false, isOwnCourse = false, userRole }) => {
   const getDifficultyText = (difficulty: string) => {
     const lower = difficulty.toLowerCase();
     if (lower === "beginner") return "Beginner to Expert";
@@ -189,18 +191,30 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, userHasPremium
 
         <div className="mt-auto w-full">
           <button
-            className={`${isEnrolled ? "bg-indigo-600 hover:bg-indigo-700" : visual.cta} text-white font-semibold py-2.5 px-4 rounded-lg w-full flex items-center justify-center gap-2 transition-colors duration-200`}
+            className={`${
+              userRole === "admin"
+                ? "bg-slate-700 hover:bg-slate-800"
+                : isOwnCourse
+                ? "bg-amber-600 hover:bg-amber-700"
+                : isEnrolled
+                ? "bg-indigo-600 hover:bg-indigo-700"
+                : visual.cta
+            } text-white font-semibold py-2.5 px-4 rounded-lg w-full flex items-center justify-center gap-2 transition-colors duration-200`}
             onClick={(e) => {
               e.stopPropagation();
               onClick();
             }}
           >
             <span>
-              {isEnrolled
+              {userRole === "admin"
+                ? "View Course"
+                : isOwnCourse
+                ? "Preview Course"
+                : isEnrolled
                 ? "Continue Learning"
                 : course.isPremium && !userHasPremium
-                  ? "Upgrade to Access"
-                  : "Start Learning"}
+                ? "Upgrade to Access"
+                : "Start Learning"}
             </span>
             <ChevronRight className="w-4 h-4 opacity-90" />
           </button>

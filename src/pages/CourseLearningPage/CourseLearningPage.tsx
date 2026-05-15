@@ -25,7 +25,7 @@ const CourseLearningPage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const [course, setCourse] = useState<Course | null>(null);
   const [enrollment, setEnrollment] = useState<CourseEnrollment | null>(null);
@@ -49,6 +49,16 @@ const CourseLearningPage: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [lessonStartTime, setLessonStartTime] = useState<Date | null>(null);
   const [reviewListKey, setReviewListKey] = useState(0);
+
+  // Bypass mode: admin can view any course freely; creator can view their own course without enrollment
+  const isAdminViewer = user?.role === "admin";
+  const instructorId = course
+    ? typeof course.instructor === "object"
+      ? (course.instructor as any)?._id
+      : course.instructor
+    : null;
+  const isOwnCourse = user?.role === "creator" && !!instructorId && instructorId === user._id;
+  const bypassMode = isAdminViewer || isOwnCourse;
 
   // Resizable sidebar state
   const [leftSidebarWidth, setLeftSidebarWidth] = useState(320);
@@ -97,6 +107,24 @@ const CourseLearningPage: React.FC = () => {
               setSelectedLesson(firstSection.lessons[0]);
             }
           }
+
+          // Also auto-select for bypass viewers (admin or course owner) who have no enrollment
+          if (!courseResponse.enrollment) {
+            const instrId =
+              typeof courseResponse.data.instructor === "object"
+                ? (courseResponse.data.instructor as any)?._id
+                : courseResponse.data.instructor;
+            const isBypass =
+              user?.role === "admin" ||
+              (user?.role === "creator" && instrId === user?._id);
+            if (isBypass) {
+              const firstSection = courseResponse.data.sections[0];
+              if (firstSection.lessons?.length > 0) {
+                setSelectedSection(firstSection);
+                setSelectedLesson(firstSection.lessons[0]);
+              }
+            }
+          }
         }
 
         // Try to get detailed enrollment data
@@ -135,11 +163,12 @@ const CourseLearningPage: React.FC = () => {
   }, [isAuthenticated]);
 
   // redirect free users away from premium courses if they somehow get here
-  // allow access if user is already enrolled (downgraded after enrolling)
+  // allow access if user is already enrolled (downgraded after enrolling), or in bypass mode
   useEffect(() => {
     if (
       course?.isPremium &&
       !enrollment &&
+      !bypassMode &&
       !(subscriptionInfo && subscriptionInfo.plan === "premium")
     ) {
       showToast(
@@ -148,7 +177,7 @@ const CourseLearningPage: React.FC = () => {
       );
       navigate("/upgrade");
     }
-  }, [course, enrollment, subscriptionInfo, navigate, showToast]);
+  }, [course, enrollment, subscriptionInfo, bypassMode, navigate, showToast]);
 
   // Left sidebar resize handlers
   const handleLeftMouseDown = (e: React.MouseEvent) => {
@@ -509,6 +538,7 @@ const CourseLearningPage: React.FC = () => {
     section: CourseSection,
     lessonIndex?: number
   ): boolean => {
+    if (bypassMode) return true;
     if (!course) return false;
 
     const sectionIndex = course.sections.findIndex(
@@ -608,8 +638,8 @@ const CourseLearningPage: React.FC = () => {
     );
   }
 
-  // If not enrolled, show enrollment page
-  if (!enrollment) {
+  // If not enrolled, show enrollment page (skip for admin / course owner)
+  if (!enrollment && !bypassMode) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full">
@@ -1017,7 +1047,7 @@ const CourseLearningPage: React.FC = () => {
                   })}
 
                   {/* Certificate */}
-                  {enrollment.certificateIssued && (
+                  {!bypassMode && enrollment?.certificateIssued && (
                     <button
                       onClick={() => setViewMode("certificate")}
                       className={`w-full text-left p-3 rounded-lg text-sm font-semibold transition-colors ${
@@ -1047,23 +1077,25 @@ const CourseLearningPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Progress Bar */}
-              <div className="p-4 border-t border-gray-200">
-                <div>
-                  <div className="flex justify-between text-xs text-gray-600 mb-1">
-                    <span>Progress</span>
-                    <span className="font-semibold">
-                      {Math.round(enrollment.overallProgress)}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${enrollment.overallProgress}%` }}
-                    ></div>
+              {/* Progress Bar — hidden for bypass viewers */}
+              {!bypassMode && enrollment && (
+                <div className="p-4 border-t border-gray-200">
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-600 mb-1">
+                      <span>Progress</span>
+                      <span className="font-semibold">
+                        {Math.round(enrollment.overallProgress)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${enrollment.overallProgress}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </>
           )}
         </div>
@@ -1166,7 +1198,7 @@ const CourseLearningPage: React.FC = () => {
                     </button>
 
                     <div className="flex items-center gap-4">
-                      {!isLessonCompleted(
+                      {!bypassMode && (!isLessonCompleted(
                         selectedSection!._id,
                         selectedLesson._id
                       ) ? (
@@ -1204,7 +1236,7 @@ const CourseLearningPage: React.FC = () => {
                           </svg>
                           Completed
                         </div>
-                      )}
+                      ))}
                       <button
                         onClick={handleNextLesson}
                         className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"

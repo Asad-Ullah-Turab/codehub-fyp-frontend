@@ -37,4 +37,14 @@ export const creatorSubscriptionAPI = {
     const res = await api.post(`${BASE}/payouts/trigger`);
     return res.data;
   },
+
+  saveGeminiKey: async (apiKey: string) => {
+    const res = await api.put(`${BASE}/gemini-key`, { apiKey });
+    return res.data;
+  },
+
+  deleteGeminiKey: async () => {
+    const res = await api.delete(`${BASE}/gemini-key`);
+    return res.data;
+  },
 };

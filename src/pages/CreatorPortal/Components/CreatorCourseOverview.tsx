@@ -58,18 +58,17 @@ export default function CreatorCourseOverview() {
       const newSectionId: string = sectionData?._id;
 
       if (newSectionId && generated.lessons.length > 0) {
-        await Promise.all(
-          generated.lessons.map((lesson: any, index: number) =>
-            creatorCourseAPI.createLesson(newSectionId, {
-              title: lesson.title,
-              content: lesson.content || "",
-              order: index + 1,
-              codeExamples: lesson.codeExamples || [],
-              notes: lesson.notes || [],
-              tips: lesson.tips || [],
-            }),
-          ),
-        );
+        for (let index = 0; index < generated.lessons.length; index++) {
+          const lesson = generated.lessons[index];
+          await creatorCourseAPI.createLesson(newSectionId, {
+            title: lesson.title,
+            content: lesson.content || "",
+            order: index + 1,
+            codeExamples: lesson.codeExamples || [],
+            notes: lesson.notes || [],
+            tips: lesson.tips || [],
+          });
+        }
       }
 
       showToast(`Section "${generated.sectionTitle}" created with ${generated.lessons.length} lessons.`, "success");

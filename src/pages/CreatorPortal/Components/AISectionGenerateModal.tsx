@@ -35,7 +35,10 @@ export default function AISectionGenerateModal({ courseId, onClose, onApply }: P
       const res = await creatorCourseAPI.generateSectionWithAI(courseId, topic);
       setGenerated(res.data);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err.message || "Generation failed";
+      const code = err?.response?.data?.code;
+      const msg = code === "PRO_OR_KEY_REQUIRED"
+        ? "Upgrade to Creator Pro or add your own Gemini API key in the Earnings page to use AI generation."
+        : err?.response?.data?.message || err.message || "Generation failed";
       showToast(msg, "error");
     } finally {
       setLoading(false);
@@ -53,7 +56,7 @@ export default function AISectionGenerateModal({ courseId, onClose, onApply }: P
             </div>
             <div>
               <h2 className="text-base font-semibold text-slate-900">Generate Section with AI</h2>
-              <p className="text-xs text-slate-500">Creator Pro · Powered by Gemini</p>
+              <p className="text-xs text-slate-500">Creator Pro or your own API key · Powered by Gemini</p>
             </div>
           </div>
           <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-slate-100">

@@ -18,7 +18,7 @@ import CourseCard from "./Components/CourseCard";
 
 const TutorialsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { showToast } = useToast();
   const [mainConcepts, setMainConcepts] = useState<MainConcepts>({
     python: [],
@@ -86,7 +86,13 @@ const TutorialsPage: React.FC = () => {
     navigate(`/tutorials/${language}`);
   };
 
-  const handleCourseClick = async (courseId: string, isPremium?: boolean) => {
+  const handleCourseClick = async (courseId: string, isPremium?: boolean, isOwnCourse?: boolean) => {
+    // Admin always bypasses premium check; so does a creator viewing their own course
+    if (user?.role === "admin" || isOwnCourse) {
+      navigate(`/courses/${courseId}`);
+      return;
+    }
+
     if (isPremium) {
       let planInfo = subscriptionInfo;
       if (!planInfo) {
@@ -214,15 +220,20 @@ const TutorialsPage: React.FC = () => {
 
           {courses.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {courses.map((course) => (
-                <CourseCard
-                  key={course._id}
-                  course={course}
-                  onClick={() => handleCourseClick(course._id, course.isPremium)}
-                  userHasPremium={subscriptionInfo?.plan === "premium"}
-                  isEnrolled={enrolledCourseIds.has(course._id)}
-                />
-              ))}
+              {courses.map((course) => {
+                const isOwnCourse = user?.role === "creator" && course.instructor?._id === user._id;
+                return (
+                  <CourseCard
+                    key={course._id}
+                    course={course}
+                    onClick={() => handleCourseClick(course._id, course.isPremium, isOwnCourse)}
+                    userHasPremium={user?.role === "admin" || subscriptionInfo?.plan === "premium"}
+                    isEnrolled={enrolledCourseIds.has(course._id)}
+                    isOwnCourse={isOwnCourse}
+                    userRole={user?.role}
+                  />
+                );
+              })}
             </div>
           ) : (
             <div className="text-center bg-gray-50 rounded-2xl shadow-md p-12 border-2 border-gray-200 max-w-2xl mx-auto">

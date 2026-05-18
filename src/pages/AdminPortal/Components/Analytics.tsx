@@ -68,7 +68,9 @@ export default function AnalyticsDashboard() {
     creatorProTotalPaidOut: 0,
     combinedTotalRevenue: 0,
   });
-  const [revenueFilter, setRevenueFilter] = useState<"all" | "premium" | "creator">("all");
+  const [revenueFilter, setRevenueFilter] = useState<
+    "all" | "premium" | "creator"
+  >("all");
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -208,7 +210,9 @@ export default function AnalyticsDashboard() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 xl:grid-cols-5">
           {loading ? (
-            <div className="col-span-1 sm:col-span-2 xl:col-span-5 text-center text-white">Loading...</div>
+            <div className="col-span-1 sm:col-span-2 xl:col-span-5 text-center text-white">
+              Loading...
+            </div>
           ) : (
             stats.map((stat, index) => (
               <div key={index} className="bg-gray-900 rounded-lg p-6">
@@ -226,7 +230,7 @@ export default function AnalyticsDashboard() {
           <h2 className="text-xl font-bold text-gray-900 mb-4">
             Subscription Revenue Tracking
           </h2>
-          
+
           {/* Subscription type filter */}
           <div className="flex items-center gap-2 mb-4">
             <span className="text-sm font-medium text-gray-600">View:</span>
@@ -236,13 +240,19 @@ export default function AnalyticsDashboard() {
                 onClick={() => setRevenueFilter(f)}
                 className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                   revenueFilter === f
-                    ? f === "creator" ? "bg-indigo-600 text-white" : "bg-gray-900 text-white"
+                    ? f === "creator"
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-900 text-white"
                     : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 {f === "premium" && <Star className="w-3 h-3" />}
                 {f === "creator" && <Zap className="w-3 h-3" />}
-                {f === "all" ? "Combined" : f === "premium" ? "User Premium" : "Creator Pro"}
+                {f === "all"
+                  ? "Combined"
+                  : f === "premium"
+                    ? "User Premium"
+                    : "Creator Pro"}
               </button>
             ))}
           </div>
@@ -255,9 +265,15 @@ export default function AnalyticsDashboard() {
                   <Star className="w-3 h-3" /> User Premium MRR
                 </div>
                 <div className="text-3xl font-bold mb-1">
-                  ${earningsStats.monthlyRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  $
+                  {earningsStats.monthlyRevenue.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </div>
-                <div className="text-xs text-yellow-100">{earningsStats.premiumUsers} active subscribers</div>
+                <div className="text-xs text-yellow-100">
+                  {earningsStats.premiumUsers} active subscribers
+                </div>
               </div>
             )}
 
@@ -267,45 +283,71 @@ export default function AnalyticsDashboard() {
                   <Zap className="w-3 h-3" /> Creator Pro MRR
                 </div>
                 <div className="text-3xl font-bold mb-1">
-                  ${earningsStats.creatorProMRR.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  $
+                  {earningsStats.creatorProMRR.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </div>
-                <div className="text-xs text-indigo-100">{earningsStats.proCreators} active Creator Pro</div>
+                <div className="text-xs text-indigo-100">
+                  {earningsStats.proCreators} active Creator Pro
+                </div>
               </div>
             )}
 
             <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-6 text-white">
               <div className="text-xs text-green-100 mb-2">
-                {revenueFilter === "all" ? "Combined MRR" : revenueFilter === "premium" ? "Premium MRR" : "Creator Pro MRR"}
+                {revenueFilter === "all"
+                  ? "Combined MRR"
+                  : revenueFilter === "premium"
+                    ? "Premium MRR"
+                    : "Creator Pro MRR"}
               </div>
               <div className="text-3xl font-bold mb-1">
-                ${(revenueFilter === "all"
+                $
+                {(revenueFilter === "all"
                   ? earningsStats.combinedMRR
                   : revenueFilter === "premium"
-                  ? earningsStats.monthlyRevenue
-                  : earningsStats.creatorProMRR
-                ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ? earningsStats.monthlyRevenue
+                    : earningsStats.creatorProMRR
+                ).toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </div>
               <div className="text-xs text-green-100">
-                ARR: ${(revenueFilter === "all"
+                ARR: $
+                {(revenueFilter === "all"
                   ? earningsStats.combinedARR
                   : revenueFilter === "premium"
-                  ? earningsStats.annualRevenue
-                  : earningsStats.creatorProMRR * 12
-                ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ? earningsStats.annualRevenue
+                    : earningsStats.creatorProMRR * 12
+                ).toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </div>
             </div>
 
             <div className="bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg p-6 text-white">
               <div className="text-xs text-purple-100 mb-2">
-                {revenueFilter === "all" ? "Combined Total Revenue" : revenueFilter === "premium" ? "Premium Total Revenue" : "Creator Pro Paid Out"}
+                {revenueFilter === "all"
+                  ? "Combined Total Revenue"
+                  : revenueFilter === "premium"
+                    ? "Premium Total Revenue"
+                    : "Creator Pro Paid Out"}
               </div>
               <div className="text-3xl font-bold mb-1">
-                ${(revenueFilter === "all"
+                $
+                {(revenueFilter === "all"
                   ? earningsStats.combinedTotalRevenue
                   : revenueFilter === "premium"
-                  ? earningsStats.totalRevenue
-                  : earningsStats.creatorProTotalPaidOut
-                ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ? earningsStats.totalRevenue
+                    : earningsStats.creatorProTotalPaidOut
+                ).toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </div>
               <div className="text-xs text-purple-100">All-time earnings</div>
             </div>
@@ -383,10 +425,13 @@ export default function AnalyticsDashboard() {
                 <div className="absolute bottom-0 left-0 text-xs text-gray-500">
                   {revenueData.length > 0 && (
                     <span>
-                      {new Date(revenueData[0].date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
+                      {new Date(revenueData[0].date).toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )}
                     </span>
                   )}
                 </div>
@@ -394,7 +439,7 @@ export default function AnalyticsDashboard() {
                   {revenueData.length > 0 && (
                     <span>
                       {new Date(
-                        revenueData[revenueData.length - 1].date
+                        revenueData[revenueData.length - 1].date,
                       ).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -421,12 +466,16 @@ export default function AnalyticsDashboard() {
                     payment_failed: "Failed Payments",
                   };
                   const typeColors: { [key: string]: string } = {
-                    subscription_created: "bg-green-100 text-green-700 border-green-200",
-                    subscription_renewed: "bg-blue-100 text-blue-700 border-blue-200",
-                    subscription_cancelled: "bg-red-100 text-red-700 border-red-200",
-                    payment_failed: "bg-orange-100 text-orange-700 border-orange-200",
+                    subscription_created:
+                      "bg-green-100 text-green-700 border-green-200",
+                    subscription_renewed:
+                      "bg-blue-100 text-blue-700 border-blue-200",
+                    subscription_cancelled:
+                      "bg-red-100 text-red-700 border-red-200",
+                    payment_failed:
+                      "bg-orange-100 text-orange-700 border-orange-200",
                   };
-                  
+
                   return (
                     <div
                       key={index}
@@ -440,7 +489,11 @@ export default function AnalyticsDashboard() {
                       </div>
                       {transaction.totalAmount > 0 && (
                         <div className="text-xs">
-                          ${transaction.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          $
+                          {transaction.totalAmount.toLocaleString("en-US", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </div>
                       )}
                     </div>
@@ -568,7 +621,9 @@ export default function AnalyticsDashboard() {
                 <div className="text-4xl font-bold text-white">
                   {totalQueries.toLocaleString()}
                 </div>
-                <div className="text-xs text-gray-400">Total AI Interactions</div>
+                <div className="text-xs text-gray-400">
+                  Total AI Interactions
+                </div>
               </div>
 
               {/* Decorative dots around */}
@@ -689,7 +744,7 @@ export default function AnalyticsDashboard() {
                         <div className="flex items-center gap-2">
                           {course.name}
                           {course.isPremium && (
-                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" title="Premium Content" />
+                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                           )}
                         </div>
                       </td>

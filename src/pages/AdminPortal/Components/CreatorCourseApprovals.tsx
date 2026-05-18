@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle, XCircle, Loader, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
 import { creatorCourseAPI } from "../../../services/creatorCourseAPI";
 import AdminPageLayout from "./AdminPageLayout";
@@ -46,7 +46,10 @@ export default function CreatorCourseApprovals() {
     }
   };
 
-  const handleReview = async (courseId: string, action: "approve" | "reject") => {
+  const handleReview = async (
+    courseId: string,
+    action: "approve" | "reject",
+  ) => {
     if (action === "reject" && !comment.trim()) {
       showToast("Please provide a rejection comment.", "warning");
       return;
@@ -54,7 +57,11 @@ export default function CreatorCourseApprovals() {
 
     try {
       setActionLoading(courseId);
-      await creatorCourseAPI.reviewPublishRequest(courseId, action, comment.trim());
+      await creatorCourseAPI.reviewPublishRequest(
+        courseId,
+        action,
+        comment.trim(),
+      );
       showToast(
         action === "approve"
           ? "Course publish request approved"
@@ -85,91 +92,120 @@ export default function CreatorCourseApprovals() {
         )}
 
         {loading ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-          <Loader className="mx-auto h-10 w-10 animate-spin text-indigo-600" />
-          <p className="mt-4 text-sm text-slate-600">Loading pending creator course approvals...</p>
-        </div>
-      ) : courses.length === 0 ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center text-slate-600 shadow-sm">
-          No creator course publish requests are pending review.
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {courses.map((course) => (
-            <div key={course._id} className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <button
-                type="button"
-                className="w-full px-6 py-5 text-left"
-                onClick={() => setExpandedId(expandedId === course._id ? null : course._id)}
+          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+            <Loader className="mx-auto h-10 w-10 animate-spin text-indigo-600" />
+            <p className="mt-4 text-sm text-slate-600">
+              Loading pending creator course approvals...
+            </p>
+          </div>
+        ) : courses.length === 0 ? (
+          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center text-slate-600 shadow-sm">
+            No creator course publish requests are pending review.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {courses.map((course) => (
+              <div
+                key={course._id}
+                className="rounded-3xl border border-slate-200 bg-white shadow-sm"
               >
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-indigo-600">Creator course request</p>
-                    <h3 className="mt-2 text-xl font-bold text-slate-900">{course.title}</h3>
-                    <p className="mt-2 text-sm text-slate-600">{course.shortDescription}</p>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
-                      <span className="rounded-full bg-slate-100 px-2 py-1">{course.language}</span>
-                      <span className="rounded-full bg-slate-100 px-2 py-1">{course.category}</span>
-                      <span className="rounded-full bg-slate-100 px-2 py-1">{course.difficulty}</span>
-                    </div>
-                  </div>
-                  <div>
-                    {expandedId === course._id ? <ChevronUp className="h-5 w-5 text-slate-500" /> : <ChevronDown className="h-5 w-5 text-slate-500" />}
-                  </div>
-                </div>
-              </button>
-              {expandedId === course._id && (
-                <div className="border-t border-slate-200 bg-slate-50 p-6">
-                  <div className="grid gap-4 sm:grid-cols-2">
+                <button
+                  type="button"
+                  className="w-full px-6 py-5 text-left"
+                  onClick={() =>
+                    setExpandedId(expandedId === course._id ? null : course._id)
+                  }
+                >
+                  <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm text-slate-500">Creator</p>
-                      <p className="mt-1 text-sm font-medium text-slate-900">{course.instructor.name}</p>
-                      <p className="text-sm text-slate-500">{course.instructor.email}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Requested at</p>
-                      <p className="mt-1 text-sm font-medium text-slate-900">
-                        {course.publishRequestedAt
-                          ? new Date(course.publishRequestedAt).toLocaleString()
-                          : "--"}
+                      <p className="text-sm font-semibold text-indigo-600">
+                        Creator course request
                       </p>
+                      <h3 className="mt-2 text-xl font-bold text-slate-900">
+                        {course.title}
+                      </h3>
+                      <p className="mt-2 text-sm text-slate-600">
+                        {course.shortDescription}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+                        <span className="rounded-full bg-slate-100 px-2 py-1">
+                          {course.language}
+                        </span>
+                        <span className="rounded-full bg-slate-100 px-2 py-1">
+                          {course.category}
+                        </span>
+                        <span className="rounded-full bg-slate-100 px-2 py-1">
+                          {course.difficulty}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      {expandedId === course._id ? (
+                        <ChevronUp className="h-5 w-5 text-slate-500" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-slate-500" />
+                      )}
                     </div>
                   </div>
+                </button>
+                {expandedId === course._id && (
+                  <div className="border-t border-slate-200 bg-slate-50 p-6">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <p className="text-sm text-slate-500">Creator</p>
+                        <p className="mt-1 text-sm font-medium text-slate-900">
+                          {course.instructor.name}
+                        </p>
+                        <p className="text-sm text-slate-500">
+                          {course.instructor.email}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-slate-500">Requested at</p>
+                        <p className="mt-1 text-sm font-medium text-slate-900">
+                          {course.publishRequestedAt
+                            ? new Date(
+                                course.publishRequestedAt,
+                              ).toLocaleString()
+                            : "--"}
+                        </p>
+                      </div>
+                    </div>
 
-                  <div className="mt-5 space-y-4">
-                    <textarea
-                      value={comment}
-                      onChange={(event) => setComment(event.target.value)}
-                      placeholder="Optional comment for rejection"
-                      className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                      rows={4}
-                    />
-                    <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-                      <button
-                        type="button"
-                        onClick={() => handleReview(course._id, "reject")}
-                        className="inline-flex items-center justify-center rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
-                        disabled={actionLoading === course._id}
-                      >
-                        Reject
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleReview(course._id, "approve")}
-                        className="inline-flex items-center justify-center rounded-2xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-70"
-                        disabled={actionLoading === course._id}
-                      >
-                        Approve
-                      </button>
+                    <div className="mt-5 space-y-4">
+                      <textarea
+                        value={comment}
+                        onChange={(event) => setComment(event.target.value)}
+                        placeholder="Optional comment for rejection"
+                        className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                        rows={4}
+                      />
+                      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleReview(course._id, "reject")}
+                          className="inline-flex items-center justify-center rounded-2xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+                          disabled={actionLoading === course._id}
+                        >
+                          Reject
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleReview(course._id, "approve")}
+                          className="inline-flex items-center justify-center rounded-2xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-70"
+                          disabled={actionLoading === course._id}
+                        >
+                          Approve
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </AdminPageLayout>
   );
 }

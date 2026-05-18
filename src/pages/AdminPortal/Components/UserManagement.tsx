@@ -32,7 +32,9 @@ interface UserManagementProps {
   highlightedUserId?: string;
 }
 
-export default function UserManagement({ highlightedUserId }: UserManagementProps) {
+export default function UserManagement({
+  highlightedUserId,
+}: UserManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -89,11 +91,11 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
         10,
         searchTerm,
         roleFilter,
-        statusFilter
+        statusFilter,
       );
       setUsers(response.data || []);
       setPagination(
-        response.pagination || { total: 0, pages: 0, currentPage: 1 }
+        response.pagination || { total: 0, pages: 0, currentPage: 1 },
       );
     } catch (error) {
       showToast("Failed to load users", "error");
@@ -109,7 +111,7 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
       await adminAPI.updateUserStatus(
         selectedUser._id,
         "suspended",
-        suspendFormData.reason
+        suspendFormData.reason,
       );
       showToast("User suspended successfully", "success");
       setShowSuspendModal(false);
@@ -145,7 +147,7 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
       await adminAPI.sendEmailToUser(
         selectedUser._id,
         emailFormData.subject,
-        emailFormData.message
+        emailFormData.message,
       );
       showToast("Email sent successfully", "success");
       setShowEmailModal(false);
@@ -153,7 +155,7 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
     } catch (error: any) {
       showToast(
         error.response?.data?.message || "Failed to send email",
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
@@ -172,7 +174,7 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
     } catch (error: any) {
       showToast(
         error.response?.data?.message || "Failed to delete user",
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
@@ -188,7 +190,7 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
     } catch (error: any) {
       showToast(
         error.response?.data?.message || "Failed to change role",
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
@@ -201,12 +203,12 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
       const response = await adminAPI.triggerMonthlyReset();
       showToast(
         `Monthly reset completed successfully. ${response.data.updatedUsers} users updated.`,
-        "success"
+        "success",
       );
     } catch (error: any) {
       showToast(
         error.response?.data?.message || "Failed to trigger monthly reset",
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
@@ -243,8 +245,9 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
             </div>
           </div>
           <div className="mt-3 p-3 bg-white/50 rounded-md text-xs text-gray-600">
-            <strong>Monthly Reset:</strong> Resets query limits for all free users to 5 queries each (Chat, Code, Tutorial Generation).
-            This normally runs automatically on the 1st of each month.
+            <strong>Monthly Reset:</strong> Resets query limits for all free
+            users to 5 queries each (Chat, Code, Tutorial Generation). This
+            normally runs automatically on the 1st of each month.
           </div>
         </div>
 
@@ -348,15 +351,16 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                   <tr
                     key={user._id}
                     className={`border-b border-gray-100 transition-all duration-300 ${
-                      highlightedUser === user._id 
-                        ? 'bg-blue-50 border-l-4 border-l-blue-500 shadow-lg shadow-blue-200/50 animate-pulse' 
-                        : ''
+                      highlightedUser === user._id
+                        ? "bg-blue-50 border-l-4 border-l-blue-500 shadow-lg shadow-blue-200/50 animate-pulse"
+                        : ""
                     } ${
-                      user.subscriptionPlan === 'premium'
-                        ? 'bg-yellow-50 hover:bg-yellow-100'
-                        : user.creatorPlan === 'pro' && user.creatorPlanStatus === 'active'
-                        ? 'bg-indigo-50 hover:bg-indigo-100'
-                        : 'hover:bg-gray-50'
+                      user.subscriptionPlan === "premium"
+                        ? "bg-yellow-50 hover:bg-yellow-100"
+                        : user.creatorPlan === "pro" &&
+                            user.creatorPlanStatus === "active"
+                          ? "bg-indigo-50 hover:bg-indigo-100"
+                          : "hover:bg-gray-50"
                     }`}
                   >
                     <td className="px-4 py-4">
@@ -386,16 +390,19 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                     <td className="px-4 py-4 text-sm text-gray-700">
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-1">
-                          <span className="capitalize">{user.subscriptionPlan || 'free'}</span>
-                          {user.subscriptionPlan === 'premium' && (
-                            <Star className="w-3.5 h-3.5 text-yellow-500 flex-shrink-0" title="Premium" />
+                          <span className="capitalize">
+                            {user.subscriptionPlan || "free"}
+                          </span>
+                          {user.subscriptionPlan === "premium" && (
+                            <Star className="w-3.5 h-3.5 text-yellow-500 flex-shrink-0" />
                           )}
                         </div>
-                        {user.creatorPlan === 'pro' && user.creatorPlanStatus === 'active' && (
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
-                            <Zap className="w-3 h-3" /> Creator Pro
-                          </span>
-                        )}
+                        {user.creatorPlan === "pro" &&
+                          user.creatorPlanStatus === "active" && (
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700">
+                              <Zap className="w-3 h-3" /> Creator Pro
+                            </span>
+                          )}
                       </div>
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-700">
@@ -412,8 +419,8 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                           user.accountStatus === "active"
                             ? "bg-green-100 text-green-700"
                             : user.accountStatus === "suspended"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-yellow-100 text-yellow-700"
                         }`}
                       >
                         {user.accountStatus}
@@ -425,7 +432,7 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                           onClick={async () => {
                             try {
                               const response = await adminAPI.getUserDetails(
-                                user._id
+                                user._id,
                               );
                               setSelectedUser(response.data);
                               setShowViewModal(true);
@@ -548,7 +555,10 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                     <div className="flex items-center gap-4">
                       {selectedUser.profilePicture ? (
                         <img
-                          src={getProfileImageUrl(selectedUser.profilePicture) || selectedUser.profilePicture}
+                          src={
+                            getProfileImageUrl(selectedUser.profilePicture) ||
+                            selectedUser.profilePicture
+                          }
                           alt={selectedUser.name}
                           className="w-20 h-20 rounded-full object-cover border-4 border-gray-100 shadow-md"
                         />
@@ -560,20 +570,28 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                         </div>
                       )}
                       <div>
-                        <h2 className="text-2xl font-bold text-gray-900">{selectedUser.name}</h2>
-                        <p className="text-gray-600 text-sm mt-1">{selectedUser.email}</p>
-                        <p className="text-gray-500 text-xs mt-0.5">ID: {selectedUser._id}</p>
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          {selectedUser.name}
+                        </h2>
+                        <p className="text-gray-600 text-sm mt-1">
+                          {selectedUser.email}
+                        </p>
+                        <p className="text-gray-500 text-xs mt-0.5">
+                          ID: {selectedUser._id}
+                        </p>
                         <div className="flex items-center gap-2 mt-2">
                           <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-semibold capitalize">
                             {selectedUser.role}
                           </span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            selectedUser.accountStatus === "active"
-                              ? "bg-green-100 text-green-700"
-                              : selectedUser.accountStatus === "suspended"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}>
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              selectedUser.accountStatus === "active"
+                                ? "bg-green-100 text-green-700"
+                                : selectedUser.accountStatus === "suspended"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-yellow-100 text-yellow-700"
+                            }`}
+                          >
                             {selectedUser.accountStatus}
                           </span>
                         </div>
@@ -595,69 +613,98 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 text-gray-500 mb-1">
                       <Calendar className="w-4 h-4" />
-                      <span className="text-xs font-medium uppercase">Member Since</span>
+                      <span className="text-xs font-medium uppercase">
+                        Member Since
+                      </span>
                     </div>
                     <p className="text-base font-semibold text-gray-900">
-                      {new Date(selectedUser.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {new Date(selectedUser.createdAt).toLocaleDateString(
+                        "en-US",
+                        { year: "numeric", month: "long", day: "numeric" },
+                      )}
                     </p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <div className="flex items-center gap-2 text-gray-500 mb-1">
                       <Sparkles className="w-4 h-4" />
-                      <span className="text-xs font-medium uppercase">User Subscription</span>
+                      <span className="text-xs font-medium uppercase">
+                        User Subscription
+                      </span>
                     </div>
                     <p className="text-base font-semibold text-gray-900 capitalize">
-                      {selectedUser.subscriptionPlan || 'free'}
-                      {selectedUser.subscriptionPlan === 'premium' && (
+                      {selectedUser.subscriptionPlan || "free"}
+                      {selectedUser.subscriptionPlan === "premium" && (
                         <Star className="w-4 h-4 text-yellow-500 inline ml-1" />
                       )}
                     </p>
-                    {selectedUser.subscriptionPlan === 'free' && (
+                    {selectedUser.subscriptionPlan === "free" && (
                       <p className="text-xs text-gray-500 mt-0.5">
-                        {selectedUser.chatQueriesRemaining} chat · {selectedUser.codeQueriesRemaining} code · {selectedUser.tutorialGenRemaining} tutorials left
+                        {selectedUser.chatQueriesRemaining} chat ·{" "}
+                        {selectedUser.codeQueriesRemaining} code ·{" "}
+                        {selectedUser.tutorialGenRemaining} tutorials left
                       </p>
                     )}
                   </div>
 
-                  {selectedUser.role === 'creator' && (
-                    <div className={`border rounded-lg p-4 ${selectedUser.creatorPlan === 'pro' && selectedUser.creatorPlanStatus === 'active' ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200'}`}>
+                  {selectedUser.role === "creator" && (
+                    <div
+                      className={`border rounded-lg p-4 ${selectedUser.creatorPlan === "pro" && selectedUser.creatorPlanStatus === "active" ? "bg-indigo-50 border-indigo-200" : "bg-white border-gray-200"}`}
+                    >
                       <div className="flex items-center gap-2 text-gray-500 mb-1">
                         <Zap className="w-4 h-4 text-indigo-500" />
-                        <span className="text-xs font-medium uppercase">Creator Pro</span>
+                        <span className="text-xs font-medium uppercase">
+                          Creator Pro
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <p className="text-base font-semibold text-gray-900 capitalize">
-                          {selectedUser.creatorPlan === 'pro' && selectedUser.creatorPlanStatus === 'active' ? 'Active' : selectedUser.creatorPlanStatus || 'Not subscribed'}
+                          {selectedUser.creatorPlan === "pro" &&
+                          selectedUser.creatorPlanStatus === "active"
+                            ? "Active"
+                            : selectedUser.creatorPlanStatus ||
+                              "Not subscribed"}
                         </p>
-                        {selectedUser.creatorPlan === 'pro' && selectedUser.creatorPlanStatus === 'active' && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-700">
-                            <Zap className="w-3 h-3" /> Pro
-                          </span>
-                        )}
+                        {selectedUser.creatorPlan === "pro" &&
+                          selectedUser.creatorPlanStatus === "active" && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-700">
+                              <Zap className="w-3 h-3" /> Pro
+                            </span>
+                          )}
                       </div>
                       <p className="text-xs text-gray-500 mt-0.5">
-                        Payout account: {selectedUser.stripeConnectPayoutsEnabled ? '✓ Connected' : 'Not connected'}
+                        Payout account:{" "}
+                        {selectedUser.stripeConnectPayoutsEnabled
+                          ? "✓ Connected"
+                          : "Not connected"}
                       </p>
                     </div>
                   )}
-                  
+
                   {selectedUser.experience && (
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center gap-2 text-gray-500 mb-1">
                         <Award className="w-4 h-4" />
-                        <span className="text-xs font-medium uppercase">Experience</span>
+                        <span className="text-xs font-medium uppercase">
+                          Experience
+                        </span>
                       </div>
-                      <p className="text-base font-semibold text-gray-900 capitalize">{selectedUser.experience}</p>
+                      <p className="text-base font-semibold text-gray-900 capitalize">
+                        {selectedUser.experience}
+                      </p>
                     </div>
                   )}
-                  
+
                   {selectedUser.location && (
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center gap-2 text-gray-500 mb-1">
                         <MapPin className="w-4 h-4" />
-                        <span className="text-xs font-medium uppercase">Location</span>
+                        <span className="text-xs font-medium uppercase">
+                          Location
+                        </span>
                       </div>
-                      <p className="text-base font-semibold text-gray-900">{selectedUser.location}</p>
+                      <p className="text-base font-semibold text-gray-900">
+                        {selectedUser.location}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -665,15 +712,23 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                 {/* Bio Section */}
                 {selectedUser.bio && (
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2">About</h3>
-                    <p className="text-sm text-gray-700 leading-relaxed">{selectedUser.bio}</p>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                      About
+                    </h3>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {selectedUser.bio}
+                    </p>
                   </div>
                 )}
 
                 {/* Social Links Section */}
-                {(selectedUser.github || selectedUser.linkedin || selectedUser.website) && (
+                {(selectedUser.github ||
+                  selectedUser.linkedin ||
+                  selectedUser.website) && (
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Social Links</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                      Social Links
+                    </h3>
                     <div className="space-y-3">
                       {selectedUser.github && (
                         <div className="flex items-center gap-3">
@@ -681,8 +736,10 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                             <Github className="w-4 h-4 text-white" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-xs font-medium text-gray-500 uppercase">GitHub Profile</p>
-                            <a 
+                            <p className="text-xs font-medium text-gray-500 uppercase">
+                              GitHub Profile
+                            </p>
+                            <a
                               href={selectedUser.github}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -694,15 +751,17 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                           </div>
                         </div>
                       )}
-                      
+
                       {selectedUser.linkedin && (
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
                             <Linkedin className="w-4 h-4 text-white" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-xs font-medium text-gray-500 uppercase">LinkedIn Profile</p>
-                            <a 
+                            <p className="text-xs font-medium text-gray-500 uppercase">
+                              LinkedIn Profile
+                            </p>
+                            <a
                               href={selectedUser.linkedin}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -714,15 +773,17 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                           </div>
                         </div>
                       )}
-                      
+
                       {selectedUser.website && (
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
                             <Globe className="w-4 h-4 text-white" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-xs font-medium text-gray-500 uppercase">Website</p>
-                            <a 
+                            <p className="text-xs font-medium text-gray-500 uppercase">
+                              Website
+                            </p>
+                            <a
                               href={selectedUser.website}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -741,7 +802,9 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                 {/* Profile Completion Status */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-900">Profile Completion</h3>
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      Profile Completion
+                    </h3>
                     <span className="text-xl font-bold text-blue-600">
                       {Math.round(
                         ([
@@ -751,9 +814,14 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                           selectedUser.location,
                           selectedUser.programmingLanguages?.length > 0,
                           selectedUser.skills?.length > 0,
-                          selectedUser.github || selectedUser.linkedin || selectedUser.website,
-                        ].filter(Boolean).length / 7) * 100
-                      )}%
+                          selectedUser.github ||
+                            selectedUser.linkedin ||
+                            selectedUser.website,
+                        ].filter(Boolean).length /
+                          7) *
+                          100,
+                      )}
+                      %
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
@@ -768,9 +836,13 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                             selectedUser.location,
                             selectedUser.programmingLanguages?.length > 0,
                             selectedUser.skills?.length > 0,
-                            selectedUser.github || selectedUser.linkedin || selectedUser.website,
-                          ].filter(Boolean).length / 7) * 100
-                        )}%`
+                            selectedUser.github ||
+                              selectedUser.linkedin ||
+                              selectedUser.website,
+                          ].filter(Boolean).length /
+                            7) *
+                            100,
+                        )}%`,
                       }}
                     />
                   </div>
@@ -808,7 +880,9 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                       )}
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-700">Programming Languages</span>
+                      <span className="text-gray-700">
+                        Programming Languages
+                      </span>
                       {selectedUser.programmingLanguages?.length > 0 ? (
                         <CheckCircle className="w-4 h-4 text-green-600" />
                       ) : (
@@ -825,7 +899,9 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-700">Social Links</span>
-                      {(selectedUser.github || selectedUser.linkedin || selectedUser.website) ? (
+                      {selectedUser.github ||
+                      selectedUser.linkedin ||
+                      selectedUser.website ? (
                         <CheckCircle className="w-4 h-4 text-green-600" />
                       ) : (
                         <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
@@ -837,7 +913,9 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                 {/* Skills & Interests */}
                 {selectedUser.programmingLanguages?.length > 0 && (
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Programming Languages</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                      Programming Languages
+                    </h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedUser.programmingLanguages.map(
                         (lang: string, idx: number) => (
@@ -847,7 +925,7 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                           >
                             {lang}
                           </span>
-                        )
+                        ),
                       )}
                     </div>
                   </div>
@@ -855,7 +933,9 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
 
                 {selectedUser.skills?.length > 0 && (
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Skills</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                      Skills
+                    </h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedUser.skills.map((skill: string, idx: number) => (
                         <span
@@ -871,7 +951,9 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
 
                 {selectedUser.interests?.length > 0 && (
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-3">Interests</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                      Interests
+                    </h3>
                     <div className="flex flex-wrap gap-2">
                       {selectedUser.interests.map(
                         (interest: string, idx: number) => (
@@ -881,7 +963,7 @@ export default function UserManagement({ highlightedUserId }: UserManagementProp
                           >
                             {interest}
                           </span>
-                        )
+                        ),
                       )}
                     </div>
                   </div>

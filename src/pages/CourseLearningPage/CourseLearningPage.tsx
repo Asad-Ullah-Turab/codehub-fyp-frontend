@@ -28,16 +28,16 @@ const CourseLearningPage: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
 
   const [course, setCourse] = useState<Course | null>(null);
-  const [enrollment, setEnrollment] = useState<CourseEnrollment | null>(null);
+  const [enrollment, setEnrollment] = useState<CourseEnrollment | null>();
   const [subscriptionInfo, setSubscriptionInfo] = useState<any>(null); // plan data for premium check
   const [selectedSection, setSelectedSection] = useState<CourseSection | null>(
-    null
+    null,
   );
   const [selectedLesson, setSelectedLesson] = useState<CourseLesson | null>(
-    null
+    null,
   );
   const [viewMode, setViewMode] = useState<"lesson" | "quiz" | "certificate">(
-    "lesson"
+    "lesson",
   );
   const [selectedQuiz, setSelectedQuiz] = useState<string | null>(null);
   const [, setSidebarOpen] = useState(true);
@@ -57,7 +57,8 @@ const CourseLearningPage: React.FC = () => {
       ? (course.instructor as any)?._id
       : course.instructor
     : null;
-  const isOwnCourse = user?.role === "creator" && !!instructorId && instructorId === user._id;
+  const isOwnCourse =
+    user?.role === "creator" && !!instructorId && instructorId === user._id;
   const bypassMode = isAdminViewer || isOwnCourse;
 
   // Resizable sidebar state
@@ -139,7 +140,7 @@ const CourseLearningPage: React.FC = () => {
       } catch (err: any) {
         console.error("Error loading course data:", err);
         setError(
-          err.message || "Failed to load course. Please try again later."
+          err.message || "Failed to load course. Please try again later.",
         );
       } finally {
         setLoading(false);
@@ -153,7 +154,9 @@ const CourseLearningPage: React.FC = () => {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const info = await import("../../services/subscriptionAPI").then(m => m.getSubscriptionStatus());
+        const info = await import("../../services/subscriptionAPI").then((m) =>
+          m.getSubscriptionStatus(),
+        );
         setSubscriptionInfo(info);
       } catch {
         // ignore
@@ -173,7 +176,7 @@ const CourseLearningPage: React.FC = () => {
     ) {
       showToast(
         "This course is premium. Please upgrade your plan to access it.",
-        "error"
+        "error",
       );
       navigate("/upgrade");
     }
@@ -312,7 +315,7 @@ const CourseLearningPage: React.FC = () => {
     setExpandedSections((prev) =>
       prev.includes(sectionId)
         ? prev.filter((id) => id !== sectionId)
-        : [...prev, sectionId]
+        : [...prev, sectionId],
     );
   };
 
@@ -322,7 +325,7 @@ const CourseLearningPage: React.FC = () => {
     if (!isContentUnlocked(section, lessonIndex)) {
       showToast(
         "Please complete the previous content before accessing this lesson.",
-        "warning"
+        "warning",
       );
       return;
     }
@@ -339,15 +342,16 @@ const CourseLearningPage: React.FC = () => {
     if (!isContentUnlocked(section)) {
       showToast(
         "Please complete all lessons in this section before taking the quiz.",
-        "warning"
+        "warning",
       );
       return;
     }
 
     setSelectedSection(section);
-    const quizId = typeof section.sectionQuiz === "string"
-      ? section.sectionQuiz
-      : section.sectionQuiz?._id || null;
+    const quizId =
+      typeof section.sectionQuiz === "string"
+        ? section.sectionQuiz
+        : section.sectionQuiz?._id || null;
     setSelectedQuiz(quizId);
     setViewMode("quiz");
   };
@@ -364,7 +368,7 @@ const CourseLearningPage: React.FC = () => {
         courseId,
         selectedSection._id,
         selectedLesson._id,
-        timeSpentMinutes
+        timeSpentMinutes,
       );
 
       setEnrollment(result.data);
@@ -374,7 +378,7 @@ const CourseLearningPage: React.FC = () => {
       console.error("Error completing lesson:", err);
       showToast(
         err.message || "Failed to complete lesson. Please try again.",
-        "error"
+        "error",
       );
     }
   };
@@ -383,17 +387,17 @@ const CourseLearningPage: React.FC = () => {
     if (!course || !selectedSection || !selectedLesson) return;
 
     const currentSectionIndex = course.sections.findIndex(
-      (s) => s._id === selectedSection._id
+      (s) => s._id === selectedSection._id,
     );
     const currentLessonIndex = selectedSection.lessons.findIndex(
-      (l) => l._id === selectedLesson._id
+      (l) => l._id === selectedLesson._id,
     );
 
     // Check if there's a next lesson in current section
     if (currentLessonIndex < selectedSection.lessons.length - 1) {
       handleLessonSelect(
         selectedSection,
-        selectedSection.lessons[currentLessonIndex + 1]
+        selectedSection.lessons[currentLessonIndex + 1],
       );
     } else if (selectedSection.sectionQuiz) {
       // Show section quiz after last lesson
@@ -416,7 +420,7 @@ const CourseLearningPage: React.FC = () => {
       if (selectedSection.lessons?.length > 0) {
         handleLessonSelect(
           selectedSection,
-          selectedSection.lessons[selectedSection.lessons.length - 1]
+          selectedSection.lessons[selectedSection.lessons.length - 1],
         );
       }
       return;
@@ -425,17 +429,17 @@ const CourseLearningPage: React.FC = () => {
     if (!selectedLesson) return;
 
     const currentSectionIndex = course.sections.findIndex(
-      (s) => s._id === selectedSection._id
+      (s) => s._id === selectedSection._id,
     );
     const currentLessonIndex = selectedSection.lessons.findIndex(
-      (l) => l._id === selectedLesson._id
+      (l) => l._id === selectedLesson._id,
     );
 
     // Check if there's a previous lesson in current section
     if (currentLessonIndex > 0) {
       handleLessonSelect(
         selectedSection,
-        selectedSection.lessons[currentLessonIndex - 1]
+        selectedSection.lessons[currentLessonIndex - 1],
       );
     } else if (currentSectionIndex > 0) {
       // Move to last lesson of previous section
@@ -443,7 +447,7 @@ const CourseLearningPage: React.FC = () => {
       if (prevSection.lessons?.length > 0) {
         handleLessonSelect(
           prevSection,
-          prevSection.lessons[prevSection.lessons.length - 1]
+          prevSection.lessons[prevSection.lessons.length - 1],
         );
       }
     }
@@ -467,7 +471,7 @@ const CourseLearningPage: React.FC = () => {
     }
 
     const currentSectionIndex = course.sections.findIndex(
-      (s) => s._id === selectedSection._id
+      (s) => s._id === selectedSection._id,
     );
 
     if (currentSectionIndex < course.sections.length - 1) {
@@ -487,7 +491,7 @@ const CourseLearningPage: React.FC = () => {
       } else {
         showToast(
           "Course completed! Your certificate will be issued after admin approval.",
-          "success"
+          "success",
         );
       }
     }
@@ -516,12 +520,12 @@ const CourseLearningPage: React.FC = () => {
     if (!enrollment?.sectionProgress) return false;
 
     const sectionProgress = enrollment.sectionProgress.find(
-      (sp: any) => sp.section === sectionId
+      (sp: any) => sp.section === sectionId,
     );
     if (!sectionProgress) return false;
 
     return sectionProgress.lessons.some(
-      (lp: any) => lp.lesson === lessonId && lp.isCompleted
+      (lp: any) => lp.lesson === lessonId && lp.isCompleted,
     );
   };
 
@@ -529,20 +533,20 @@ const CourseLearningPage: React.FC = () => {
     if (!enrollment?.sectionProgress) return false;
 
     const sectionProgress = enrollment.sectionProgress.find(
-      (sp: any) => sp.section === sectionId
+      (sp: any) => sp.section === sectionId,
     );
     return sectionProgress?.sectionQuizScore?.passed || false;
   };
 
   const isContentUnlocked = (
     section: CourseSection,
-    lessonIndex?: number
+    lessonIndex?: number,
   ): boolean => {
     if (bypassMode) return true;
     if (!course) return false;
 
     const sectionIndex = course.sections.findIndex(
-      (s) => s._id === section._id
+      (s) => s._id === section._id,
     );
 
     // First section, first lesson is always unlocked
@@ -570,7 +574,7 @@ const CourseLearningPage: React.FC = () => {
     } else {
       // This is a section quiz - all lessons in section must be completed
       return section.lessons.every((lesson) =>
-        isLessonCompleted(section._id, lesson._id)
+        isLessonCompleted(section._id, lesson._id),
       );
     }
 
@@ -645,7 +649,12 @@ const CourseLearningPage: React.FC = () => {
         <div className="bg-white rounded-2xl shadow-xl p-8 max-w-2xl w-full">
           <h1 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             {course.title}
-            {course.isPremium && <Star className="w-6 h-6 text-yellow-500" aria-label="Premium course" />}
+            {course.isPremium && (
+              <Star
+                className="w-6 h-6 text-yellow-500"
+                aria-label="Premium course"
+              />
+            )}
           </h1>
           <p className="text-gray-600 mb-6">{course.description}</p>
 
@@ -658,8 +667,8 @@ const CourseLearningPage: React.FC = () => {
                 course.difficulty === "beginner"
                   ? "bg-green-600"
                   : course.difficulty === "intermediate"
-                  ? "bg-yellow-600"
-                  : "bg-red-600"
+                    ? "bg-yellow-600"
+                    : "bg-red-600"
               }`}
             >
               {course.difficulty}
@@ -849,7 +858,7 @@ const CourseLearningPage: React.FC = () => {
                           .includes(searchFilter.toLowerCase()) ||
                         section.title
                           .toLowerCase()
-                          .includes(searchFilter.toLowerCase())
+                          .includes(searchFilter.toLowerCase()),
                     );
 
                     if (
@@ -897,14 +906,14 @@ const CourseLearningPage: React.FC = () => {
                             {filteredLessons.map((lesson, lessonIdx) => {
                               const isCompleted = isLessonCompleted(
                                 section._id,
-                                lesson._id
+                                lesson._id,
                               );
                               const isCurrent =
                                 viewMode === "lesson" &&
                                 selectedLesson?._id === lesson._id;
                               const isUnlocked = isContentUnlocked(
                                 section,
-                                lessonIdx
+                                lessonIdx,
                               );
 
                               return (
@@ -918,10 +927,10 @@ const CourseLearningPage: React.FC = () => {
                                     isCurrent
                                       ? "bg-blue-50 border border-blue-200 text-blue-800 font-medium"
                                       : isCompleted
-                                      ? "bg-green-50 text-green-700 hover:bg-green-100"
-                                      : !isUnlocked
-                                      ? "text-gray-400 cursor-not-allowed opacity-60"
-                                      : "text-gray-700 hover:bg-gray-50"
+                                        ? "bg-green-50 text-green-700 hover:bg-green-100"
+                                        : !isUnlocked
+                                          ? "text-gray-400 cursor-not-allowed opacity-60"
+                                          : "text-gray-700 hover:bg-gray-50"
                                   }`}
                                 >
                                   <div className="flex items-center justify-between">
@@ -985,10 +994,10 @@ const CourseLearningPage: React.FC = () => {
                                   selectedSection?._id === section._id
                                     ? "bg-blue-50 border border-blue-200 text-blue-800 font-medium"
                                     : isSectionQuizCompleted(section._id)
-                                    ? "bg-green-50 text-green-700 hover:bg-green-100"
-                                    : !isContentUnlocked(section)
-                                    ? "text-gray-400 cursor-not-allowed opacity-60"
-                                    : "text-gray-700 hover:bg-gray-50"
+                                      ? "bg-green-50 text-green-700 hover:bg-green-100"
+                                      : !isContentUnlocked(section)
+                                        ? "text-gray-400 cursor-not-allowed opacity-60"
+                                        : "text-gray-700 hover:bg-gray-50"
                                 }`}
                               >
                                 <div className="flex items-center justify-between">
@@ -1130,7 +1139,12 @@ const CourseLearningPage: React.FC = () => {
                     <span className="mx-2">/</span>
                     <span className="hover:text-blue-600 cursor-pointer flex items-center gap-1">
                       {course.title}
-                      {course.isPremium && <Star className="w-4 h-4 text-yellow-500" aria-label="Premium" />}
+                      {course.isPremium && (
+                        <Star
+                          className="w-4 h-4 text-yellow-500"
+                          aria-label="Premium"
+                        />
+                      )}
                     </span>
                     <span className="mx-2">/</span>
                     <span className="text-gray-900 font-medium">
@@ -1198,45 +1212,46 @@ const CourseLearningPage: React.FC = () => {
                     </button>
 
                     <div className="flex items-center gap-4">
-                      {!bypassMode && (!isLessonCompleted(
-                        selectedSection!._id,
-                        selectedLesson._id
-                      ) ? (
-                        <button
-                          onClick={handleLessonComplete}
-                          className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                        >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                      {!bypassMode &&
+                        (!isLessonCompleted(
+                          selectedSection!._id,
+                          selectedLesson._id,
+                        ) ? (
+                          <button
+                            onClick={handleLessonComplete}
+                            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                          Mark Complete
-                        </button>
-                      ) : (
-                        <div className="flex items-center gap-2 text-green-600 font-semibold">
-                          <svg
-                            className="w-5 h-5"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          Completed
-                        </div>
-                      ))}
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                            Mark Complete
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-2 text-green-600 font-semibold">
+                            <svg
+                              className="w-5 h-5"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                            Completed
+                          </div>
+                        ))}
                       <button
                         onClick={handleNextLesson}
                         className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
@@ -1264,11 +1279,16 @@ const CourseLearningPage: React.FC = () => {
                     {isAuthenticated && (
                       <CourseReviewForm
                         courseId={courseId!}
-                        onReviewAdded={() => setReviewListKey((current) => current + 1)}
+                        onReviewAdded={() =>
+                          setReviewListKey((current) => current + 1)
+                        }
                       />
                     )}
 
-                    <CourseReviewsList key={reviewListKey} courseId={courseId!} />
+                    <CourseReviewsList
+                      key={reviewListKey}
+                      courseId={courseId!}
+                    />
                   </div>
                 </div>
               </>
@@ -1283,7 +1303,7 @@ const CourseLearningPage: React.FC = () => {
               />
             ) : viewMode === "certificate" ? (
               <CertificateViewer
-                enrollment={enrollment}
+                enrollment={enrollment!}
                 course={course}
                 onBackToCourse={handleBackClick}
               />

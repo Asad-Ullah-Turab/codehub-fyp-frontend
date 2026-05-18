@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Star, ThumbsUp } from 'lucide-react';
-import { useToast } from '../../../contexts/ToastContext';
-import { getCourseReviews, markReviewHelpful } from '../../../functions/CourseFunctions/courseFunctions';
-import type { CourseReview } from '../../../functions/CourseFunctions/courseFunctions';
+import React, { useState, useEffect } from "react";
+import { Star, ThumbsUp } from "lucide-react";
+import { useToast } from "../../../contexts/ToastContext";
+import {
+  getCourseReviews,
+  markReviewHelpful,
+} from "../../../functions/CourseFunctions/courseFunctions";
+import type { CourseReview } from "../../../functions/CourseFunctions/courseFunctions";
 
 interface CourseReviewsListProps {
   courseId: string;
-  sortBy?: 'recent' | 'rating-high' | 'rating-low' | 'helpful';
+  sortBy?: "recent" | "rating-high" | "rating-low" | "helpful";
 }
 
 const CourseReviewsList: React.FC<CourseReviewsListProps> = ({
   courseId,
-  sortBy = 'recent',
+  sortBy = "recent",
 }) => {
   const { showToast } = useToast();
   const [reviews, setReviews] = useState<CourseReview[]>([]);
@@ -19,7 +22,9 @@ const CourseReviewsList: React.FC<CourseReviewsListProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [ratingDistribution, setRatingDistribution] = useState<Record<number, number>>({});
+  const [ratingDistribution, setRatingDistribution] = useState<
+    Record<number, number>
+  >({});
   const [markedHelpful, setMarkedHelpful] = useState<Set<string>>(new Set());
 
   const limit = 10;
@@ -36,33 +41,41 @@ const CourseReviewsList: React.FC<CourseReviewsListProps> = ({
         courseId,
         page,
         limit,
-        sortBy as any
+        sortBy as any,
       );
 
       setReviews(Array.isArray(response?.reviews) ? response.reviews : []);
-      setTotalPages(typeof response?.pages === 'number' ? response.pages : 1);
+      setTotalPages(typeof response?.pages === "number" ? response.pages : 1);
 
-      const normalizedDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+      type Rating = 1 | 2 | 3 | 4 | 5;
+      const normalizedDistribution: Record<Rating, number> = {
+        5: 0,
+        4: 0,
+        3: 0,
+        2: 0,
+        1: 0,
+      };
       const distributionSource = response?.ratingDistribution;
 
       if (Array.isArray(distributionSource)) {
         distributionSource.forEach((item: any) => {
           const rating = Number(item?._id);
           if (rating >= 1 && rating <= 5) {
-            normalizedDistribution[rating] = Number(item?.count) || 0;
+            normalizedDistribution[rating as Rating] = Number(item?.count) || 0;
           }
         });
-      } else if (distributionSource && typeof distributionSource === 'object') {
+      } else if (distributionSource && typeof distributionSource === "object") {
         [1, 2, 3, 4, 5].forEach((rating) => {
-          normalizedDistribution[rating] = Number((distributionSource as Record<number, number>)[rating]) || 0;
+          normalizedDistribution[rating] =
+            Number((distributionSource as Record<number, number>)[rating]) || 0;
         });
       }
 
       setRatingDistribution(normalizedDistribution);
     } catch (err) {
-      console.error('Error loading reviews:', err);
-      setError('Failed to load reviews');
-      showToast('Failed to load reviews', 'error');
+      console.error("Error loading reviews:", err);
+      setError("Failed to load reviews");
+      showToast("Failed to load reviews", "error");
     } finally {
       setLoading(false);
     }
@@ -72,12 +85,12 @@ const CourseReviewsList: React.FC<CourseReviewsListProps> = ({
     try {
       await markReviewHelpful(reviewId);
       setMarkedHelpful((prev) => new Set([...prev, reviewId]));
-      showToast('Marked as helpful', 'success');
+      showToast("Marked as helpful", "success");
       // Reload reviews to update helpful count
       loadReviews();
     } catch (err) {
-      console.error('Error marking review helpful:', err);
-      showToast('Failed to mark as helpful', 'error');
+      console.error("Error marking review helpful:", err);
+      showToast("Failed to mark as helpful", "error");
     }
   };
 
@@ -88,7 +101,9 @@ const CourseReviewsList: React.FC<CourseReviewsListProps> = ({
 
     return (
       <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <h4 className="font-semibold text-gray-800 mb-4">Rating Distribution</h4>
+        <h4 className="font-semibold text-gray-800 mb-4">
+          Rating Distribution
+        </h4>
         <div className="space-y-2">
           {[5, 4, 3, 2, 1].map((star) => {
             const count = ratingDistribution[star] || 0;
@@ -106,7 +121,9 @@ const CourseReviewsList: React.FC<CourseReviewsListProps> = ({
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
-                <span className="text-sm text-gray-600 w-8 text-right">{count}</span>
+                <span className="text-sm text-gray-600 w-8 text-right">
+                  {count}
+                </span>
               </div>
             );
           })}
@@ -177,8 +194,8 @@ const CourseReviewsList: React.FC<CourseReviewsListProps> = ({
                         size={16}
                         className={
                           i < review.rating
-                            ? 'fill-yellow-400 text-yellow-400'
-                            : 'text-gray-300'
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-300"
                         }
                       />
                     ))}

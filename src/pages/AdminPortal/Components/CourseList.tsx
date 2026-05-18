@@ -10,7 +10,14 @@ interface CourseListProps {
   onTogglePublish: (courseId: string) => void;
 }
 
-export default function CourseList({ courses, loading, onEdit, onDelete, onManageSections, onTogglePublish }: CourseListProps) {
+export default function CourseList({
+  courses,
+  loading,
+  onEdit,
+  onDelete,
+  onManageSections,
+  onTogglePublish,
+}: CourseListProps) {
   if (loading) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-8">
@@ -25,15 +32,21 @@ export default function CourseList({ courses, loading, onEdit, onDelete, onManag
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-medium text-gray-900">Courses ({courses.length})</h2>
+        <h2 className="text-lg font-medium text-gray-900">
+          Courses ({courses.length})
+        </h2>
       </div>
 
       <div className="divide-y divide-gray-200">
         {courses.length === 0 ? (
           <div className="px-6 py-12 text-center">
             <Layers className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No courses found</h3>
-            <p className="text-gray-500">Get started by creating your first course</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No courses found
+            </h3>
+            <p className="text-gray-500">
+              Get started by creating your first course
+            </p>
           </div>
         ) : (
           courses.map((course) => (
@@ -41,15 +54,19 @@ export default function CourseList({ courses, loading, onEdit, onDelete, onManag
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-medium text-gray-900">{course.title}</h3>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      {course.title}
+                    </h3>
                     {course.isPremium && (
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" title="Premium Course" />
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                     )}
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      course.isPublished
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}>
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        course.isPublished
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
                       {course.isPublished ? "Published" : "Draft"}
                     </span>
                     {course.isArchived && (
@@ -58,7 +75,9 @@ export default function CourseList({ courses, loading, onEdit, onDelete, onManag
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{course.shortDescription}</p>
+                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                    {course.shortDescription}
+                  </p>
                   <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                     <span>{course.language}</span>
                     <span>{course.category}</span>
@@ -77,7 +96,9 @@ export default function CourseList({ courses, loading, onEdit, onDelete, onManag
                         ? "text-orange-600 hover:text-orange-900 hover:bg-orange-50"
                         : "text-green-600 hover:text-green-900 hover:bg-green-50"
                     }`}
-                    title={course.isPublished ? "Unpublish course" : "Publish course"}
+                    title={
+                      course.isPublished ? "Unpublish course" : "Publish course"
+                    }
                   >
                     {course.isPublished ? (
                       <EyeOff className="w-4 h-4" />
@@ -114,3 +135,4 @@ export default function CourseList({ courses, loading, onEdit, onDelete, onManag
     </div>
   );
 }
+

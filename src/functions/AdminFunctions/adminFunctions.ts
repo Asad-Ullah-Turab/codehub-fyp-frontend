@@ -3,7 +3,7 @@
  * Utility functions for admin panel operations
  */
 
-import { adminAPI } from '../../services/adminAPI';
+import { adminAPI } from "../../services/adminAPI";
 
 // Type definitions
 export interface DashboardStats {
@@ -35,18 +35,23 @@ export interface DashboardStats {
     revenue: number;
     count: number;
   }>;
+  combinedTotalRevenue: number;
+  combinedARR: number;
+  combinedMRR: number;
+  proCreators: string;
+  creatorProMRR: number;
 }
 
 export interface User {
   _id: string;
   name: string;
   email: string;
-  role: 'user' | 'creator' | 'admin';
-  accountStatus: 'active' | 'suspended' | 'pending';
+  role: "user" | "creator" | "admin";
+  accountStatus: "active" | "suspended" | "pending";
   createdAt: string;
   updatedAt: string;
   creatorApplication?: {
-    status: 'none' | 'pending' | 'approved' | 'rejected';
+    status: "none" | "pending" | "approved" | "rejected";
     submittedAt?: string;
     reviewedAt?: string;
     reviewComment?: string;
@@ -57,10 +62,10 @@ export interface CreatorApplication {
   _id: string;
   name: string;
   email: string;
-  role: 'user' | 'creator' | 'admin';
-  accountStatus: 'active' | 'suspended' | 'pending';
+  role: "user" | "creator" | "admin";
+  accountStatus: "active" | "suspended" | "pending";
   creatorApplication: {
-    status: 'pending' | 'approved' | 'rejected' | 'none';
+    status: "pending" | "approved" | "rejected" | "none";
     submittedAt?: string;
     reviewedAt?: string;
     reviewComment?: string;
@@ -79,6 +84,7 @@ export interface Tutorial {
     name: string;
   };
   createdAt: string;
+  isPremium: boolean;
 }
 
 export interface AnalyticsData {
@@ -92,7 +98,11 @@ export interface AnalyticsData {
 }
 
 export interface RecentActivity {
-  type: 'user_signup' | 'tutorial_created' | 'content_updated' | 'course_created';
+  type:
+    | "user_signup"
+    | "tutorial_created"
+    | "content_updated"
+    | "course_created";
   text: string;
   timestamp: string;
 }
@@ -103,18 +113,24 @@ export const fetchDashboardStats = async (): Promise<DashboardStats> => {
   if (response.success) {
     return response.data;
   }
-  throw new Error(response.message || 'Failed to fetch stats');
+  throw new Error(response.message || "Failed to fetch stats");
 };
 
 // User management functions
 export const fetchUsers = async (
   page: number = 1,
   limit: number = 10,
-  search: string = '',
-  role: string = '',
-  status: string = ''
+  search: string = "",
+  role: string = "",
+  status: string = "",
 ): Promise<{ users: User[]; total: number; pages: number }> => {
-  const response = await adminAPI.getAllUsers(page, limit, search, role, status);
+  const response = await adminAPI.getAllUsers(
+    page,
+    limit,
+    search,
+    role,
+    status,
+  );
   if (response.success) {
     return {
       users: response.data,
@@ -122,7 +138,7 @@ export const fetchUsers = async (
       pages: response.pagination.pages,
     };
   }
-  throw new Error(response.message || 'Failed to fetch users');
+  throw new Error(response.message || "Failed to fetch users");
 };
 
 export const searchUsersByQuery = async (query: string): Promise<User[]> => {
@@ -130,13 +146,17 @@ export const searchUsersByQuery = async (query: string): Promise<User[]> => {
   if (response.success) {
     return response.data;
   }
-  throw new Error(response.message || 'Failed to search users');
+  throw new Error(response.message || "Failed to search users");
 };
 
 export const fetchPendingCreatorApplications = async (
   page: number = 1,
-  limit: number = 5
-): Promise<{ applications: CreatorApplication[]; total: number; pages: number }> => {
+  limit: number = 5,
+): Promise<{
+  applications: CreatorApplication[];
+  total: number;
+  pages: number;
+}> => {
   const response = await adminAPI.getPendingCreatorApplications(page, limit);
   if (response.success) {
     return {
@@ -145,56 +165,70 @@ export const fetchPendingCreatorApplications = async (
       pages: response.pagination.pages,
     };
   }
-  throw new Error(response.message || 'Failed to fetch creator applications');
+  throw new Error(response.message || "Failed to fetch creator applications");
 };
 
 export const reviewCreatorApplication = async (
   userId: string,
-  action: 'approve' | 'reject',
+  action: "approve" | "reject",
   comment?: string,
 ): Promise<CreatorApplication> => {
-  const response = await adminAPI.reviewCreatorApplication(userId, action, comment);
+  const response = await adminAPI.reviewCreatorApplication(
+    userId,
+    action,
+    comment,
+  );
   if (response.success) {
     return response.data;
   }
-  throw new Error(response.message || 'Failed to review creator application');
+  throw new Error(response.message || "Failed to review creator application");
 };
 
 export const updateUserAccountStatus = async (
   userId: string,
-  accountStatus: 'active' | 'suspended' | 'pending'
+  accountStatus: "active" | "suspended" | "pending",
 ): Promise<User> => {
   const response = await adminAPI.updateUserStatus(userId, accountStatus);
   if (response.success) {
     return response.data;
   }
-  throw new Error(response.message || 'Failed to update user status');
+  throw new Error(response.message || "Failed to update user status");
 };
 
-export const changeUserAdminRole = async (userId: string, role: string): Promise<User> => {
+export const changeUserAdminRole = async (
+  userId: string,
+  role: string,
+): Promise<User> => {
   const response = await adminAPI.changeUserRole(userId, role);
   if (response.success) {
     return response.data;
   }
-  throw new Error(response.message || 'Failed to change user role');
+  throw new Error(response.message || "Failed to change user role");
 };
 
-export const removeUser = async (userId: string): Promise<{ message: string }> => {
+export const removeUser = async (
+  userId: string,
+): Promise<{ message: string }> => {
   const response = await adminAPI.deleteUser(userId);
   if (response.success) {
     return response.data;
   }
-  throw new Error(response.message || 'Failed to delete user');
+  throw new Error(response.message || "Failed to delete user");
 };
 
 // Tutorial management functions
 export const fetchTutorials = async (
   page: number = 1,
   limit: number = 10,
-  language: string = '',
-  search: string = ''
+  language: string = "",
+  search: string = "",
 ): Promise<{ tutorials: Tutorial[]; total: number; pages: number }> => {
-  const response = await adminAPI.getAllTutorials(page, limit, language, search);
+  const response = await adminAPI.getAllTutorials(
+    page,
+    limit,
+    language,
+    search,
+  );
   if (response.success) {
     return {
       tutorials: response.data,
@@ -202,34 +236,38 @@ export const fetchTutorials = async (
       pages: response.pagination.pages,
     };
   }
-  throw new Error(response.message || 'Failed to fetch tutorials');
+  throw new Error(response.message || "Failed to fetch tutorials");
 };
 
-export const createNewTutorial = async (tutorialData: Record<string, unknown>): Promise<Tutorial> => {
+export const createNewTutorial = async (
+  tutorialData: Record<string, unknown>,
+): Promise<Tutorial> => {
   const response = await adminAPI.createTutorial(tutorialData);
   if (response.success) {
     return response.data;
   }
-  throw new Error(response.message || 'Failed to create tutorial');
+  throw new Error(response.message || "Failed to create tutorial");
 };
 
 export const updateTutorialContent = async (
   tutorialId: string,
-  tutorialData: Record<string, unknown>
+  tutorialData: Record<string, unknown>,
 ): Promise<Tutorial> => {
   const response = await adminAPI.updateTutorial(tutorialId, tutorialData);
   if (response.success) {
     return response.data;
   }
-  throw new Error(response.message || 'Failed to update tutorial');
+  throw new Error(response.message || "Failed to update tutorial");
 };
 
-export const removeTutorial = async (tutorialId: string): Promise<{ message: string }> => {
+export const removeTutorial = async (
+  tutorialId: string,
+): Promise<{ message: string }> => {
   const response = await adminAPI.deleteTutorial(tutorialId);
   if (response.success) {
     return response.data;
   }
-  throw new Error(response.message || 'Failed to delete tutorial');
+  throw new Error(response.message || "Failed to delete tutorial");
 };
 
 // Analytics functions
@@ -238,15 +276,17 @@ export const fetchAnalyticsData = async (): Promise<AnalyticsData> => {
   if (response.success) {
     return response.data;
   }
-  throw new Error(response.message || 'Failed to fetch analytics');
+  throw new Error(response.message || "Failed to fetch analytics");
 };
 
-export const fetchRecentActivity = async (limit: number = 10): Promise<RecentActivity[]> => {
+export const fetchRecentActivity = async (
+  limit: number = 10,
+): Promise<RecentActivity[]> => {
   const response = await adminAPI.getRecentActivity(limit);
   if (response.success) {
     return response.data;
   }
-  throw new Error(response.message || 'Failed to fetch recent activity');
+  throw new Error(response.message || "Failed to fetch recent activity");
 };
 
 // Utility functions
@@ -256,24 +296,27 @@ export const formatUserStatus = (status: string): string => {
 
 export const formatUserRole = (role: string): string => {
   switch (role) {
-    case 'admin':
-      return 'Administrator';
-    case 'creator':
-      return 'Content Creator';
+    case "admin":
+      return "Administrator";
+    case "creator":
+      return "Content Creator";
     default:
-      return 'User';
+      return "User";
   }
 };
 
 export const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 };
 
-export const calculateSuspensionPercentage = (suspended: number, total: number): string => {
-  if (total === 0) return '0%';
-  return ((suspended / total) * 100).toFixed(2) + '%';
+export const calculateSuspensionPercentage = (
+  suspended: number,
+  total: number,
+): string => {
+  if (total === 0) return "0%";
+  return ((suspended / total) * 100).toFixed(2) + "%";
 };

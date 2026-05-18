@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation, Routes, Route, Navigate } from "react-router-dom";
+import {
+  useNavigate,
+  useLocation,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import AdminDashboard from "./Components/AdminDashboard";
 import UserManagement from "./Components/UserManagement";
@@ -31,12 +37,12 @@ function AdminPortal() {
   const location = useLocation();
   const [highlightedItem, setHighlightedItem] = useState<{
     type: string;
-    id: string;
+    id: string | undefined;
   } | null>(null);
 
   const handleTabNavigation = (
     tab: string,
-    data?: { userId?: string; tutorialId?: string; courseId?: string }
+    data?: { userId?: string; tutorialId?: string; courseId?: string },
   ) => {
     const routeMap: Record<string, string> = {
       dashboard: "/admin",
@@ -78,7 +84,9 @@ function AdminPortal() {
       setActiveTab("analytics");
     } else if (location.pathname.startsWith("/admin/creator-applications")) {
       setActiveTab("creator-applications");
-    } else if (location.pathname.startsWith("/admin/creator-course-approvals")) {
+    } else if (
+      location.pathname.startsWith("/admin/creator-course-approvals")
+    ) {
       setActiveTab("creator-course-approvals");
     } else if (location.pathname.startsWith("/admin/certificates")) {
       setActiveTab("certificates");
@@ -133,7 +141,9 @@ function AdminPortal() {
               </svg>
             </div>
             {!sidebarCollapsed && (
-              <span className="sidebar-brand text-xl font-bold tracking-wide">CODEHUB</span>
+              <span className="sidebar-brand text-xl font-bold tracking-wide">
+                CODEHUB
+              </span>
             )}
           </div>
           <button
@@ -339,7 +349,9 @@ function AdminPortal() {
                 d="M8 7V3m8 4V3m-6 8h6m-6 4h6m2 4H6a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2z"
               />
             </svg>
-            {!sidebarCollapsed && <span className="font-medium">Applications</span>}
+            {!sidebarCollapsed && (
+              <span className="font-medium">Applications</span>
+            )}
             {sidebarCollapsed && (
               <span className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                 Applications
@@ -368,7 +380,9 @@ function AdminPortal() {
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            {!sidebarCollapsed && <span className="font-medium">Creator Courses</span>}
+            {!sidebarCollapsed && (
+              <span className="font-medium">Creator Courses</span>
+            )}
             {sidebarCollapsed && (
               <span className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                 Creator Courses
@@ -384,10 +398,22 @@ function AdminPortal() {
             }`}
             onClick={() => handleTabNavigation("creator-revenue")}
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
-            {!sidebarCollapsed && <span className="font-medium">Creator Revenue</span>}
+            {!sidebarCollapsed && (
+              <span className="font-medium">Creator Revenue</span>
+            )}
             {sidebarCollapsed && (
               <span className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                 Creator Revenue
@@ -397,14 +423,28 @@ function AdminPortal() {
 
           <button
             className={`relative w-full flex items-center ${sidebarCollapsed ? "justify-center" : "justify-start"} gap-3 ${sidebarCollapsed ? "px-3" : "px-4"} py-2.5 mb-1 rounded-lg transition-colors text-left group ${
-              activeTab === "user-revenue" ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"
+              activeTab === "user-revenue"
+                ? "bg-blue-50 text-blue-600"
+                : "text-gray-700 hover:bg-gray-50"
             }`}
             onClick={() => handleTabNavigation("user-revenue")}
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+              />
             </svg>
-            {!sidebarCollapsed && <span className="font-medium">User Revenue</span>}
+            {!sidebarCollapsed && (
+              <span className="font-medium">User Revenue</span>
+            )}
             {sidebarCollapsed && (
               <span className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 whitespace-nowrap bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                 User Revenue
@@ -535,15 +575,60 @@ function AdminPortal() {
       <main className="flex-1 flex flex-col overflow-hidden bg-transparent">
         <div className="flex-1 overflow-y-auto p-6">
           <Routes>
-            <Route path="" element={<AdminDashboard onNavigate={handleTabNavigation} />} />
-            <Route path="tutorials" element={<TutorialManagement onError={(msg: string) => console.error(msg)} highlightedTutorialId={highlightedItem?.type === "tutorials" ? highlightedItem.id : undefined} />} />
+            <Route
+              path=""
+              element={<AdminDashboard onNavigate={handleTabNavigation} />}
+            />
+            <Route
+              path="tutorials"
+              element={
+                <TutorialManagement
+                  onError={(msg: string) => console.error(msg)}
+                  highlightedTutorialId={
+                    highlightedItem?.type === "tutorials"
+                      ? highlightedItem.id
+                      : undefined
+                  }
+                />
+              }
+            />
             <Route path="tutorials/new" element={<TutorialCreatePage />} />
-            <Route path="courses" element={<CourseManagement onError={(msg: string) => console.error(msg)} highlightedCourseId={highlightedItem?.type === "courses" ? highlightedItem.id : undefined} />} />
+            <Route
+              path="courses"
+              element={
+                <CourseManagement
+                  onError={(msg: string) => console.error(msg)}
+                  highlightedCourseId={
+                    highlightedItem?.type === "courses"
+                      ? highlightedItem.id
+                      : undefined
+                  }
+                />
+              }
+            />
             <Route path="courses/new" element={<CourseCreatePage />} />
-            <Route path="users" element={<UserManagement onError={(msg: string) => console.error(msg)} highlightedUserId={highlightedItem?.type === "users" ? highlightedItem.id : undefined} />} />
+            <Route
+              path="users"
+              element={
+                <UserManagement
+                  onError={(msg: string) => console.error(msg)}
+                  highlightedUserId={
+                    highlightedItem?.type === "users"
+                      ? highlightedItem.id
+                      : undefined
+                  }
+                />
+              }
+            />
             <Route path="analytics" element={<AnalyticsDashboard />} />
-            <Route path="creator-applications" element={<CreatorApplicationReviews />} />
-            <Route path="creator-course-approvals" element={<CreatorCourseApprovals />} />
+            <Route
+              path="creator-applications"
+              element={<CreatorApplicationReviews />}
+            />
+            <Route
+              path="creator-course-approvals"
+              element={<CreatorCourseApprovals />}
+            />
             <Route path="creator-revenue" element={<AdminCreatorRevenue />} />
             <Route path="user-revenue" element={<AdminUserRevenue />} />
             <Route path="certificates" element={<CertificateApproval />} />

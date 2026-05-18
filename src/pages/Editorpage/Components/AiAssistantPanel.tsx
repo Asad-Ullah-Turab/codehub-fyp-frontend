@@ -55,7 +55,7 @@ function AiAssistantPanel({
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -160,7 +160,7 @@ function AiAssistantPanel({
       addMessage(
         "I can see your editor is empty. Write some code first, and I'll be ready to help!",
         false,
-        "regular"
+        "regular",
       );
       setInputValue("");
       return;
@@ -180,14 +180,17 @@ function AiAssistantPanel({
           error,
           problems,
         },
-        "question"
+        "question",
       );
       addMessage(answer, false, "question");
       // decrement code queries remaining locally
-      if (subscriptionInfo && subscriptionInfo.plan === 'free') {
+      if (subscriptionInfo && subscriptionInfo.plan === "free") {
         setSubscriptionInfo((prev: any) => ({
           ...prev,
-          codeQueriesRemaining: Math.max((prev.codeQueriesRemaining || 1) - 1, 0)
+          codeQueriesRemaining: Math.max(
+            (prev.codeQueriesRemaining || 1) - 1,
+            0,
+          ),
         }));
       }
     } catch (err) {
@@ -196,7 +199,7 @@ function AiAssistantPanel({
           err instanceof Error ? err.message : "Please try again."
         }`,
         false,
-        "regular"
+        "regular",
       );
     } finally {
       setIsLoading(false);
@@ -218,7 +221,7 @@ function AiAssistantPanel({
           error,
           problems,
         },
-        "error-help"
+        "error-help",
       );
       addMessage(explanation, false, "error-help");
     } catch (err) {
@@ -227,7 +230,7 @@ function AiAssistantPanel({
           err instanceof Error ? err.message : "Try again."
         }`,
         false,
-        "regular"
+        "regular",
       );
     } finally {
       setIsLoading(false);
@@ -253,7 +256,7 @@ function AiAssistantPanel({
           error,
           problems,
         },
-        "problem-help"
+        "problem-help",
       );
       addMessage(hint, false, "problem-help");
     } catch (err) {
@@ -262,7 +265,7 @@ function AiAssistantPanel({
           err instanceof Error ? err.message : "Try again."
         }`,
         false,
-        "regular"
+        "regular",
       );
     } finally {
       setIsLoading(false);
@@ -277,11 +280,12 @@ function AiAssistantPanel({
           <span className="text-xl">🤖</span>
           <div className="flex flex-col">
             <h2 className="font-semibold text-gray-900 text-sm">AI Tutor</h2>
-            {subscriptionInfo && subscriptionInfo.plan === 'free' && (
+            {subscriptionInfo && subscriptionInfo.plan === "free" && (
               <span className="text-xs text-gray-500 flex items-center gap-2">
-                Chat: {subscriptionInfo.chatQueriesRemaining}, Code: {subscriptionInfo.codeQueriesRemaining}
+                Chat: {subscriptionInfo.chatQueriesRemaining}, Code:{" "}
+                {subscriptionInfo.codeQueriesRemaining}
                 <button
-                  onClick={() => window.location.href = '/upgrade'}
+                  onClick={() => (window.location.href = "/upgrade")}
                   className="ml-2 px-2 py-1 bg-yellow-300 text-xs rounded"
                 >
                   Upgrade
@@ -290,7 +294,8 @@ function AiAssistantPanel({
             )}
             {code && code.trim() && (
               <span className="text-xs text-green-600 flex items-center gap-1">
-                <CheckCircle className="inline w-4 h-4 mr-1" />Reading your code
+                <CheckCircle className="inline w-4 h-4 mr-1" />
+                Reading your code
               </span>
             )}
           </div>
@@ -314,10 +319,10 @@ function AiAssistantPanel({
                 message.isUser
                   ? "bg-blue-500 text-white"
                   : message.type === "error-help"
-                  ? "bg-red-50 text-gray-800 border border-red-200"
-                  : message.type === "problem-help"
-                  ? "bg-yellow-50 text-gray-800 border border-yellow-200"
-                  : "bg-gray-100 text-gray-800"
+                    ? "bg-red-50 text-gray-800 border border-red-200"
+                    : message.type === "problem-help"
+                      ? "bg-yellow-50 text-gray-800 border border-yellow-200"
+                      : "bg-gray-100 text-gray-800"
               }`}
             >
               {message.isUser ? message.text : formatMarkdownText(message.text)}

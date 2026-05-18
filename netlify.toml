@@ -27,7 +27,3 @@
   for = "/api/*"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
-
-[context.production.environment]
-  # Production environment variables (can be overridden in Netlify UI)
-  VITE_API_URL = "https://codehub-backend.eastasia.cloudapp.azure.com/api"

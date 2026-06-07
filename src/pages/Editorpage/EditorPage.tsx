@@ -17,7 +17,7 @@ function EditorPage() {
     const timer = setTimeout(() => {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -27,7 +27,7 @@ function EditorPage() {
   const [isResizing, setIsResizing] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   const state = location.state as {
     code?: string;
     language?: string;
@@ -40,14 +40,14 @@ function EditorPage() {
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!containerRef.current) return;
-    
+
     const containerRect = containerRef.current.getBoundingClientRect();
     const newWidth = containerRect.right - e.clientX;
-    
+
     // Set min/max width constraints
     const minWidth = 250;
     const maxWidth = Math.min(containerRect.width * 0.6, 800); // Max 60% of container or 800px
-    
+
     const clampedWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
     setAiPanelWidth(clampedWidth);
     setPreviousWidth(clampedWidth); // Store as previous width
@@ -71,22 +71,22 @@ function EditorPage() {
       }
     };
 
-    document.addEventListener('mousemove', handleMove);
-    document.addEventListener('mouseup', handleUp);
-    
+    document.addEventListener("mousemove", handleMove);
+    document.addEventListener("mouseup", handleUp);
+
     if (isResizing) {
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
     } else {
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMove);
-      document.removeEventListener('mouseup', handleUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+      document.removeEventListener("mousemove", handleMove);
+      document.removeEventListener("mouseup", handleUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
     };
   }, [isResizing, handleMouseMove, handleMouseUp]);
 
@@ -96,7 +96,7 @@ function EditorPage() {
       if (!isMinimized && containerRef.current) {
         const containerRect = containerRef.current.getBoundingClientRect();
         const maxAllowedWidth = Math.min(containerRect.width * 0.6, 800);
-        
+
         if (aiPanelWidth > maxAllowedWidth) {
           const newWidth = Math.max(250, maxAllowedWidth);
           setAiPanelWidth(newWidth);
@@ -105,8 +105,8 @@ function EditorPage() {
       }
     };
 
-    window.addEventListener('resize', handleWindowResize);
-    return () => window.removeEventListener('resize', handleWindowResize);
+    window.addEventListener("resize", handleWindowResize);
+    return () => window.removeEventListener("resize", handleWindowResize);
   }, [aiPanelWidth, isMinimized]);
 
   const toggleMinimize = () => {
@@ -117,7 +117,7 @@ function EditorPage() {
         const maxAllowedWidth = Math.min(containerRect.width * 0.6, 800);
         const targetWidth = Math.min(previousWidth, maxAllowedWidth);
         const finalWidth = Math.max(250, targetWidth); // Ensure minimum width
-        
+
         setAiPanelWidth(finalWidth);
       }
     } else {
@@ -128,16 +128,16 @@ function EditorPage() {
   };
 
   return (
-    <div ref={containerRef} className="flex h-screen overflow-hidden">
+    <div ref={containerRef} className="flex h-screen overflow-hidden mt-4">
       {/* Code Editor - takes remaining space */}
       <div className="flex-1 min-w-0 overflow-hidden">
-        <CodeEditor 
+        <CodeEditor
           initialCode={state?.code}
           initialLanguage={state?.language}
           onStateChange={setEditorState}
         />
       </div>
-      
+
       {/* Resize Handle */}
       {!isMinimized && (
         <div
@@ -149,16 +149,18 @@ function EditorPage() {
           </div>
         </div>
       )}
-      
+
       {/* AI Panel with toggle button */}
-      <div 
+      <div
         className={`relative bg-gray-50 transition-all duration-300 flex-shrink-0 ${
-          isMinimized ? 'w-12' : ''
+          isMinimized ? "w-12" : ""
         }`}
-        style={{ 
-          width: isMinimized ? '48px' : `${Math.min(aiPanelWidth, window.innerWidth * 0.6)}px`,
-          minWidth: isMinimized ? '48px' : '250px',
-          maxWidth: isMinimized ? '48px' : '800px'
+        style={{
+          width: isMinimized
+            ? "48px"
+            : `${Math.min(aiPanelWidth, window.innerWidth * 0.6)}px`,
+          minWidth: isMinimized ? "48px" : "250px",
+          maxWidth: isMinimized ? "48px" : "800px",
         }}
       >
         {/* Minimize/Maximize Toggle */}
@@ -168,18 +170,38 @@ function EditorPage() {
           title={isMinimized ? "Expand AI Chat" : "Minimize AI Chat"}
         >
           {isMinimized ? (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           )}
         </button>
-        
+
         {!isMinimized && (
-          <AiAssistantPanel 
+          <AiAssistantPanel
             code={editorState.code}
             language={editorState.language}
             error={editorState.error}

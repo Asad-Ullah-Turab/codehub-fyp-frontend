@@ -13,7 +13,6 @@ import {
   languageOptions,
   getDefaultCodeForLanguage,
 } from "../../../functions";
-import { codeAPI } from "../../../services/api";
 import { snippetAPI, type CodeSnippet } from "../../../services/snippetAPI";
 import { useAuth } from "../../../hooks/useAuth";
 import { useToast } from "../../../contexts/ToastContext";
@@ -29,15 +28,13 @@ import {
 const STORAGE_KEYS = {
   CODE: "codehub_editor_code",
   LANGUAGE: "codehub_editor_language",
-  INPUT: "codehub_editor_input",
 };
 
 // Functions for localStorage persistence
-const saveCodeToStorage = (code: string, language: string, input: string) => {
+const saveCodeToStorage = (code: string, language: string) => {
   try {
     localStorage.setItem(STORAGE_KEYS.CODE, code);
     localStorage.setItem(STORAGE_KEYS.LANGUAGE, language);
-    localStorage.setItem(STORAGE_KEYS.INPUT, input);
   } catch (error) {
     console.warn("Failed to save code to localStorage:", error);
   }
@@ -48,11 +45,10 @@ const loadCodeFromStorage = () => {
     return {
       code: localStorage.getItem(STORAGE_KEYS.CODE),
       language: localStorage.getItem(STORAGE_KEYS.LANGUAGE),
-      input: localStorage.getItem(STORAGE_KEYS.INPUT),
     };
   } catch (error) {
     console.warn("Failed to load code from localStorage:", error);
-    return { code: null, language: null, input: null };
+    return { code: null, language: null };
   }
 };
 
@@ -60,7 +56,6 @@ const clearCodeFromStorage = () => {
   try {
     localStorage.removeItem(STORAGE_KEYS.CODE);
     localStorage.removeItem(STORAGE_KEYS.LANGUAGE);
-    localStorage.removeItem(STORAGE_KEYS.INPUT);
   } catch (error) {
     console.warn("Failed to clear code from localStorage:", error);
   }
@@ -96,20 +91,20 @@ export default function CodeEditor({
     if (savedData.language) return savedData.language;
     return "python";
   };
-  const getInitialInput = () => {
-    return savedData.input || "";
-  };
-
   // --- Your Existing State and Refs ---
   const [code, setCode] = useState(getInitialCode());
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState(getInitialLanguage());
-  const [input, setInput] = useState(getInitialInput());
-  const outputEndRef = useRef<HTMLDivElement>(null);
+
+  // --- Terminal State ---
+  const [terminalLines, setTerminalLines] = useState<Array<{ type: 'out' | 'in' | 'sys'; text: string }>>([]);
+  const [terminalInput, setTerminalInput] = useState('');
+  const wsRef = useRef<WebSocket | null>(null);
+  const terminalContainerRef = useRef<HTMLDivElement>(null);
 
   // --- New State for Tabs ---
-  const [activeTab, setActiveTab] = useState<"output" | "input" | "problems">(
+  const [activeTab, setActiveTab] = useState<"output" | "problems">(
     "output"
   );
   const [showExportModal, setShowExportModal] = useState(false);
@@ -165,18 +160,6 @@ export default function CodeEditor({
     }
   }, [isAuthenticated]);
 
-  // --- Prevent auto-scroll on mount ---
-  useEffect(() => {
-    // Gentle scroll correction after mount
-    const timer = setTimeout(() => {
-      if (window.scrollY > 0) {
-        window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-      }
-    }, 200);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
   // --- Show recovery notification if code was loaded from localStorage ---
   useEffect(() => {
     const savedData = loadCodeFromStorage();
@@ -199,11 +182,27 @@ export default function CodeEditor({
   // --- Save code to localStorage whenever it changes ---
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      saveCodeToStorage(code, language, input);
-    }, 1000); // Debounce saves by 1 second
-
+      saveCodeToStorage(code, language);
+    }, 1000);
     return () => clearTimeout(timeoutId);
-  }, [code, language, input]);
+  }, [code, language]);
+
+  // --- Cleanup WebSocket on unmount ---
+  useEffect(() => {
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, []);
+
+  // --- Auto-scroll terminal on new output ---
+  useEffect(() => {
+    if (terminalLines.length > 0 && terminalContainerRef.current) {
+      const el = terminalContainerRef.current;
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [terminalLines]);
 
   const loadSnippets = async () => {
     try {
@@ -244,8 +243,9 @@ export default function CodeEditor({
     setCode(snippet.code);
     setLanguage(snippet.language);
     setOutput(snippet.output || "");
+    setTerminalLines(snippet.output ? [{ type: 'out', text: snippet.output }] : []);
     setShowSnippetsPanel(false);
-    clearCodeFromStorage(); // Clear since we're intentionally loading new code
+    clearCodeFromStorage();
     showToast("Code snippet loaded!", "success");
   };
 
@@ -271,58 +271,96 @@ export default function CodeEditor({
     }
   };
 
-  // --- Your Existing Functions (Unchanged) ---
-  const runCode = async () => {
+  // --- Terminal helpers ---
+  const getWsUrl = () => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    return apiUrl
+      .replace(/^http:\/\//, 'ws://')
+      .replace(/^https:\/\//, 'wss://')
+      .replace(/\/api$/, '/ws/execute');
+  };
+
+  const runCode = () => {
+    if (loading) return;
+
+    setTerminalLines([{ type: 'sys', text: `Running ${language}...\n` }]);
+    setOutput('');
     setLoading(true);
-    setOutput("");
-    setActiveTab("output");
+    setActiveTab('output');
 
-    try {
-      const codeNeedsInput =
-        code.includes("input(") ||
-        code.includes("cin >>") ||
-        code.includes("process.stdin");
+    const ws = new WebSocket(getWsUrl());
+    wsRef.current = ws;
 
-      if (!input.trim() && codeNeedsInput) {
-        setOutput(
-          "Your code requires input!\n\nPlease provide input in the 'Input' tab.\nEach input should be on a separate line.\n\nExample:\nAlice\n25"
-        );
-        setLoading(false);
-        return;
-      }
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: 'execute', code, language }));
+    };
 
-      const result = await codeAPI.executeCode(code, language, input);
+    ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'output') {
+          setTerminalLines(prev => [...prev, { type: 'out', text: msg.data }]);
+          setOutput(prev => prev + msg.data);
+        } else if (msg.type === 'done') {
+          setTerminalLines(prev => [
+            ...prev,
+            { type: 'sys', text: `\nProcess exited with code ${msg.exit_code}` },
+          ]);
+          setLoading(false);
+          wsRef.current = null;
+          onStateChange?.({ code, language, error: '', problems });
+        } else if (msg.type === 'error') {
+          setTerminalLines(prev => [...prev, { type: 'out', text: msg.data }]);
+          setOutput(prev => prev + msg.data);
+          setLoading(false);
+          wsRef.current = null;
+          onStateChange?.({ code, language, error: msg.data, problems });
+        }
+      } catch { /* ignore parse errors */ }
+    };
 
-      if (result.success) {
-        setOutput(result.data?.output || "No output");
-        // Notify parent of state
-        onStateChange?.({ code, language, error: "", problems });
-      } else {
-        const errorMsg = result.error || "Execution failed";
-        setOutput(errorMsg);
-        // Notify parent of error
-        onStateChange?.({ code, language, error: errorMsg, problems });
-      }
-    } catch (error: unknown) {
-      const executionError = error as {
-        response?: { data?: { message?: string } };
-      };
-      const errorMsg =
-        executionError?.response?.data?.message ||
-        "Error: Failed to execute code. Please try again.";
-      setOutput(errorMsg);
-      // Notify parent of error
-      onStateChange?.({ code, language, error: errorMsg, problems });
-    } finally {
+    ws.onerror = () => {
+      const errMsg = 'Connection error — is the backend running?';
+      setTerminalLines(prev => [...prev, { type: 'sys', text: '\n' + errMsg }]);
       setLoading(false);
+      wsRef.current = null;
+    };
+
+    ws.onclose = () => {
+      setLoading(false);
+      wsRef.current = null;
+    };
+  };
+
+  const sendTerminalInput = () => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    wsRef.current.send(JSON.stringify({ type: 'input', data: terminalInput }));
+    setTerminalLines(prev => [...prev, { type: 'in', text: terminalInput + '\n' }]);
+    setTerminalInput('');
+  };
+
+  const stopExecution = () => {
+    if (wsRef.current) {
+      try { wsRef.current.send(JSON.stringify({ type: 'stop' })); } catch { /* ignore */ }
+      wsRef.current.close();
+      wsRef.current = null;
     }
+    setLoading(false);
+    setTerminalLines(prev => [...prev, { type: 'sys', text: '\nExecution stopped.' }]);
   };
 
   const changeLanguage = (newLanguage: string) => {
+    if (wsRef.current) {
+      try { wsRef.current.send(JSON.stringify({ type: 'stop' })); } catch { /* ignore */ }
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    setLoading(false);
+    setTerminalLines([]);
     handleLanguageChange(newLanguage, setLanguage, setCode);
     setOutput("");
     setProblems([]);
-    clearCodeFromStorage(); // Clear since we're intentionally changing language
+    clearCodeFromStorage();
   };
 
   // Handle Monaco Editor mount
@@ -884,41 +922,27 @@ export default function CodeEditor({
                 </button>
               </>
             )}
-            <button
-              onClick={runCode}
-              disabled={loading}
-              className="px-3 py-1 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-            >
-              {loading ? (
-                <>
-                  <svg
-                    className="w-4 h-4 animate-spin"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
-                  Running...
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="w-4 h-4"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-                  </svg>
-                  Run
-                </>
-              )}
-            </button>
+            {loading ? (
+              <button
+                onClick={stopExecution}
+                className="px-3 py-1 rounded bg-red-600 text-white text-sm font-medium hover:bg-red-700 flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M5 4a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V5a1 1 0 00-1-1H5z" />
+                </svg>
+                Stop
+              </button>
+            ) : (
+              <button
+                onClick={runCode}
+                className="px-3 py-1 rounded bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                </svg>
+                Run
+              </button>
+            )}
             <button
               onClick={() => {
                 setCode(getDefaultCodeForLanguage(language));
@@ -1017,17 +1041,7 @@ export default function CodeEditor({
                       : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
-                  Output
-                </button>
-                <button
-                  onClick={() => setActiveTab("input")}
-                  className={`px-4 py-2 text-sm ${
-                    activeTab === "input"
-                      ? "text-gray-900 border-b-2 border-blue-500"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  Input
+                  Terminal
                 </button>
                 <button
                   onClick={() => setActiveTab("problems")}
@@ -1048,9 +1062,7 @@ export default function CodeEditor({
             )}
             {isBottomPanelMinimized && (
               <span className="text-sm text-gray-600 py-2">
-                Output Panel -{activeTab === "output" && "Output"}
-                {activeTab === "input" && "Input"}
-                {activeTab === "problems" && `Problems (${problems.length})`}
+                {activeTab === "output" ? "Terminal" : `Problems (${problems.length})`}
               </span>
             )}
           </div>
@@ -1080,8 +1092,9 @@ export default function CodeEditor({
               <div className="flex gap-2">
                 <button
                   onClick={() => {
-                    if (output) {
-                      navigator.clipboard.writeText(output);
+                    const text = terminalLines.map(l => l.text).join('');
+                    if (text) {
+                      navigator.clipboard.writeText(text);
                       showToast("Output copied to clipboard!", "success");
                     } else {
                       showToast("No output to copy", "warning");
@@ -1106,10 +1119,11 @@ export default function CodeEditor({
                 </button>
                 <button
                   onClick={() => {
+                    setTerminalLines([]);
                     setOutput("");
-                    showToast("Output cleared", "info");
+                    showToast("Terminal cleared", "info");
                   }}
-                  title="Clear Output"
+                  title="Clear Terminal"
                   className="text-gray-500 hover:text-red-600 p-1 hover:bg-red-50 rounded transition-colors"
                 >
                   <svg
@@ -1132,19 +1146,50 @@ export default function CodeEditor({
         </div>
         {/* Panel Content */}
         {!isBottomPanelMinimized && (
-          <div className="flex-1 p-3 overflow-auto bg-white">
+          <div className={`flex-1 overflow-hidden ${activeTab === "output" ? "" : "p-3 overflow-auto bg-white"}`}>
             {activeTab === "output" ? (
-              <pre className="text-sm whitespace-pre-wrap font-mono text-gray-800">
-                {output || "Your code's output will be displayed here."}
-                <div ref={outputEndRef} />
-              </pre>
-            ) : activeTab === "input" ? (
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                className="w-full h-full p-2 rounded bg-white text-gray-900 border border-gray-300 resize-none text-sm font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Provide all inputs here (one per line)..."
-              />
+              <div className="flex flex-col h-full bg-gray-900 font-mono text-sm">
+                {/* Scrollable output */}
+                <div ref={terminalContainerRef} className="flex-1 overflow-auto p-3 leading-relaxed">
+                  {terminalLines.length === 0 ? (
+                    <span className="text-gray-500">Run your code to see output here...</span>
+                  ) : (
+                    terminalLines.map((line, i) => (
+                      <span
+                        key={i}
+                        style={{ whiteSpace: 'pre-wrap' }}
+                        className={
+                          line.type === 'in'
+                            ? 'text-green-400'
+                            : line.type === 'sys'
+                            ? 'text-gray-400 italic'
+                            : 'text-gray-100'
+                        }
+                      >{line.text}</span>
+                    ))
+                  )}
+                </div>
+                {/* Interactive input line — shown while executing */}
+                {loading && (
+                  <div className="flex items-center border-t border-gray-700 px-3 py-2 flex-shrink-0">
+                    <span className="text-green-400 mr-2 select-none">{'>'}</span>
+                    <input
+                      type="text"
+                      value={terminalInput}
+                      onChange={e => setTerminalInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          sendTerminalInput();
+                        }
+                      }}
+                      className="flex-1 bg-transparent text-gray-100 outline-none caret-green-400 placeholder-gray-600 text-sm"
+                      placeholder="Type input and press Enter..."
+                      autoFocus
+                    />
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="h-full">
                 {/* Header Section */}

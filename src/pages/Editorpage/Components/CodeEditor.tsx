@@ -274,10 +274,12 @@ export default function CodeEditor({
   // --- Terminal helpers ---
   const getWsUrl = () => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    return apiUrl
+    const wsBase = apiUrl
       .replace(/^http:\/\//, 'ws://')
       .replace(/^https:\/\//, 'wss://')
       .replace(/\/api$/, '/ws/execute');
+    const token = localStorage.getItem('authToken');
+    return token ? `${wsBase}?token=${encodeURIComponent(token)}` : wsBase;
   };
 
   const runCode = () => {

@@ -21,74 +21,72 @@ export const languageOptions: LanguageOption[] = [
   {
     id: "javascript",
     name: "JavaScript",
-    defaultCode: `// Recursive function example
-function factorial(n) {
-    if (n <= 1) return 1;
-    return n * factorial(n - 1);
+    defaultCode: `// Fibonacci sequence
+function fibonacci(n) {
+    const seq = [0, 1];
+    for (let i = 2; i < n; i++) {
+        seq.push(seq[i - 1] + seq[i - 2]);
+    }
+    return seq.slice(0, n);
 }
 
-console.log("Factorial of 5:", factorial(5));
+console.log("Fibonacci (10 terms):", fibonacci(10).join(", "));
 
-// While loop example
-let count = 1;
-while (count <= 5) {
-    console.log("Count:", count);
-    count++;
-}
+// Filter and map example
+const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const result = numbers
+    .filter(n => n % 2 === 0)
+    .map(n => n * n);
 
-// Object example
-let person = { name: "Alice", age: 30 };
-console.log("Name:", person.name, "Age:", person.age);`,
+console.log("Even squares:", result.join(", "));
+
+// Object and array
+const students = [
+    { name: "Alice", grade: 92 },
+    { name: "Bob", grade: 85 },
+    { name: "Carol", grade: 98 },
+];
+
+const top = students.sort((a, b) => b.grade - a.grade)[0];
+console.log(\`Top student: \${top.name} with \${top.grade}\`);`,
   },
   {
     id: "python",
     name: "Python",
-    defaultCode: `# Recursive function example
-def factorial(n):
-    if n <= 1:
-        return 1
-    return n * factorial(n - 1)
+    defaultCode: `name = input("Enter your name: ")
+age = int(input("Enter your age: "))
+city = input("Enter your city: ")
 
-print("Factorial of 5:", factorial(5))
-
-# While loop example
-count = 1
-while count <= 5:
-    print("Count:", count)
-    count += 1
-
-# Dictionary example
-person = {"name": "Alice", "age": 30}
-print("Name:", person["name"], "Age:", person["age"])`,
+print(f"Hello, {name}!")
+print(f"You are {age} years old.")
+print(f"You live in {city}.")
+print(f"In 10 years, you will be {age + 10}.")`,
   },
   {
     id: "cpp",
     name: "C++",
     defaultCode: `#include <iostream>
-#include <map>
 #include <string>
 using namespace std;
 
-// Recursive function example
-int factorial(int n) {
-    if (n <= 1) return 1;
-    return n * factorial(n - 1);
-}
-
 int main() {
-    cout << "Factorial of 5: " << factorial(5) << endl;
+    string name, city;
+    int age;
 
-    // Do-while loop example
-    int count = 1;
-    do {
-        cout << "Count: " << count << endl;
-        count++;
-    } while (count <= 5);
+    cout << "Enter your name: ";
+    getline(cin, name);
 
-    // Map example
-    map<string, int> person;
-    person["age"] = 30;
-    cout << "Age: " << person["age"] << endl;
+    cout << "Enter your age: ";
+    cin >> age;
+    cin.ignore();
+
+    cout << "Enter your city: ";
+    getline(cin, city);
+
+    cout << "Hello, " << name << "!" << endl;
+    cout << "You are " << age << " years old." << endl;
+    cout << "You live in " << city << "." << endl;
+    cout << "In 10 years, you will be " << age + 10 << "." << endl;
 
     return 0;
 }`,
